@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm[toml]>=6.2", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "epac-data-py-skeleton"
+version = "0.0.1"
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "mypy",
+    "flake8",
+    "Flake8-pyproject",
+    "pytest",
+    "pdoc",
+]
+
+[project.scripts]
+hello = "epac_data_py_skeleton.hello:hello"
+
+[tool.mypy]
+allow_redefinition = true
+
+[tool.flake8]
+extend-ignore = [
+]
+max-line-length = 88 # Respect black's line length (default 88),
+exclude = [".venv"]
