@@ -124,7 +124,8 @@ class SetupVenv:
 
     @classmethod
     def setup(cls):
-        run_cmd("python", "-m", "venv", cls.VENV_DIR, "--prompt", cls.venv_name())
+        interpreter = sys.executable
+        run_cmd(interpreter, "-m", "venv", cls.VENV_DIR, "--prompt", cls.venv_name())
         # Need pip >= 22 to install in editable mode
         cls.run_cmd("python", "-m", "pip", "install", "pip>=22.0.0")
         cls.run_cmd("pip", "install", "-e", ".[dev]")
