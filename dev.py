@@ -50,7 +50,7 @@ def command(name):
     return inner
 
 
-def run_cmd(*args, **kwargs):
+def run_cmd(executable, *args, **kwargs):
     """Run a command.
 
     Since this doesn't run a command in a venv, for most purposes you should prefer:
@@ -61,7 +61,13 @@ def run_cmd(*args, **kwargs):
 
     kw = dict(check=True)
     kw.update(kwargs)
-    subprocess.run(args, **kw)
+    env = kwargs.get("env", os.environ)
+    path = env["PATH"]
+    # On Windows, the behaviour of subprocess.run() is to search the *current*
+    # PATH, and the env argument does not override that. So we need to do the
+    # search ourselves.
+    executable = shutil.which(executable, path=path)
+    subprocess.run([executable, *args], **kw)
 
 
 def require(setup_name: str, *, auto_setup: bool = False):
@@ -136,7 +142,10 @@ class SetupVenv:
 
     @classmethod
     def venv_bin_path(cls):
-        return os.path.join(os.getcwd(), cls.VENV_DIR, "bin")
+        bin_dir_name = "Scripts" if sys.platform.startswith("win32") else "bin"
+        path = os.path.join(os.getcwd(), cls.VENV_DIR, bin_dir_name)
+        assert os.path.isdir(path)
+        return path
 
     @classmethod
     def run_cmd(cls, *args, **kwargs):
@@ -157,7 +166,7 @@ class SetupHooks:
 
 DEV=./dev.py
 
-if [ ! -x $DEV ]; then
+if [ ! -x $DEV -o {os} = win ]; then
     DEV="python $DEV"
 fi
 
@@ -192,14 +201,17 @@ exit $RESULT
 
     @classmethod
     def setup(cls):
-        for hook, hook_text in cls.HOOKS.items():
+        for hook, hook_template in cls.HOOKS.items():
+            my_os = "win" if sys.platform.startswith("win32") else "unix"
+            hook_text = hook_template.format(os=my_os)
             hook_path = os.path.join(".git", "hooks", hook)
             if not os.path.exists(hook_path):
                 with open(hook_path, "w") as f:
                     f.write(hook_text.lstrip())
-                mode = os.stat(hook_path).st_mode
-                mode |= stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
-                os.chmod(hook_path, mode)
+                if not sys.platform.startswith("win32"):
+                    mode = os.stat(hook_path).st_mode
+                    mode |= stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+                    os.chmod(hook_path, mode)
 
 
 @command("pre-commit")
