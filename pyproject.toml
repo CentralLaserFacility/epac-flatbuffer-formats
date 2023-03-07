@@ -20,7 +20,9 @@ dev = [
 hello = "epac_data_py_skeleton.hello:hello"
 
 [tool.mypy]
-allow_redefinition = true
+
+# [[tool.mypy.overrides]]
+# module="package-name"
 
 [tool.flake8]
 extend-ignore = [
