@@ -170,16 +170,23 @@ if [ ! -x $DEV -o {os} = win ]; then
     DEV="python $DEV"
 fi
 
-STASH_LEN_BEFORE=$(git stash list | wc -l)
-git stash push -quk
-STASH_LEN_AFTER=$(git stash list | wc -l)
+PATCH_FILE=$(mktemp)
+
+git diff --ignore-submodules --binary --exit-code --no-color --no-ext-diff >$PATCH_FILE
+UNSTAGED_CHANGES=$?
+
+if [ $UNSTAGED_CHANGES -ne 0 ]; then
+    git checkout --no-recurse-submodules -- .
+fi
 
 $DEV pre-commit
 RESULT=$?
 
-if [ $STASH_LEN_BEFORE -ne $STASH_LEN_AFTER ]; then
-    git stash pop -q
+if [ $UNSTAGED_CHANGES -ne 0 ]; then
+    git apply --whitespace=nowarn $PATCH_FILE
 fi
+
+rm $PATCH_FILE
 
 exit $RESULT
 """,
