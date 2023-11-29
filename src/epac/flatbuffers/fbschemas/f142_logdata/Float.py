@@ -4,6 +4,7 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Any
 
 np = import_numpy()
 
@@ -12,7 +13,7 @@ class Float(object):
     __slots__ = ["_tab"]
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Float()
         x.Init(buf, n + offset)
@@ -30,7 +31,7 @@ class Float(object):
         )
 
     # Float
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # Float
@@ -43,25 +44,25 @@ class Float(object):
         return 0.0
 
 
-def FloatStart(builder):
+def FloatStart(builder: flatbuffers.Builder):
     builder.StartObject(1)
 
 
-def Start(builder):
+def Start(builder: flatbuffers.Builder):
     FloatStart(builder)
 
 
-def FloatAddValue(builder, value):
+def FloatAddValue(builder: flatbuffers.Builder, value: float):
     builder.PrependFloat32Slot(0, value, 0.0)
 
 
-def AddValue(builder, value):
+def AddValue(builder: flatbuffers.Builder, value: float):
     FloatAddValue(builder, value)
 
 
-def FloatEnd(builder):
+def FloatEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
 
 
-def End(builder):
+def End(builder: flatbuffers.Builder) -> int:
     return FloatEnd(builder)

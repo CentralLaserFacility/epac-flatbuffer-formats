@@ -369,7 +369,11 @@ def cmd_schema_generate():
             os.mkdir(dest_dir)
 
             flatc.run(
-                "-p", "-o", dest_dir, os.path.join(flatc.SCHEMA_SOURCE_PATH, fname)
+                "-p",
+                "--python-typing",
+                "-o",
+                dest_dir,
+                os.path.join(flatc.SCHEMA_SOURCE_PATH, fname),
             )
 
             # Stupid flatc can't generate relative imports

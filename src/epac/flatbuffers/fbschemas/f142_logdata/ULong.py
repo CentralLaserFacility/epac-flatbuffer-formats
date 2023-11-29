@@ -4,6 +4,7 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Any
 
 np = import_numpy()
 
@@ -12,7 +13,7 @@ class ULong(object):
     __slots__ = ["_tab"]
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ULong()
         x.Init(buf, n + offset)
@@ -30,7 +31,7 @@ class ULong(object):
         )
 
     # ULong
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # ULong
@@ -43,25 +44,25 @@ class ULong(object):
         return 0
 
 
-def ULongStart(builder):
+def ULongStart(builder: flatbuffers.Builder):
     builder.StartObject(1)
 
 
-def Start(builder):
+def Start(builder: flatbuffers.Builder):
     ULongStart(builder)
 
 
-def ULongAddValue(builder, value):
+def ULongAddValue(builder: flatbuffers.Builder, value: int):
     builder.PrependUint64Slot(0, value, 0)
 
 
-def AddValue(builder, value):
+def AddValue(builder: flatbuffers.Builder, value: int):
     ULongAddValue(builder, value)
 
 
-def ULongEnd(builder):
+def ULongEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
 
 
-def End(builder):
+def End(builder: flatbuffers.Builder) -> int:
     return ULongEnd(builder)

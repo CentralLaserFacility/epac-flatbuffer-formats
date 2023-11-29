@@ -4,6 +4,7 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Any
 
 np = import_numpy()
 
@@ -12,7 +13,7 @@ class Short(object):
     __slots__ = ["_tab"]
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Short()
         x.Init(buf, n + offset)
@@ -30,7 +31,7 @@ class Short(object):
         )
 
     # Short
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # Short
@@ -41,25 +42,25 @@ class Short(object):
         return 0
 
 
-def ShortStart(builder):
+def ShortStart(builder: flatbuffers.Builder):
     builder.StartObject(1)
 
 
-def Start(builder):
+def Start(builder: flatbuffers.Builder):
     ShortStart(builder)
 
 
-def ShortAddValue(builder, value):
+def ShortAddValue(builder: flatbuffers.Builder, value: int):
     builder.PrependInt16Slot(0, value, 0)
 
 
-def AddValue(builder, value):
+def AddValue(builder: flatbuffers.Builder, value: int):
     ShortAddValue(builder, value)
 
 
-def ShortEnd(builder):
+def ShortEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
 
 
-def End(builder):
+def End(builder: flatbuffers.Builder) -> int:
     return ShortEnd(builder)

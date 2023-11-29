@@ -4,6 +4,7 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Any
 
 np = import_numpy()
 
@@ -12,7 +13,7 @@ class ArrayLong(object):
     __slots__ = ["_tab"]
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ArrayLong()
         x.Init(buf, n + offset)
@@ -30,11 +31,11 @@ class ArrayLong(object):
         )
 
     # ArrayLong
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # ArrayLong
-    def Value(self, j):
+    def Value(self, j: int):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             a = self._tab.Vector(o)
@@ -52,37 +53,37 @@ class ArrayLong(object):
         return 0
 
     # ArrayLong
-    def ValueLength(self):
+    def ValueLength(self) -> int:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # ArrayLong
-    def ValueIsNone(self):
+    def ValueIsNone(self) -> bool:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         return o == 0
 
 
-def ArrayLongStart(builder):
+def ArrayLongStart(builder: flatbuffers.Builder):
     builder.StartObject(1)
 
 
-def Start(builder):
+def Start(builder: flatbuffers.Builder):
     ArrayLongStart(builder)
 
 
-def ArrayLongAddValue(builder, value):
+def ArrayLongAddValue(builder: flatbuffers.Builder, value: int):
     builder.PrependUOffsetTRelativeSlot(
         0, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0
     )
 
 
-def AddValue(builder, value):
+def AddValue(builder: flatbuffers.Builder, value: int):
     ArrayLongAddValue(builder, value)
 
 
-def ArrayLongStartValueVector(builder, numElems):
+def ArrayLongStartValueVector(builder, numElems: int) -> int:
     return builder.StartVector(8, numElems, 8)
 
 
@@ -90,9 +91,9 @@ def StartValueVector(builder, numElems: int) -> int:
     return ArrayLongStartValueVector(builder, numElems)
 
 
-def ArrayLongEnd(builder):
+def ArrayLongEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
 
 
-def End(builder):
+def End(builder: flatbuffers.Builder) -> int:
     return ArrayLongEnd(builder)

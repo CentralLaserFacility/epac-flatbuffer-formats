@@ -4,6 +4,9 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Any
+from .Attribute import Attribute
+from typing import Optional
 
 np = import_numpy()
 
@@ -12,7 +15,7 @@ class ADArray(object):
     __slots__ = ["_tab"]
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ADArray()
         x.Init(buf, n + offset)
@@ -30,11 +33,11 @@ class ADArray(object):
         )
 
     # ADArray
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # ADArray
-    def SourceName(self):
+    def SourceName(self) -> Optional[str]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -57,7 +60,7 @@ class ADArray(object):
         return 0
 
     # ADArray
-    def Dimensions(self, j):
+    def Dimensions(self, j: int):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             a = self._tab.Vector(o)
@@ -75,14 +78,14 @@ class ADArray(object):
         return 0
 
     # ADArray
-    def DimensionsLength(self):
+    def DimensionsLength(self) -> int:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # ADArray
-    def DimensionsIsNone(self):
+    def DimensionsIsNone(self) -> bool:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         return o == 0
 
@@ -94,7 +97,7 @@ class ADArray(object):
         return 0
 
     # ADArray
-    def Data(self, j):
+    def Data(self, j: int):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             a = self._tab.Vector(o)
@@ -112,89 +115,87 @@ class ADArray(object):
         return 0
 
     # ADArray
-    def DataLength(self):
+    def DataLength(self) -> int:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # ADArray
-    def DataIsNone(self):
+    def DataIsNone(self) -> bool:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         return o == 0
 
     # ADArray
-    def Attributes(self, j):
+    def Attributes(self, j: int) -> Optional[Attribute]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .Attribute import Attribute
-
             obj = Attribute()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
 
     # ADArray
-    def AttributesLength(self):
+    def AttributesLength(self) -> int:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # ADArray
-    def AttributesIsNone(self):
+    def AttributesIsNone(self) -> bool:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         return o == 0
 
 
-def ADArrayStart(builder):
+def ADArrayStart(builder: flatbuffers.Builder):
     builder.StartObject(7)
 
 
-def Start(builder):
+def Start(builder: flatbuffers.Builder):
     ADArrayStart(builder)
 
 
-def ADArrayAddSourceName(builder, sourceName):
+def ADArrayAddSourceName(builder: flatbuffers.Builder, sourceName: int):
     builder.PrependUOffsetTRelativeSlot(
         0, flatbuffers.number_types.UOffsetTFlags.py_type(sourceName), 0
     )
 
 
-def AddSourceName(builder, sourceName):
+def AddSourceName(builder: flatbuffers.Builder, sourceName: int):
     ADArrayAddSourceName(builder, sourceName)
 
 
-def ADArrayAddId(builder, id):
+def ADArrayAddId(builder: flatbuffers.Builder, id: int):
     builder.PrependInt32Slot(1, id, 0)
 
 
-def AddId(builder, id):
+def AddId(builder: flatbuffers.Builder, id: int):
     ADArrayAddId(builder, id)
 
 
-def ADArrayAddTimestamp(builder, timestamp):
+def ADArrayAddTimestamp(builder: flatbuffers.Builder, timestamp: int):
     builder.PrependUint64Slot(2, timestamp, 0)
 
 
-def AddTimestamp(builder, timestamp):
+def AddTimestamp(builder: flatbuffers.Builder, timestamp: int):
     ADArrayAddTimestamp(builder, timestamp)
 
 
-def ADArrayAddDimensions(builder, dimensions):
+def ADArrayAddDimensions(builder: flatbuffers.Builder, dimensions: int):
     builder.PrependUOffsetTRelativeSlot(
         3, flatbuffers.number_types.UOffsetTFlags.py_type(dimensions), 0
     )
 
 
-def AddDimensions(builder, dimensions):
+def AddDimensions(builder: flatbuffers.Builder, dimensions: int):
     ADArrayAddDimensions(builder, dimensions)
 
 
-def ADArrayStartDimensionsVector(builder, numElems):
+def ADArrayStartDimensionsVector(builder, numElems: int) -> int:
     return builder.StartVector(8, numElems, 8)
 
 
@@ -202,25 +203,25 @@ def StartDimensionsVector(builder, numElems: int) -> int:
     return ADArrayStartDimensionsVector(builder, numElems)
 
 
-def ADArrayAddDataType(builder, dataType):
+def ADArrayAddDataType(builder: flatbuffers.Builder, dataType: int):
     builder.PrependInt8Slot(4, dataType, 0)
 
 
-def AddDataType(builder, dataType):
+def AddDataType(builder: flatbuffers.Builder, dataType: int):
     ADArrayAddDataType(builder, dataType)
 
 
-def ADArrayAddData(builder, data):
+def ADArrayAddData(builder: flatbuffers.Builder, data: int):
     builder.PrependUOffsetTRelativeSlot(
         5, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0
     )
 
 
-def AddData(builder, data):
+def AddData(builder: flatbuffers.Builder, data: int):
     ADArrayAddData(builder, data)
 
 
-def ADArrayStartDataVector(builder, numElems):
+def ADArrayStartDataVector(builder, numElems: int) -> int:
     return builder.StartVector(1, numElems, 1)
 
 
@@ -228,17 +229,17 @@ def StartDataVector(builder, numElems: int) -> int:
     return ADArrayStartDataVector(builder, numElems)
 
 
-def ADArrayAddAttributes(builder, attributes):
+def ADArrayAddAttributes(builder: flatbuffers.Builder, attributes: int):
     builder.PrependUOffsetTRelativeSlot(
         6, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0
     )
 
 
-def AddAttributes(builder, attributes):
+def AddAttributes(builder: flatbuffers.Builder, attributes: int):
     ADArrayAddAttributes(builder, attributes)
 
 
-def ADArrayStartAttributesVector(builder, numElems):
+def ADArrayStartAttributesVector(builder, numElems: int) -> int:
     return builder.StartVector(4, numElems, 4)
 
 
@@ -246,9 +247,9 @@ def StartAttributesVector(builder, numElems: int) -> int:
     return ADArrayStartAttributesVector(builder, numElems)
 
 
-def ADArrayEnd(builder):
+def ADArrayEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
 
 
-def End(builder):
+def End(builder: flatbuffers.Builder) -> int:
     return ADArrayEnd(builder)

@@ -4,6 +4,8 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Any
+from typing import Optional
 
 np = import_numpy()
 
@@ -12,7 +14,7 @@ class WaveFormArray(object):
     __slots__ = ["_tab"]
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = WaveFormArray()
         x.Init(buf, n + offset)
@@ -30,7 +32,7 @@ class WaveFormArray(object):
         )
 
     # WaveFormArray
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # WaveFormArray
@@ -66,7 +68,7 @@ class WaveFormArray(object):
         return 0
 
     # WaveFormArray
-    def XData(self, j):
+    def XData(self, j: int):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             a = self._tab.Vector(o)
@@ -84,19 +86,19 @@ class WaveFormArray(object):
         return 0
 
     # WaveFormArray
-    def XDataLength(self):
+    def XDataLength(self) -> int:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # WaveFormArray
-    def XDataIsNone(self):
+    def XDataIsNone(self) -> bool:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         return o == 0
 
     # WaveFormArray
-    def YData(self, j):
+    def YData(self, j: int):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             a = self._tab.Vector(o)
@@ -114,83 +116,83 @@ class WaveFormArray(object):
         return 0
 
     # WaveFormArray
-    def YDataLength(self):
+    def YDataLength(self) -> int:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # WaveFormArray
-    def YDataIsNone(self):
+    def YDataIsNone(self) -> bool:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         return o == 0
 
     # WaveFormArray
-    def XUnit(self):
+    def XUnit(self) -> Optional[str]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # WaveFormArray
-    def YUnit(self):
+    def YUnit(self) -> Optional[str]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
 
-def WaveFormArrayStart(builder):
+def WaveFormArrayStart(builder: flatbuffers.Builder):
     builder.StartObject(8)
 
 
-def Start(builder):
+def Start(builder: flatbuffers.Builder):
     WaveFormArrayStart(builder)
 
 
-def WaveFormArrayAddTimestamp(builder, timestamp):
+def WaveFormArrayAddTimestamp(builder: flatbuffers.Builder, timestamp: int):
     builder.PrependUint64Slot(0, timestamp, 0)
 
 
-def AddTimestamp(builder, timestamp):
+def AddTimestamp(builder: flatbuffers.Builder, timestamp: int):
     WaveFormArrayAddTimestamp(builder, timestamp)
 
 
-def WaveFormArrayAddXTimestamp(builder, xTimestamp):
+def WaveFormArrayAddXTimestamp(builder: flatbuffers.Builder, xTimestamp: int):
     builder.PrependUint64Slot(1, xTimestamp, 0)
 
 
-def AddXTimestamp(builder, xTimestamp):
+def AddXTimestamp(builder: flatbuffers.Builder, xTimestamp: int):
     WaveFormArrayAddXTimestamp(builder, xTimestamp)
 
 
-def WaveFormArrayAddXDataType(builder, xDataType):
+def WaveFormArrayAddXDataType(builder: flatbuffers.Builder, xDataType: int):
     builder.PrependInt8Slot(2, xDataType, 0)
 
 
-def AddXDataType(builder, xDataType):
+def AddXDataType(builder: flatbuffers.Builder, xDataType: int):
     WaveFormArrayAddXDataType(builder, xDataType)
 
 
-def WaveFormArrayAddYDataType(builder, yDataType):
+def WaveFormArrayAddYDataType(builder: flatbuffers.Builder, yDataType: int):
     builder.PrependInt8Slot(3, yDataType, 0)
 
 
-def AddYDataType(builder, yDataType):
+def AddYDataType(builder: flatbuffers.Builder, yDataType: int):
     WaveFormArrayAddYDataType(builder, yDataType)
 
 
-def WaveFormArrayAddXData(builder, xData):
+def WaveFormArrayAddXData(builder: flatbuffers.Builder, xData: int):
     builder.PrependUOffsetTRelativeSlot(
         4, flatbuffers.number_types.UOffsetTFlags.py_type(xData), 0
     )
 
 
-def AddXData(builder, xData):
+def AddXData(builder: flatbuffers.Builder, xData: int):
     WaveFormArrayAddXData(builder, xData)
 
 
-def WaveFormArrayStartXDataVector(builder, numElems):
+def WaveFormArrayStartXDataVector(builder, numElems: int) -> int:
     return builder.StartVector(1, numElems, 1)
 
 
@@ -198,17 +200,17 @@ def StartXDataVector(builder, numElems: int) -> int:
     return WaveFormArrayStartXDataVector(builder, numElems)
 
 
-def WaveFormArrayAddYData(builder, yData):
+def WaveFormArrayAddYData(builder: flatbuffers.Builder, yData: int):
     builder.PrependUOffsetTRelativeSlot(
         5, flatbuffers.number_types.UOffsetTFlags.py_type(yData), 0
     )
 
 
-def AddYData(builder, yData):
+def AddYData(builder: flatbuffers.Builder, yData: int):
     WaveFormArrayAddYData(builder, yData)
 
 
-def WaveFormArrayStartYDataVector(builder, numElems):
+def WaveFormArrayStartYDataVector(builder, numElems: int) -> int:
     return builder.StartVector(1, numElems, 1)
 
 
@@ -216,29 +218,29 @@ def StartYDataVector(builder, numElems: int) -> int:
     return WaveFormArrayStartYDataVector(builder, numElems)
 
 
-def WaveFormArrayAddXUnit(builder, xUnit):
+def WaveFormArrayAddXUnit(builder: flatbuffers.Builder, xUnit: int):
     builder.PrependUOffsetTRelativeSlot(
         6, flatbuffers.number_types.UOffsetTFlags.py_type(xUnit), 0
     )
 
 
-def AddXUnit(builder, xUnit):
+def AddXUnit(builder: flatbuffers.Builder, xUnit: int):
     WaveFormArrayAddXUnit(builder, xUnit)
 
 
-def WaveFormArrayAddYUnit(builder, yUnit):
+def WaveFormArrayAddYUnit(builder: flatbuffers.Builder, yUnit: int):
     builder.PrependUOffsetTRelativeSlot(
         7, flatbuffers.number_types.UOffsetTFlags.py_type(yUnit), 0
     )
 
 
-def AddYUnit(builder, yUnit):
+def AddYUnit(builder: flatbuffers.Builder, yUnit: int):
     WaveFormArrayAddYUnit(builder, yUnit)
 
 
-def WaveFormArrayEnd(builder):
+def WaveFormArrayEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
 
 
-def End(builder):
+def End(builder: flatbuffers.Builder) -> int:
     return WaveFormArrayEnd(builder)

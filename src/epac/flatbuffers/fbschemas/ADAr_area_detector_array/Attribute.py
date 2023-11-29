@@ -4,6 +4,8 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Any
+from typing import Optional
 
 np = import_numpy()
 
@@ -12,7 +14,7 @@ class Attribute(object):
     __slots__ = ["_tab"]
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Attribute()
         x.Init(buf, n + offset)
@@ -30,25 +32,25 @@ class Attribute(object):
         )
 
     # Attribute
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # Attribute
-    def Name(self):
+    def Name(self) -> Optional[str]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # Attribute
-    def Description(self):
+    def Description(self) -> Optional[str]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # Attribute
-    def Source(self):
+    def Source(self) -> Optional[str]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -62,7 +64,7 @@ class Attribute(object):
         return 0
 
     # Attribute
-    def Data(self, j):
+    def Data(self, j: int):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             a = self._tab.Vector(o)
@@ -80,75 +82,75 @@ class Attribute(object):
         return 0
 
     # Attribute
-    def DataLength(self):
+    def DataLength(self) -> int:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # Attribute
-    def DataIsNone(self):
+    def DataIsNone(self) -> bool:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         return o == 0
 
 
-def AttributeStart(builder):
+def AttributeStart(builder: flatbuffers.Builder):
     builder.StartObject(5)
 
 
-def Start(builder):
+def Start(builder: flatbuffers.Builder):
     AttributeStart(builder)
 
 
-def AttributeAddName(builder, name):
+def AttributeAddName(builder: flatbuffers.Builder, name: int):
     builder.PrependUOffsetTRelativeSlot(
         0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0
     )
 
 
-def AddName(builder, name):
+def AddName(builder: flatbuffers.Builder, name: int):
     AttributeAddName(builder, name)
 
 
-def AttributeAddDescription(builder, description):
+def AttributeAddDescription(builder: flatbuffers.Builder, description: int):
     builder.PrependUOffsetTRelativeSlot(
         1, flatbuffers.number_types.UOffsetTFlags.py_type(description), 0
     )
 
 
-def AddDescription(builder, description):
+def AddDescription(builder: flatbuffers.Builder, description: int):
     AttributeAddDescription(builder, description)
 
 
-def AttributeAddSource(builder, source):
+def AttributeAddSource(builder: flatbuffers.Builder, source: int):
     builder.PrependUOffsetTRelativeSlot(
         2, flatbuffers.number_types.UOffsetTFlags.py_type(source), 0
     )
 
 
-def AddSource(builder, source):
+def AddSource(builder: flatbuffers.Builder, source: int):
     AttributeAddSource(builder, source)
 
 
-def AttributeAddDataType(builder, dataType):
+def AttributeAddDataType(builder: flatbuffers.Builder, dataType: int):
     builder.PrependInt8Slot(3, dataType, 0)
 
 
-def AddDataType(builder, dataType):
+def AddDataType(builder: flatbuffers.Builder, dataType: int):
     AttributeAddDataType(builder, dataType)
 
 
-def AttributeAddData(builder, data):
+def AttributeAddData(builder: flatbuffers.Builder, data: int):
     builder.PrependUOffsetTRelativeSlot(
         4, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0
     )
 
 
-def AddData(builder, data):
+def AddData(builder: flatbuffers.Builder, data: int):
     AttributeAddData(builder, data)
 
 
-def AttributeStartDataVector(builder, numElems):
+def AttributeStartDataVector(builder, numElems: int) -> int:
     return builder.StartVector(1, numElems, 1)
 
 
@@ -156,9 +158,9 @@ def StartDataVector(builder, numElems: int) -> int:
     return AttributeStartDataVector(builder, numElems)
 
 
-def AttributeEnd(builder):
+def AttributeEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
 
 
-def End(builder):
+def End(builder: flatbuffers.Builder) -> int:
     return AttributeEnd(builder)

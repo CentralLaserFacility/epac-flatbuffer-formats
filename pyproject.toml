@@ -23,12 +23,20 @@ dev = [
 hello = "epac_data_py_skeleton.hello:hello"
 
 [tool.mypy]
+explicit_package_bases = true
+mypy_path = ["src"]
 
-# [[tool.mypy.overrides]]
-# module="package-name"
+[[tool.mypy.overrides]]
+module = "flatbuffers.*"
+ignore_missing_imports = true
 
 [tool.flake8]
 extend-ignore = [
 ]
 max-line-length = 88 # Respect black's line length (default 88),
-exclude = [".venv"]
+exclude = [
+    ".venv",
+    ".git",
+    # Generated code
+    "src/epac/flatbuffers/fbschemas",
+    ]
