@@ -1,13 +1,14 @@
 # Copied from https://github.com/ess-dmsc/python-streaming-data-types
 # Upstream commit 3c2564cd6d
 
-class StreamingDataTypesException(Exception):
+
+class FlatbufferFormatException(Exception):
     pass
 
 
-class WrongSchemaException(StreamingDataTypesException):
+class WrongSchemaException(FlatbufferFormatException):
     pass
 
 
-class ShortBufferException(StreamingDataTypesException):
+class ShortBufferException(FlatbufferFormatException):
     pass

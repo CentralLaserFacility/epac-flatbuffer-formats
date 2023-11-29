@@ -1,7 +1,7 @@
 # Copied from https://github.com/ess-dmsc/python-streaming-data-types
 # Upstream commit 3c2564cd6d
 
-from streaming_data_types.exceptions import ShortBufferException, WrongSchemaException
+from .exceptions import ShortBufferException, WrongSchemaException
 
 
 def get_schema(buffer) -> str:
@@ -25,5 +25,5 @@ def check_schema_identifier(buffer, expected_identifer: bytes):
     """
     if get_schema(buffer) != expected_identifer.decode():
         raise WrongSchemaException(
-            f"Incorrect schema: expected {expected_identifer} but got {get_schema(buffer)}"
+            f"Incorrect schema: expected {expected_identifer!r} but got {get_schema(buffer)!r}"
         )
