@@ -37,3 +37,20 @@ jobs:
         run: ./dev.py pre-commit
       - name: Run tests
         run: ./dev.py test
+  validate-schemas:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Set up development environment
+        run: ./dev.py setup venv
+      - name: Install flatc
+        run: ./dev.py setup flatc
+      - name: Regenerate fbschemas code
+        run: ./dev.py schema-generate
+      - name: Compare generated code to committed
+        run: git diff --exit-code src
