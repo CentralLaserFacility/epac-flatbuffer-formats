@@ -263,6 +263,117 @@ def cmd_api_docs():
 # == User commands, setups, and other customisations ==
 
 
+@setup("flatc")
+class SetupFlatc:
+    """Install the correct version of flatc into the venv"""
+
+    VENV_CLASS = SetupVenv
+
+    SCHEMA_SOURCE_PATH = "schemas/"
+    GENERATED_CODE_PATH = "src/epac/flatbuffers/fbschemas"
+
+    @classmethod
+    def is_setup(cls):
+        venv = cls.VENV_CLASS
+        return venv.is_setup() and os.path.isfile(cls.flatc_exe_path())
+
+    @classmethod
+    def clean(cls):
+        if os.path.exists(cls.flatc_exe_path()):
+            os.remove(cls.flatc_exe_path())
+
+    @classmethod
+    def setup(cls):
+        import io
+        from urllib.request import urlopen
+        import zipfile
+
+        venv = cls.VENV_CLASS
+        if not venv.is_setup():
+            error("Must run setup for venv before flatc")
+
+        version = cls.flatc_version()
+
+        flatc_release_url = "https://github.com/google/flatbuffers/releases/download/"
+        flatc_release_url += f"v{version}/"
+
+        if sys.platform.startswith("win32"):
+            flatc_release_url += "Windows.flatc.binary.zip"
+            flatc_file_name = "flatc.exe"
+            chmod = False
+        else:
+            flatc_release_url += "Linux.flatc.binary.g++-10.zip"
+            flatc_file_name = "flatc"
+            chmod = True
+
+        with urlopen(flatc_release_url) as f:
+            flatc_zip_data = f.read()
+
+        flatc_zip = zipfile.ZipFile(io.BytesIO(flatc_zip_data))
+        with flatc_zip.open(flatc_file_name) as zf:
+            flatc_data = zf.read()
+
+        with open(cls.flatc_exe_path(), "wb") as f:
+            f.write(flatc_data)
+
+        if chmod:
+            mode = os.stat(cls.flatc_exe_path()).st_mode & 0o777
+            mode_read = mode & 0o444
+            mode_exe = mode_read >> 2
+            os.chmod(cls.flatc_exe_path(), mode | mode_exe)
+
+    @classmethod
+    def flatc_exe_path(cls):
+        venv = cls.VENV_CLASS
+        ext = ".exe" if sys.platform.startswith("win32") else ""
+        return os.path.join(venv.venv_bin_path(), f"flatc{ext}")
+
+    @staticmethod
+    def flatc_version():
+        """Try to guess the correct flatbuffers version from pyproject.toml."""
+
+        import re
+
+        flatbuffers_version_re = re.compile(r'"flatbuffers==([\d\.]+)"')
+        candidates = set()
+        with open("pyproject.toml") as f:
+            for line in f:
+                m = flatbuffers_version_re.search(line)
+                if m:
+                    candidates.add(m.group(1))
+
+        if len(candidates) != 1:
+            raise RuntimeError("could not guess flatc version from pyproject.toml")
+
+        return list(candidates)[0]
+
+    @classmethod
+    def run(cls, *args, **kwargs):
+        venv = cls.VENV_CLASS
+        venv.run_cmd("flatc", *args, **kwargs)
+
+
+@command("schema-generate")
+def cmd_schema_generate():
+    """Generate Python code from schema files."""
+
+    flatc: SetupFlatc = require("flatc")
+    venv: SetupVenv = require("venv")
+
+    for fname in os.listdir(flatc.SCHEMA_SOURCE_PATH):
+        base, ext = os.path.splitext(fname)
+        if ext == ".fbs":
+            dest_dir = os.path.join(flatc.GENERATED_CODE_PATH, base)
+            if os.path.exists(dest_dir):
+                shutil.rmtree(dest_dir)
+            os.mkdir(dest_dir)
+
+            flatc.run(
+                "-p", "-o", dest_dir, os.path.join(flatc.SCHEMA_SOURCE_PATH, fname)
+            )
+            venv.run_cmd("black", "--quiet", dest_dir)
+
+
 # == Runtime ==
 
 

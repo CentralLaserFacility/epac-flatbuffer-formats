@@ -3,8 +3,11 @@ requires = ["setuptools>=64", "setuptools_scm[toml]>=6.2", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "epac-data-py-skeleton"
+name = "epac-flatbuffer-formats"
 version = "0.0.1"
+dependencies = [
+    "flatbuffers==23.5.26",
+]
 
 [project.optional-dependencies]
 dev = [

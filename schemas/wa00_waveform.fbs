@@ -1,0 +1,19 @@
+// A flatbuffer schema for holding waveform data from EPICS IOCs
+// Custom addition for EPAC
+
+file_identifier "wa00";
+
+enum DType:byte { int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64}
+
+table WaveFormArray{
+    timestamp: ulong;           // Timestamp in nanoseconds since UNIX epoch
+    x_timestamp: ulong;           // Timestamp in nanoseconds since UNIX epoch
+    x_data_type: DType;         // The type of the data stored in the x_data array
+    y_data_type: DType;         // The type of the data stored in the y_data array
+    x_data: [ubyte] (required);  // Elements in the x array
+    y_data: [ubyte] (required);  // Elements in the x array
+    x_unit: string;
+    y_unit: string;
+}
+
+root_type WaveFormArray;
