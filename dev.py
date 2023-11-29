@@ -371,7 +371,49 @@ def cmd_schema_generate():
             flatc.run(
                 "-p", "-o", dest_dir, os.path.join(flatc.SCHEMA_SOURCE_PATH, fname)
             )
+
+            # Stupid flatc can't generate relative imports
+            for file in os.listdir(dest_dir):
+                if file.endswith(".py"):
+                    convert_to_relative_imports(os.path.join(dest_dir, file))
             venv.run_cmd("black", "--quiet", dest_dir)
+
+
+def convert_to_relative_imports(file):
+    # flatc generates files with absolute imports to neighbouring files
+    # Since it doesn't know which package the code appears in, this clearly
+    # doesn't work
+    # The intended workflow appears to be to place the entire package path into
+    # the fbs file as a namespace directive, but at least the first part of this
+    # seems like it should belong to the build system
+
+    # This function will rewrite any suspicious absolute imports it finds into
+    # relative imports. Currently it looks for module names starting with
+    # capital letters, but this may need to be changed
+
+    import re
+
+    absolute_import_re = re.compile(
+        r"(?P<whitespace>\s*)from (?P<module_name>[A-Z][a-zA-Z_\.]*) "
+        r"import (?P<attribute_names>.+)$"
+    )
+    relative_import_template = (
+        r"\g<whitespace>from .\g<module_name> import \g<attribute_names>\n"
+    )
+    lines = []
+    converted = False
+    with open(file) as f:
+        for line in f:
+            m = absolute_import_re.match(line)
+            if m:
+                lines.append(m.expand(relative_import_template))
+                converted = True
+            else:
+                lines.append(line)
+
+    if converted:
+        with open(file, "w") as f:
+            f.writelines(lines)
 
 
 # == Runtime ==
