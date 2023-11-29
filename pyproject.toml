@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "epac-flatbuffer-formats"
-version = "0.0.1"
 dependencies = [
     "flatbuffers==23.5.26",
     "numpy>=1.26.0",
 ]
+dynamic = ["version"]
 
 [project.optional-dependencies]
 dev = [
@@ -19,6 +19,9 @@ dev = [
     "pytest",
     "pdoc",
 ]
+
+[tool.setuptools_scm]
+version_file = "src/epac/flatbuffers/_version.py"
 
 [tool.mypy]
 explicit_package_bases = true

@@ -1,9 +1,12 @@
 # Copied from https://github.com/ess-dmsc/python-streaming-data-types
 # Upstream commit 3c2564cd6d
 
+from ._version import version
 from .area_detector_ADAr import deserialise_ADAr, serialise_ADAr
 from .logdata_f142 import deserialise_f142, serialise_f142
 from .arrays_wa00 import deserialise_wa00, serialise_wa00
+
+__version__ = version
 
 SERIALISERS = {
     "f142": serialise_f142,
