@@ -8,10 +8,10 @@ from typing import List, NamedTuple, Union
 import flatbuffers
 import numpy as np
 
-import streaming_data_types.fbschemas.ADAr_ADArray_schema.Attribute as ADArAttribute
-from streaming_data_types.fbschemas.ADAr_ADArray_schema import ADArray
-from streaming_data_types.fbschemas.ADAr_ADArray_schema.DType import DType
-from streaming_data_types.utils import check_schema_identifier
+from .fbschemas.ADAr_area_detector_array import Attribute as ADArAttribute
+from .fbschemas.ADAr_area_detector_array import ADArray as ADAr
+from .fbschemas.ADAr_area_detector_array.DType import DType
+from .utils import check_schema_identifier
 
 FILE_IDENTIFIER = b"ADAr"
 
@@ -66,7 +66,7 @@ def serialise_ADAr(
         np.dtype("float64"): DType.float64,
     }
 
-    if type(data) is str:
+    if isinstance(data, str):
         data = np.frombuffer(data.encode(), np.uint8)
         data_type = DType.c_string
     else:
@@ -107,27 +107,27 @@ def serialise_ADAr(
         attr_offset = ADArAttribute.AttributeEnd(builder)
         temp_attributes.append(attr_offset)
 
-    ADArray.ADArrayStartAttributesVector(builder, len(attributes))
-    for item in reversed(temp_attributes):
-        builder.PrependUOffsetTRelative(item)
+    ADAr.ADArrayStartAttributesVector(builder, len(attributes))
+    for offset in reversed(temp_attributes):
+        builder.PrependUOffsetTRelative(offset)
     attributes_offset = builder.EndVector()
 
     # Build the actual buffer
-    ADArray.ADArrayStart(builder)
-    ADArray.ADArrayAddSourceName(builder, source_name_offset)
-    ADArray.ADArrayAddDataType(builder, data_type)
-    ADArray.ADArrayAddDimensions(builder, dims_offset)
-    ADArray.ADArrayAddId(builder, unique_id)
-    ADArray.ADArrayAddData(builder, data_offset)
-    ADArray.ADArrayAddTimestamp(builder, int(timestamp.timestamp() * 1e9))
-    ADArray.ADArrayAddAttributes(builder, attributes_offset)
-    array_message = ADArray.ADArrayEnd(builder)
+    ADAr.ADArrayStart(builder)
+    ADAr.ADArrayAddSourceName(builder, source_name_offset)
+    ADAr.ADArrayAddDataType(builder, data_type)
+    ADAr.ADArrayAddDimensions(builder, dims_offset)
+    ADAr.ADArrayAddId(builder, unique_id)
+    ADAr.ADArrayAddData(builder, data_offset)
+    ADAr.ADArrayAddTimestamp(builder, int(timestamp.timestamp() * 1e9))
+    ADAr.ADArrayAddAttributes(builder, attributes_offset)
+    array_message = ADAr.ADArrayEnd(builder)
 
     builder.Finish(array_message, file_identifier=FILE_IDENTIFIER)
     return bytes(builder.Output())
 
 
-ADArray_t = NamedTuple(
+ADArray = NamedTuple(
     "ADArray",
     (
         ("source_name", str),
@@ -137,6 +137,9 @@ ADArray_t = NamedTuple(
         ("attributes", List[Attribute]),
     ),
 )
+
+# Compatibility with ESS upstream
+ADArray_t = ADArray
 
 
 def get_payload_data(fb_arr) -> np.ndarray:
@@ -166,7 +169,7 @@ def get_data(fb_arr) -> np.ndarray:
 def deserialise_ADAr(buffer: Union[bytearray, bytes]) -> ADArray:
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
-    ad_array = ADArray.ADArray.GetRootAsADArray(buffer, 0)
+    ad_array = ADAr.ADArray.GetRootAsADArray(buffer, 0)
     unique_id = ad_array.Id()
     max_time = datetime(
         year=3001, month=1, day=1, hour=0, minute=0, second=0
@@ -199,7 +202,7 @@ def deserialise_ADAr(buffer: Union[bytearray, bytes]) -> ADArray:
                 temp_attribute.data = int(temp_attribute.data[0])
         attributes_list.append(temp_attribute)
 
-    return ADArray_t(
+    return ADArray(
         source_name=ad_array.SourceName().decode(),
         unique_id=unique_id,
         timestamp=datetime.fromtimestamp(used_timestamp, tz=timezone.utc),

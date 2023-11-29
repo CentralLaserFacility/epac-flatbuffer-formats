@@ -6,16 +6,16 @@ from datetime import datetime, timezone
 import numpy as np
 import pytest
 
-from streaming_data_types import DESERIALISERS, SERIALISERS
-from streaming_data_types.area_detector_ADAr import (
+from epac.flatbuffers import DESERIALISERS, SERIALISERS
+from epac.flatbuffers.area_detector_ADAr import (
     Attribute,
     deserialise_ADAr,
     serialise_ADAr,
 )
-from streaming_data_types.exceptions import WrongSchemaException
+from epac.flatbuffers.exceptions import WrongSchemaException
 
 
-class TestSerialisationNDAr:
+class TestSerialisationADAr:
     def test_serialises_and_deserialises_ADAr_int_array(self):
         """
         Round-trip to check what we serialise is what we get back.
