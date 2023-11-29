@@ -1,3 +1,6 @@
+# Copied from https://github.com/ess-dmsc/python-streaming-data-types
+# Upstream commit 3c2564cd6d
+
 from streaming_data_types._version import version
 from streaming_data_types.action_response_answ import deserialise_answ, serialise_answ
 from streaming_data_types.alarm_al00 import deserialise_al00, serialise_al00

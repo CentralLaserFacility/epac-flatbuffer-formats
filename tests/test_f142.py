@@ -1,3 +1,6 @@
+# Copied from https://github.com/ess-dmsc/python-streaming-data-types
+# Upstream commit 3c2564cd6d
+
 import numpy as np
 import pytest
 
