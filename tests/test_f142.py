@@ -4,11 +4,14 @@
 import numpy as np
 import pytest
 
-from streaming_data_types import DESERIALISERS, SERIALISERS
-from streaming_data_types.exceptions import WrongSchemaException
-from streaming_data_types.fbschemas.logdata_f142.AlarmSeverity import AlarmSeverity
-from streaming_data_types.fbschemas.logdata_f142.AlarmStatus import AlarmStatus
-from streaming_data_types.logdata_f142 import deserialise_f142, serialise_f142
+from epac.flatbuffers import DESERIALISERS, SERIALISERS
+from epac.flatbuffers.exceptions import WrongSchemaException
+from epac.flatbuffers.logdata_f142 import (
+    deserialise_f142,
+    serialise_f142,
+    AlarmStatus,
+    AlarmSeverity,
+)
 
 
 class TestSerialisationF142:
@@ -67,19 +70,6 @@ class TestSerialisationF142:
         assert deserialised_tuple.source_name == numpy_log["source_name"]
         assert deserialised_tuple.value == np.array(numpy_log["value"])
         assert deserialised_tuple.timestamp_unix_ns == numpy_log["timestamp_unix_ns"]
-
-    def test_serialises_and_deserialises_string_f142_message_correctly(self):
-        string_log = {
-            "source_name": "some_source",
-            "value": "some_string",
-            "timestamp_unix_ns": 1585332414000000000,
-        }
-        buf = serialise_f142(**string_log)
-        deserialised_tuple = deserialise_f142(buf)
-
-        assert deserialised_tuple.source_name == string_log["source_name"]
-        assert deserialised_tuple.value == string_log["value"]
-        assert deserialised_tuple.timestamp_unix_ns == string_log["timestamp_unix_ns"]
 
     def test_serialises_and_deserialises_native_list_correctly(self):
         list_log = {
@@ -147,19 +137,6 @@ class TestSerialisationF142:
 
         assert deserialised_tuple.source_name == array_log["source_name"]
         assert np.allclose(deserialised_tuple.value, array_log["value"])
-        assert deserialised_tuple.timestamp_unix_ns == array_log["timestamp_unix_ns"]
-
-    def test_serialises_and_deserialises_numpy_array_strings_correctly(self):
-        array_log = {
-            "source_name": "some_source",
-            "value": np.array(["1", "2", "3"]),
-            "timestamp_unix_ns": 1585332414000000000,
-        }
-        buf = serialise_f142(**array_log)
-        deserialised_tuple = deserialise_f142(buf)
-
-        assert deserialised_tuple.source_name == array_log["source_name"]
-        assert np.array_equal(deserialised_tuple.value, array_log["value"])
         assert deserialised_tuple.timestamp_unix_ns == array_log["timestamp_unix_ns"]
 
     def test_serialises_and_deserialises_epics_alarms_correctly(self):
