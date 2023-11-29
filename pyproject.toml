@@ -20,9 +20,6 @@ dev = [
     "pdoc",
 ]
 
-[project.scripts]
-hello = "epac_data_py_skeleton.hello:hello"
-
 [tool.mypy]
 explicit_package_bases = true
 mypy_path = ["src"]
