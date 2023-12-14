@@ -21,7 +21,7 @@ support for git URLs. For example, you can add the following to your
 
 ```toml
 dependencies = [
-    "epac-flatbuffer-formats @ git+https://github.com/CentralLaserFacility/epac-flatbuffer-formats@v0.1.0",
+    "epac-flatbuffer-formats @ git+https://github.com/CentralLaserFacility/epac-flatbuffer-formats@v0.1.1",
 ]
 ```
 
