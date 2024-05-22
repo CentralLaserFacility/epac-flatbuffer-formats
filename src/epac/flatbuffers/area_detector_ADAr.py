@@ -73,7 +73,7 @@ def serialise_ADAr(
         data_type = type_map[data.dtype]
 
     # Build dims
-    dims_offset = builder.CreateNumpyVector(np.asarray(data.shape))
+    dims_offset = builder.CreateNumpyVector(np.asarray(data.T.shape))
 
     # Build data
     data_offset = builder.CreateNumpyVector(data.flatten().view(np.uint8))
@@ -143,7 +143,7 @@ ADArray_t = ADArray
 
 
 def get_payload_data(fb_arr) -> np.ndarray:
-    return get_data(fb_arr).reshape(fb_arr.DimensionsAsNumpy())
+    return get_data(fb_arr).reshape(fb_arr.DimensionsAsNumpy(), order='F').T
 
 
 def get_data(fb_arr) -> np.ndarray:
