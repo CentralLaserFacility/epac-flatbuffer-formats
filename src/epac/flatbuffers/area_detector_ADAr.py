@@ -143,7 +143,7 @@ ADArray_t = ADArray
 
 
 def get_payload_data(fb_arr) -> np.ndarray:
-    return get_data(fb_arr).reshape(fb_arr.DimensionsAsNumpy(), order='F').T
+    return get_data(fb_arr).reshape(fb_arr.DimensionsAsNumpy(), order="F").T
 
 
 def get_data(fb_arr) -> np.ndarray:
