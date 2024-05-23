@@ -21,6 +21,17 @@ jobs:
           python-version: "3.10"
       - name: Set up development environment
         run: ./dev.py setup venv
+      # - name: Generate a token
+      #   id: generate-token
+      #   uses: actions/create-github-app-token@v1
+      #   with:
+      #     app-id: ${{ vars.EPAC_DATA_CI_AUTH_ID }}
+      #     private-key: ${{ secrets.EPAC_DATA_CI_AUTH_KEY }}
+      #     repositories: <repository-containing-dependency>
+      # - name: Install Private Dependencies
+      #   env:
+      #     GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+      #   run: ./dev.py setup private
       - name: Run pre-commit hooks
         run: ./dev.py pre-commit
       - name: Run tests

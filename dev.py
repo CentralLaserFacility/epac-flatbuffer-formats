@@ -7,6 +7,17 @@ import stat
 import subprocess
 import sys
 
+try:
+    # If we're on 3.11+ tomllib is in the stdlib
+    import tomllib
+except ImportError:
+    try:
+        # Otherwise hopefully we have tomli in our external environment
+        import tomli as tomllib
+    except ImportError:
+        # As a final fallback, pip has a vendored version inside
+        import pip._vendor.tomli as tomllib
+
 
 # == Framework ==
 
@@ -219,6 +230,75 @@ exit $RESULT
                     mode = os.stat(hook_path).st_mode
                     mode |= stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
                     os.chmod(hook_path, mode)
+
+
+@setup("private")
+class SetupPrivate:
+    """Install additional dependencies from private GitHub repositories
+
+    The github command-line tool `gh` is used to download wheels,
+    so it should have authentication set up already. This can be via
+    GH_TOKEN environment variable, or by using `gh auth login` if running locally.
+    """
+
+    WHEELS_DIR = ".wheels"
+
+    @classmethod
+    def is_setup(cls):
+        venv = require("venv")
+        for private_dep in cls.get_private_deps():
+            try:
+                venv.run_cmd("pip", "show", private_dep, capture_output=True)
+            except subprocess.CalledProcessError:
+                return False
+        return True
+
+    @classmethod
+    def clean(cls):
+        venv = require("venv")
+        for private_dep in cls.get_private_deps():
+            venv.run_cmd("python", "-m", "pip", "uninstall", "-y", private_dep)
+
+    @classmethod
+    def get_private_deps(cls):
+        with open("pyproject.toml", "rb") as f:
+            pyproject = tomllib.load(f)
+
+        return (
+            pyproject.get("tool", {})
+            .get("epac-data", {})
+            .get("private_dependencies", {})
+        )
+
+    @classmethod
+    def setup(cls):
+        venv = require("venv")
+
+        for private_dep, details in cls.get_private_deps().items():
+            repo = details["repo"]
+            release = details["release"]
+            dep_dir = os.path.join(".", cls.WHEELS_DIR, f"{private_dep}_{release}")
+
+            run_cmd(
+                "gh",
+                "release",
+                "-R",
+                repo,
+                "download",
+                release,
+                "-D",
+                dep_dir,
+                "--skip-existing",
+            )
+
+            venv.run_cmd(
+                "pip",
+                "install",
+                "--no-index",
+                "--find-links",
+                dep_dir,
+                private_dep,
+            )
 
 
 @command("pre-commit")
