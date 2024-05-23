@@ -73,6 +73,9 @@ def serialise_ADAr(
         data_type = type_map[data.dtype]
 
     # Build dims
+    # Here the shape is reversed to match AreaDetector, which lists
+    # dimensions with fastest varying index first - the opposite order
+    # to the one numpy uses
     dims_offset = builder.CreateNumpyVector(np.asarray(data.shape[::-1]))
 
     # Build data
@@ -143,6 +146,9 @@ ADArray_t = ADArray
 
 
 def get_payload_data(fb_arr) -> np.ndarray:
+    # The dimensions are reversed when converting from AreaDetector
+    # to numpy, as AreaDetector lists its dimensions in the opposite
+    # order to numpy.
     return get_data(fb_arr).reshape(fb_arr.DimensionsAsNumpy()[::-1])
 
 
