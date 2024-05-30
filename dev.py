@@ -181,6 +181,16 @@ if [ ! -x $DEV -o {os} = win ]; then
     DEV="python $DEV"
 fi
 
+# We do not attempt to support intent-to-add, but we don't want to wreck the files
+git diff --ignore-submodules --exit-code --no-ext-diff --diff-filter=A --name-only \
+    >/dev/null
+if [ $? -ne 0 ]; then
+    echo Some files have intent-to-add set
+    echo This pre-commit hook does not support this
+    echo Try removing intent-to-add or skipping pre-commit hooks
+    exit 1
+fi
+
 PATCH_FILE=$(mktemp)
 
 git diff --ignore-submodules --binary --exit-code --no-color --no-ext-diff >$PATCH_FILE
