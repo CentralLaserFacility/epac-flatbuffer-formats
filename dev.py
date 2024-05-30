@@ -245,7 +245,10 @@ class SetupPrivate:
 
     @classmethod
     def is_setup(cls):
-        venv = require("venv")
+        venv = SETUP_MAP["venv"]
+        if not venv.is_setup():
+            return False
+
         for private_dep in cls.get_private_deps():
             try:
                 venv.run_cmd("pip", "show", private_dep, capture_output=True)
@@ -255,7 +258,11 @@ class SetupPrivate:
 
     @classmethod
     def clean(cls):
-        venv = require("venv")
+        venv = SETUP_MAP["venv"]
+        if not venv.is_setup():
+            # Should be unreachable, because this wouldn't need cleaning
+            return
+
         for private_dep in cls.get_private_deps():
             venv.run_cmd("python", "-m", "pip", "uninstall", "-y", private_dep)
 
