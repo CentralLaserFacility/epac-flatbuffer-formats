@@ -316,15 +316,17 @@ def cmd_precommit():
 
     venv.run_cmd("git", "diff", "--staged", "--check")
     venv.run_cmd("black", "--quiet", "--check", "--diff", ".")
+    venv.run_cmd("isort", "--quiet", "--check", "--diff", ".")
     venv.run_cmd("flake8", ".")
 
 
 @command("fmt")
 def cmd_fmt():
-    """Format code with black."""
+    """Format code with black and isort."""
 
     venv = require("venv")
 
+    venv.run_cmd("isort", "--quiet", ".")
     venv.run_cmd("black", ".")
 
 
