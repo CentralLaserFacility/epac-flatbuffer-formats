@@ -9,8 +9,7 @@ on:
       - development
 
 jobs:
-  test-cloud:
-    if: true
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -32,18 +31,6 @@ jobs:
       #   env:
       #     GH_TOKEN: ${{ steps.generate-token.outputs.token }}
       #   run: ./dev.py setup private
-      - name: Run pre-commit hooks
-        run: ./dev.py pre-commit
-      - name: Run tests
-        run: ./dev.py test
-  test-selfhosted:
-    if: false
-    runs-on: [self-hosted, python3.10]
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-      - name: Set up development environment
-        run: ./dev.py setup venv
       - name: Run pre-commit hooks
         run: ./dev.py pre-commit
       - name: Run tests
