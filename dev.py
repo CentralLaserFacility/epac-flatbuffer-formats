@@ -9,7 +9,7 @@ import sys
 
 try:
     # If we're on 3.11+ tomllib is in the stdlib
-    import tomllib
+    import tomllib  # type: ignore
 except ImportError:
     try:
         # Otherwise hopefully we have tomli in our external environment
