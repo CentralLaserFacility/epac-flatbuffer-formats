@@ -452,9 +452,7 @@ def _serialise_value(
 ):
     # We can use a dictionary to map most numpy types to one of the types defined in the flatbuffer schema
     # but we have to handle strings separately as there are many subtypes
-    if np.issubdtype(value.dtype, np.unicode_) or np.issubdtype(
-        value.dtype, np.string_
-    ):
+    if np.issubdtype(value.dtype, np.str_) or np.issubdtype(value.dtype, np.bytes_):
         # Strings were handled here once, but they were removed from the schema definition
         # This is left to give a nice clean error
         # All other string support code has been removed
