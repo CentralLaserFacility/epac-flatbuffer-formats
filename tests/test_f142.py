@@ -208,3 +208,19 @@ class TestSerialisationF142:
     def test_schema_type_is_in_global_serialisers_list(self):
         assert "f142" in SERIALISERS
         assert "f142" in DESERIALISERS
+
+    def test_serialise_and_deserialise_f142_without_option(self):
+        no_optional_log = {
+            "source_name": "some_source",
+            "value": 578214,
+            "timestamp_unix_ns": 1585332414000000000,
+        }
+        buf = serialise_f142(**no_optional_log)
+        deserialised_tuple = deserialise_f142(buf)
+
+        assert deserialised_tuple.source_name == no_optional_log["source_name"]
+        assert deserialised_tuple.value == no_optional_log["value"]
+        assert deserialised_tuple.units is None
+        assert (
+            deserialised_tuple.timestamp_unix_ns == no_optional_log["timestamp_unix_ns"]
+        )

@@ -159,30 +159,31 @@ def _complete_buffer(
 
 
 def _setup_builder(
-    source_name: str, units: str
-) -> Tuple[flatbuffers.Builder, int, int]:
+    source_name: str, units: str | None
+) -> Tuple[flatbuffers.Builder, int, int | None]:
     builder = flatbuffers.Builder(1024)
     builder.ForceDefaults(True)
     source = builder.CreateString(source_name)
-    unit = builder.CreateString(units)
-    return builder, source, unit
+    units_built = builder.CreateString(units) if units is not None else None
+    return builder, source, units_built
 
 
 def _serialise_byte(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     ByteStart(builder)
     ByteAddValue(builder, data.item())
     value_position = ByteEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.Byte)
 
 
 def _serialise_bytearray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayByteStart(builder)
@@ -190,26 +191,28 @@ def _serialise_bytearray(
     value_position = ArrayByteEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.ArrayByte)
 
 
 def _serialise_ubyte(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     UByteStart(builder)
     UByteAddValue(builder, data.item())
     value_position = UByteEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.UByte)
 
 
 def _serialise_ubytearray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayUByteStart(builder)
@@ -217,26 +220,28 @@ def _serialise_ubytearray(
     value_position = ArrayUByteEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.ArrayUByte)
 
 
 def _serialise_short(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     ShortStart(builder)
     ShortAddValue(builder, data.item())
     value_position = ShortEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.Short)
 
 
 def _serialise_shortarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayShortStart(builder)
@@ -244,26 +249,28 @@ def _serialise_shortarray(
     value_position = ArrayShortEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.ArrayShort)
 
 
 def _serialise_ushort(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     UShortStart(builder)
     UShortAddValue(builder, data.item())
     value_position = UShortEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.UShort)
 
 
 def _serialise_ushortarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayUShortStart(builder)
@@ -271,26 +278,28 @@ def _serialise_ushortarray(
     value_position = ArrayUShortEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.ArrayUShort)
 
 
 def _serialise_int(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     IntStart(builder)
     IntAddValue(builder, data.item())
     value_position = IntEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.Int)
 
 
 def _serialise_intarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayIntStart(builder)
@@ -298,26 +307,28 @@ def _serialise_intarray(
     value_position = ArrayIntEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.ArrayInt)
 
 
 def _serialise_uint(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     UIntStart(builder)
     UIntAddValue(builder, data.item())
     value_position = UIntEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.UInt)
 
 
 def _serialise_uintarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayUIntStart(builder)
@@ -325,26 +336,28 @@ def _serialise_uintarray(
     value_position = ArrayUIntEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.ArrayUInt)
 
 
 def _serialise_long(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     LongStart(builder)
     LongAddValue(builder, data.item())
     value_position = LongEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.Long)
 
 
 def _serialise_longarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayLongStart(builder)
@@ -352,26 +365,28 @@ def _serialise_longarray(
     value_position = ArrayLongEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.ArrayLong)
 
 
 def _serialise_ulong(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     ULongStart(builder)
     ULongAddValue(builder, data.item())
     value_position = ULongEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.ULong)
 
 
 def _serialise_ulongarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayULongStart(builder)
@@ -379,26 +394,28 @@ def _serialise_ulongarray(
     value_position = ArrayULongEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.ArrayULong)
 
 
 def _serialise_float(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     FloatStart(builder)
     FloatAddValue(builder, data.item())
     value_position = FloatEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.Float)
 
 
 def _serialise_floatarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayFloatStart(builder)
@@ -406,26 +423,28 @@ def _serialise_floatarray(
     value_position = ArrayFloatEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.ArrayFloat)
 
 
 def _serialise_double(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     DoubleStart(builder)
     DoubleAddValue(builder, data.item())
     value_position = DoubleEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.Double)
 
 
 def _serialise_doublearray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units: int
+    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayDoubleStart(builder)
@@ -433,7 +452,8 @@ def _serialise_doublearray(
     value_position = ArrayDoubleEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
-    LogData.LogDataAddUnits(builder, units)
+    if units_built is not None:
+        LogData.LogDataAddUnits(builder, units_built)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.ArrayDouble)
 
@@ -472,7 +492,7 @@ _map_array_type_to_serialiser = {
 def serialise_f142(
     value: Any,
     source_name: str,
-    units: str,
+    units: Union[str, None] = None,
     timestamp_unix_ns: int = 0,
     alarm_status: Union[int, None] = None,
     alarm_severity: Union[int, None] = None,
@@ -489,17 +509,19 @@ def serialise_f142(
     :param alarm_status: EPICS alarm status, best to provide using enum-like class defined in logdata_f142.AlarmStatus
     :param alarm_severity: EPICS alarm severity, best to provide using enum-like class defined in logdata_f142.AlarmSeverity
     """
-    builder, source, unit = _setup_builder(source_name, units)
+    builder, source, units_built = _setup_builder(source_name, units)
     value = np.array(value)
 
     if value.ndim == 0:
-        _serialise_value(builder, source, value, unit, _map_scalar_type_to_serialiser)
+        _serialise_value(
+            builder, source, value, units_built, _map_scalar_type_to_serialiser
+        )
     elif value.ndim == 1:
         _serialise_value(
             builder,
             source,
             value,
-            unit,
+            units_built,
             _map_array_type_to_serialiser,
         )
     else:
@@ -514,7 +536,7 @@ def _serialise_value(
     builder: flatbuffers.Builder,
     source: int,
     value: Any,
-    units: int,
+    units_built: int | None,
     serialisers_map: Dict,
 ):
     # We can use a dictionary to map most numpy types to one of the types defined in the flatbuffer schema
@@ -526,7 +548,7 @@ def _serialise_value(
         raise NotImplementedError("String serialisation has been removed")
     else:
         try:
-            serialisers_map[value.dtype](builder, value, source, units)
+            serialisers_map[value.dtype](builder, value, source, units_built)
         except KeyError:
             # There are a few numpy types we don't try to handle, for example complex numbers
             raise NotImplementedError(
@@ -577,7 +599,7 @@ def deserialise_f142(buffer: Union[bytearray, bytes]) -> LogDataInfo:
 
     log_data = LogData.LogData.GetRootAsLogData(buffer, 0)
     source_name = log_data.SourceName() if log_data.SourceName() else b""
-    units = log_data.Units() if log_data.Units() else b""
+    units = log_data.Units()
 
     value_offset = log_data.Value()
     value_fb = _map_fb_enum_to_type[log_data.ValueType()]()
@@ -593,7 +615,7 @@ def deserialise_f142(buffer: Union[bytearray, bytes]) -> LogDataInfo:
     return LogDataInfo(
         value,
         source_name.decode(),
-        units.decode(),
+        units.decode() if units is not None else None,
         timestamp,
         log_data.Status(),
         log_data.Severity(),
