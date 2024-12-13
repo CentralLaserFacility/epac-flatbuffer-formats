@@ -60,15 +60,8 @@ class LogData(object):
         return None
 
     # LogData
-    def Units(self) -> Optional[str]:
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
-        if o != 0:
-            return self._tab.String(o + self._tab.Pos)
-        return None
-
-    # LogData
     def Timestamp(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.Get(
                 flatbuffers.number_types.Uint64Flags, o + self._tab.Pos
@@ -77,7 +70,7 @@ class LogData(object):
 
     # LogData
     def Status(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.Get(
                 flatbuffers.number_types.Uint16Flags, o + self._tab.Pos
@@ -86,12 +79,19 @@ class LogData(object):
 
     # LogData
     def Severity(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             return self._tab.Get(
                 flatbuffers.number_types.Uint16Flags, o + self._tab.Pos
             )
         return 4
+
+    # LogData
+    def Units(self) -> Optional[str]:
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
 
 
 def LogDataStart(builder: flatbuffers.Builder):
@@ -130,18 +130,8 @@ def AddValue(builder: flatbuffers.Builder, value: int):
     LogDataAddValue(builder, value)
 
 
-def LogDataAddUnits(builder: flatbuffers.Builder, units: int):
-    builder.PrependUOffsetTRelativeSlot(
-        3, flatbuffers.number_types.UOffsetTFlags.py_type(units), 0
-    )
-
-
-def AddUnits(builder: flatbuffers.Builder, units: int):
-    LogDataAddUnits(builder, units)
-
-
 def LogDataAddTimestamp(builder: flatbuffers.Builder, timestamp: int):
-    builder.PrependUint64Slot(4, timestamp, 0)
+    builder.PrependUint64Slot(3, timestamp, 0)
 
 
 def AddTimestamp(builder: flatbuffers.Builder, timestamp: int):
@@ -149,7 +139,7 @@ def AddTimestamp(builder: flatbuffers.Builder, timestamp: int):
 
 
 def LogDataAddStatus(builder: flatbuffers.Builder, status: int):
-    builder.PrependUint16Slot(5, status, 22)
+    builder.PrependUint16Slot(4, status, 22)
 
 
 def AddStatus(builder: flatbuffers.Builder, status: int):
@@ -157,11 +147,21 @@ def AddStatus(builder: flatbuffers.Builder, status: int):
 
 
 def LogDataAddSeverity(builder: flatbuffers.Builder, severity: int):
-    builder.PrependUint16Slot(6, severity, 4)
+    builder.PrependUint16Slot(5, severity, 4)
 
 
 def AddSeverity(builder: flatbuffers.Builder, severity: int):
     LogDataAddSeverity(builder, severity)
+
+
+def LogDataAddUnits(builder: flatbuffers.Builder, units: int):
+    builder.PrependUOffsetTRelativeSlot(
+        6, flatbuffers.number_types.UOffsetTFlags.py_type(units), 0
+    )
+
+
+def AddUnits(builder: flatbuffers.Builder, units: int):
+    LogDataAddUnits(builder, units)
 
 
 def LogDataEnd(builder: flatbuffers.Builder) -> int:
