@@ -96,6 +96,7 @@ table LogData {
 	timestamp: ulong;                     // nanoseconds past epoch (1 Jan 1970), zero reserved for invalid timestamp
 	status: AlarmStatus = NO_CHANGE;      // details of EPICS alarm, default being NO_CHANGE: file writer only records changes
 	severity: AlarmSeverity = NO_CHANGE;  // severity of current EPICS alarm status, default of NO_CHANGE should be used if status has value of NO_CHANGE
+    units: string;
 }
 
 root_type LogData;

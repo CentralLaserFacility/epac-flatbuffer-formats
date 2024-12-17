@@ -86,9 +86,16 @@ class LogData(object):
             )
         return 4
 
+    # LogData
+    def Units(self) -> Optional[str]:
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
 
 def LogDataStart(builder: flatbuffers.Builder):
-    builder.StartObject(6)
+    builder.StartObject(7)
 
 
 def Start(builder: flatbuffers.Builder):
@@ -145,6 +152,16 @@ def LogDataAddSeverity(builder: flatbuffers.Builder, severity: int):
 
 def AddSeverity(builder: flatbuffers.Builder, severity: int):
     LogDataAddSeverity(builder, severity)
+
+
+def LogDataAddUnits(builder: flatbuffers.Builder, units: int):
+    builder.PrependUOffsetTRelativeSlot(
+        6, flatbuffers.number_types.UOffsetTFlags.py_type(units), 0
+    )
+
+
+def AddUnits(builder: flatbuffers.Builder, units: int):
+    LogDataAddUnits(builder, units)
 
 
 def LogDataEnd(builder: flatbuffers.Builder) -> int:
