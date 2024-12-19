@@ -6,6 +6,7 @@ from typing import Any, Dict, Tuple, Union
 
 import flatbuffers
 import numpy as np
+import numpy.typing as npt
 
 from .fbschemas.f142_logdata import LogData
 from .fbschemas.f142_logdata.ArrayByte import (
@@ -169,7 +170,10 @@ def _setup_builder(
 
 
 def _serialise_byte(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     ByteStart(builder)
     ByteAddValue(builder, data.item())
@@ -183,7 +187,10 @@ def _serialise_byte(
 
 
 def _serialise_bytearray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayByteStart(builder)
@@ -198,7 +205,10 @@ def _serialise_bytearray(
 
 
 def _serialise_ubyte(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     UByteStart(builder)
     UByteAddValue(builder, data.item())
@@ -212,7 +222,10 @@ def _serialise_ubyte(
 
 
 def _serialise_ubytearray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayUByteStart(builder)
@@ -227,7 +240,10 @@ def _serialise_ubytearray(
 
 
 def _serialise_short(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     ShortStart(builder)
     ShortAddValue(builder, data.item())
@@ -241,7 +257,10 @@ def _serialise_short(
 
 
 def _serialise_shortarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayShortStart(builder)
@@ -256,7 +275,10 @@ def _serialise_shortarray(
 
 
 def _serialise_ushort(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     UShortStart(builder)
     UShortAddValue(builder, data.item())
@@ -270,7 +292,10 @@ def _serialise_ushort(
 
 
 def _serialise_ushortarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayUShortStart(builder)
@@ -285,7 +310,10 @@ def _serialise_ushortarray(
 
 
 def _serialise_int(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     IntStart(builder)
     IntAddValue(builder, data.item())
@@ -299,7 +327,10 @@ def _serialise_int(
 
 
 def _serialise_intarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayIntStart(builder)
@@ -314,7 +345,10 @@ def _serialise_intarray(
 
 
 def _serialise_uint(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     UIntStart(builder)
     UIntAddValue(builder, data.item())
@@ -328,7 +362,10 @@ def _serialise_uint(
 
 
 def _serialise_uintarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayUIntStart(builder)
@@ -343,7 +380,10 @@ def _serialise_uintarray(
 
 
 def _serialise_long(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     LongStart(builder)
     LongAddValue(builder, data.item())
@@ -357,7 +397,10 @@ def _serialise_long(
 
 
 def _serialise_longarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayLongStart(builder)
@@ -372,7 +415,10 @@ def _serialise_longarray(
 
 
 def _serialise_ulong(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     ULongStart(builder)
     ULongAddValue(builder, data.item())
@@ -386,7 +432,10 @@ def _serialise_ulong(
 
 
 def _serialise_ulongarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayULongStart(builder)
@@ -401,7 +450,10 @@ def _serialise_ulongarray(
 
 
 def _serialise_float(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     FloatStart(builder)
     FloatAddValue(builder, data.item())
@@ -415,7 +467,10 @@ def _serialise_float(
 
 
 def _serialise_floatarray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayFloatStart(builder)
@@ -430,7 +485,10 @@ def _serialise_floatarray(
 
 
 def _serialise_double(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     DoubleStart(builder)
     DoubleAddValue(builder, data.item())
@@ -444,7 +502,10 @@ def _serialise_double(
 
 
 def _serialise_doublearray(
-    builder: flatbuffers.Builder, data: np.ndarray, source: int, units_built: int | None
+    builder: flatbuffers.Builder,
+    data: npt.NDArray[Any],
+    source: int,
+    units_built: int | None,
 ):
     array_offset = builder.CreateNumpyVector(data)
     ArrayDoubleStart(builder)
