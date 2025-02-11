@@ -95,6 +95,22 @@ class NTTable(BaseModel):
     display: Optional[DisplayT] = None
 
 
+class CAScalarAll(BaseModel):
+    value: Any
+    pvname: str = ""
+    status: int = 0
+    precision: Optional[int] = (
+        0  # precision appears to be the only optional field in pyepics (form="ctrl")
+    )
+    units: str = ""
+    severity: int = 0
+    timestamp: float
+    upper_disp_limit: float = 0
+    lower_disp_limit: float = 0
+    upper_ctrl_limit: float = 0
+    lower_ctrl_limit: float = 0
+
+
 class PVData(BaseModel):
-    data: Union[NTScalarAll, NTNDArray, NTTable]
+    data: Union[NTScalarAll, NTNDArray, NTTable, CAScalarAll]
     pv_name: str = ""

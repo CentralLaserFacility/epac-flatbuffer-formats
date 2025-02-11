@@ -1,4 +1,5 @@
 from typing import Callable, Optional, TypeVar
+from epac.flatbuffers.ca_to_pva import cascalarall_to_ntscalarall
 import flatbuffers
 import epac.flatbuffers.data_types as dt
 from functools import wraps
@@ -940,6 +941,10 @@ def serialise_data(pv_name: str, data_type: str, data: dt.PVData) -> bytes:
     elif isinstance(data.data, dt.NTTable):
         data_offset = serialise_nttable(builder, data.data)
         data_enum = PVType.PVType.NTTable
+    elif isinstance(data.data, dt.CAScalarAll):
+        converted_data = cascalarall_to_ntscalarall(data.data)
+        data_offset = serialise_ntscalarall(builder, converted_data)
+        data_enum = PVType.PVType.NTScalarAll
     else:
         raise ValueError(f"Unsupported data type: {data_type}")
 
