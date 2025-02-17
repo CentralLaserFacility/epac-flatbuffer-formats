@@ -1,7 +1,7 @@
 import epac.flatbuffers.data_types as dt
 
 
-def cascalarall_to_ntscalarall(data: dt.CAScalarAll) -> dt.NTScalarAll:
+def cascalarany_to_ntscalarany(data: dt.CAScalarAny) -> dt.NTScalarAny:
     alarm = dt.AlarmT(severity=data.severity, status=data.status)
 
     timeStamp = dt.TimeT(
@@ -21,7 +21,7 @@ def cascalarall_to_ntscalarall(data: dt.CAScalarAll) -> dt.NTScalarAll:
         limitHigh=data.upper_ctrl_limit,
     )
 
-    return dt.NTScalarAll(
+    return dt.NTScalarAny(
         value=data.value,
         alarm=alarm,
         timeStamp=timeStamp,

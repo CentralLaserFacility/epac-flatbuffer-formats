@@ -11,39 +11,39 @@ from typing import Optional
 np = import_numpy()
 
 
-class AnyOuter(object):
+class AnyT(object):
     __slots__ = ["_tab"]
 
     @classmethod
     def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = AnyOuter()
+        x = AnyT()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAsAnyOuter(cls, buf, offset=0):
+    def GetRootAsAnyT(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
 
     @classmethod
-    def AnyOuterBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+    def AnyTBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(
             buf, offset, b"\x70\x76\x61\x30", size_prefixed=size_prefixed
         )
 
-    # AnyOuter
+    # AnyT
     def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # AnyOuter
+    # AnyT
     def ValueType(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-    # AnyOuter
+    # AnyT
     def Value(self) -> Optional[flatbuffers.table.Table]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
@@ -53,35 +53,35 @@ class AnyOuter(object):
         return None
 
 
-def AnyOuterStart(builder: flatbuffers.Builder):
+def AnyTStart(builder: flatbuffers.Builder):
     builder.StartObject(2)
 
 
 def Start(builder: flatbuffers.Builder):
-    AnyOuterStart(builder)
+    AnyTStart(builder)
 
 
-def AnyOuterAddValueType(builder: flatbuffers.Builder, valueType: int):
+def AnyTAddValueType(builder: flatbuffers.Builder, valueType: int):
     builder.PrependUint8Slot(0, valueType, 0)
 
 
 def AddValueType(builder: flatbuffers.Builder, valueType: int):
-    AnyOuterAddValueType(builder, valueType)
+    AnyTAddValueType(builder, valueType)
 
 
-def AnyOuterAddValue(builder: flatbuffers.Builder, value: int):
+def AnyTAddValue(builder: flatbuffers.Builder, value: int):
     builder.PrependUOffsetTRelativeSlot(
         1, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0
     )
 
 
 def AddValue(builder: flatbuffers.Builder, value: int):
-    AnyOuterAddValue(builder, value)
+    AnyTAddValue(builder, value)
 
 
-def AnyOuterEnd(builder: flatbuffers.Builder) -> int:
+def AnyTEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
 
 
 def End(builder: flatbuffers.Builder) -> int:
-    return AnyOuterEnd(builder)
+    return AnyTEnd(builder)

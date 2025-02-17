@@ -1,8 +1,10 @@
-from typing import Callable, Optional, TypeVar
-from epac.flatbuffers.ca_to_pva import cascalarall_to_ntscalarall
-import flatbuffers
-import epac.flatbuffers.data_types as dt
 from functools import wraps
+from typing import Callable, Optional, TypeVar
+
+import flatbuffers
+import numpy as np
+
+import epac.flatbuffers.data_types as dt
 
 from .fbschemas.pva0 import (
     Bool,
@@ -29,7 +31,7 @@ from .fbschemas.pva0 import (
     FloatArray,
     DoubleArray,
     StringArray,
-    AnyOuter,
+    AnyT,
     AnyInner,
     EnumT,
     AlarmT,
@@ -40,77 +42,99 @@ from .fbschemas.pva0 import (
     DimensionT,
     Column,
     NTAttribute,
-    NTScalarAll,
+    NTScalarAny,
     NTNDArray,
     NTTable,
     PVType,
     PVData,
 )
-import numpy as np
 
-map_dtype_to_scalar_fb = {
-    np.dtype("bool"): Bool,
-    np.dtype("byte"): Byte,
-    np.dtype("int8"): Byte,
-    np.dtype("ubyte"): UByte,
-    np.dtype("uint8"): UByte,
-    np.dtype("int16"): Short,
-    np.dtype("uint16"): UShort,
-    np.dtype("int32"): Int,
-    np.dtype("uint32"): UInt,
-    np.dtype("int64"): Long,
-    np.dtype("uint64"): ULong,
-    np.dtype("float32"): Float,
-    np.dtype("float64"): Double,
+
+base_dtype_map = {
+    np.dtype("bool"): (
+        Bool,
+        BoolArray,
+        AnyInner.AnyInner.Bool,
+        AnyInner.AnyInner.BoolArray,
+    ),
+    np.dtype("byte"): (
+        Byte,
+        ByteArray,
+        AnyInner.AnyInner.Byte,
+        AnyInner.AnyInner.ByteArray,
+    ),
+    np.dtype("int8"): (
+        Byte,
+        ByteArray,
+        AnyInner.AnyInner.Byte,
+        AnyInner.AnyInner.ByteArray,
+    ),
+    np.dtype("ubyte"): (
+        UByte,
+        UByteArray,
+        AnyInner.AnyInner.UByte,
+        AnyInner.AnyInner.UByteArray,
+    ),
+    np.dtype("uint8"): (
+        UByte,
+        UByteArray,
+        AnyInner.AnyInner.UByte,
+        AnyInner.AnyInner.UByteArray,
+    ),
+    np.dtype("int16"): (
+        Short,
+        ShortArray,
+        AnyInner.AnyInner.Short,
+        AnyInner.AnyInner.ShortArray,
+    ),
+    np.dtype("uint16"): (
+        UShort,
+        UShortArray,
+        AnyInner.AnyInner.UShort,
+        AnyInner.AnyInner.UShortArray,
+    ),
+    np.dtype("int32"): (
+        Int,
+        IntArray,
+        AnyInner.AnyInner.Int,
+        AnyInner.AnyInner.IntArray,
+    ),
+    np.dtype("uint32"): (
+        UInt,
+        UIntArray,
+        AnyInner.AnyInner.UInt,
+        AnyInner.AnyInner.UIntArray,
+    ),
+    np.dtype("int64"): (
+        Long,
+        LongArray,
+        AnyInner.AnyInner.Long,
+        AnyInner.AnyInner.LongArray,
+    ),
+    np.dtype("uint64"): (
+        ULong,
+        ULongArray,
+        AnyInner.AnyInner.ULong,
+        AnyInner.AnyInner.ULongArray,
+    ),
+    np.dtype("float32"): (
+        Float,
+        FloatArray,
+        AnyInner.AnyInner.Float,
+        AnyInner.AnyInner.FloatArray,
+    ),
+    np.dtype("float64"): (
+        Double,
+        DoubleArray,
+        AnyInner.AnyInner.Double,
+        AnyInner.AnyInner.DoubleArray,
+    ),
 }
 
-map_dtype_to_array_fb = {
-    np.dtype("bool"): BoolArray,
-    np.dtype("byte"): ByteArray,
-    np.dtype("int8"): ByteArray,
-    np.dtype("ubyte"): UByteArray,
-    np.dtype("uint8"): UByteArray,
-    np.dtype("int16"): ShortArray,
-    np.dtype("uint16"): UShortArray,
-    np.dtype("int32"): IntArray,
-    np.dtype("uint32"): UIntArray,
-    np.dtype("int64"): LongArray,
-    np.dtype("uint64"): ULongArray,
-    np.dtype("float32"): FloatArray,
-    np.dtype("float64"): DoubleArray,
-}
-
-map_dtype_to_any_scalar_enum = {
-    np.dtype("bool"): AnyInner.AnyInner.Bool,
-    np.dtype("byte"): AnyInner.AnyInner.Byte,
-    np.dtype("int8"): AnyInner.AnyInner.Byte,
-    np.dtype("ubyte"): AnyInner.AnyInner.UByte,
-    np.dtype("uint8"): AnyInner.AnyInner.UByte,
-    np.dtype("int16"): AnyInner.AnyInner.Short,
-    np.dtype("uint16"): AnyInner.AnyInner.UShort,
-    np.dtype("int32"): AnyInner.AnyInner.Int,
-    np.dtype("uint32"): AnyInner.AnyInner.UInt,
-    np.dtype("int64"): AnyInner.AnyInner.Long,
-    np.dtype("uint64"): AnyInner.AnyInner.ULong,
-    np.dtype("float32"): AnyInner.AnyInner.Float,
-    np.dtype("float64"): AnyInner.AnyInner.Double,
-}
-
-map_dtype_to_any_array_enum = {
-    np.dtype("bool"): AnyInner.AnyInner.BoolArray,
-    np.dtype("byte"): AnyInner.AnyInner.ByteArray,
-    np.dtype("int8"): AnyInner.AnyInner.ByteArray,
-    np.dtype("ubyte"): AnyInner.AnyInner.UByteArray,
-    np.dtype("uint8"): AnyInner.AnyInner.UByteArray,
-    np.dtype("int16"): AnyInner.AnyInner.ShortArray,
-    np.dtype("uint16"): AnyInner.AnyInner.UShortArray,
-    np.dtype("int32"): AnyInner.AnyInner.IntArray,
-    np.dtype("uint32"): AnyInner.AnyInner.UIntArray,
-    np.dtype("int64"): AnyInner.AnyInner.LongArray,
-    np.dtype("uint64"): AnyInner.AnyInner.ULongArray,
-    np.dtype("float32"): AnyInner.AnyInner.FloatArray,
-    np.dtype("float64"): AnyInner.AnyInner.DoubleArray,
-}
+map_dtype_to_scalar_fb = {k: v[0] for k, v in base_dtype_map.items()}
+map_dtype_to_array_fb = {k: v[1] for k, v in base_dtype_map.items()}
+map_dtype_to_any_scalar_enum = {k: v[2] for k, v in base_dtype_map.items()}
+map_dtype_to_any_array_enum = {k: v[3] for k, v in base_dtype_map.items()}
 
 map_any_scalar_enum_to_type = {
     AnyInner.AnyInner.Bool: Bool.Bool,
@@ -190,38 +214,34 @@ def safe_deserialise(func: Callable[[T], U]) -> Callable[[Optional[T]], Optional
     return wrapper
 
 
+# The four functions below serialize NumPy array data into FlatBuffers format.
+# They all have the same argument types and return structures:
+#
+# **Arguments**:
+# - `builder` (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
+# - `data` (np.ndarray): A NumPy array containing scalar or array values.
+#
+# **Returns**:
+# - A tuple containing:
+#   - The serialized data (FlatBuffers offset or vector).
+#   - The corresponding FlatBuffers type (e.g., String, Int, etc.).
+#   - The associated AnyInner type identifier (e.g., AnyInner.String, AnyInner.Int, etc.).
+#
+# The functions handle different data types:
+# - `_serialise_string_scalar`: Serializes a single string scalar.
+# - `_serialise_scalar`: Serializes a single scalar, supporting various types.
+# - `_serialise_string_array`: Serializes an array of strings.
+# - `_serialise_array`: Serializes an array of values, supporting various types.
+#
+# **Error Handling**:
+# - If the data type is unsupported, a `TypeError` is raised for scalar and array types.
+
+
 def _serialise_string_scalar(builder: flatbuffers.Builder, data: np.ndarray):
-    """serialises a single string scalar into FlatBuffers format.
-
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        data (np.ndarray): A NumPy array containing a single string scalar.
-
-    Returns:
-        A tuple containing:
-            - The FlatBuffers offset for the serialised string.
-            - The corresponding FlatBuffers String type.
-            - The AnyInner type identifier for a string.
-    """
     return builder.CreateString(data.item()), String, AnyInner.AnyInner.String
 
 
-def _serialise_numeric_scalar(builder: flatbuffers.Builder, data: np.ndarray):
-    """serialises a single numeric scalar into FlatBuffers format.
-
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        data (np.ndarray): A NumPy array containing a single numeric scalar.
-
-    Returns:
-        A tuple containing:
-            - The scalar value.
-            - The corresponding FlatBuffers scalar type.
-            - The AnyInner type identifier for the numeric scalar.
-
-    Raises:
-        ValueError: If the data type is not supported for serialisation.
-    """
+def _serialise_scalar(builder: flatbuffers.Builder, data: np.ndarray):
     try:
         return (
             data.item(),
@@ -229,22 +249,10 @@ def _serialise_numeric_scalar(builder: flatbuffers.Builder, data: np.ndarray):
             map_dtype_to_any_scalar_enum[data.dtype],
         )
     except KeyError:
-        raise ValueError(f"Unsupported scalar dtype: {data.dtype}")
+        raise TypeError(f"Unsupported scalar dtype: {data.dtype}")
 
 
 def _serialise_string_array(builder: flatbuffers.Builder, data: np.ndarray):
-    """serialises an array of strings into FlatBuffers format.
-
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        data (np.ndarray): A NumPy array containing string values.
-
-    Returns:
-        A tuple containing:
-            - The FlatBuffers offset for the serialised string array.
-            - The corresponding FlatBuffers StringArray type.
-            - The AnyInner type identifier for a string array.
-    """
     internal_values_offsets = [builder.CreateString(item) for item in reversed(data)]
     StringArray.StringArrayStartValueVector(builder, len(data))
     for start_offset in internal_values_offsets:
@@ -252,22 +260,7 @@ def _serialise_string_array(builder: flatbuffers.Builder, data: np.ndarray):
     return builder.EndVector(), StringArray, AnyInner.AnyInner.StringArray
 
 
-def _serialise_numeric_array(builder: flatbuffers.Builder, data: np.ndarray):
-    """serialises an array of numeric values into FlatBuffers format.
-
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        data (np.ndarray): A NumPy array containing numeric values.
-
-    Returns:
-        A tuple containing:
-            - The FlatBuffers offset for the serialised numeric array.
-            - The corresponding FlatBuffers numeric array type.
-            - The AnyInner type identifier for a numeric array.
-
-    Raises:
-        ValueError: If the data type is not supported for serialisation.
-    """
+def _serialise_array(builder: flatbuffers.Builder, data: np.ndarray):
     try:
         return (
             builder.CreateNumpyVector(data),
@@ -275,7 +268,7 @@ def _serialise_numeric_array(builder: flatbuffers.Builder, data: np.ndarray):
             map_dtype_to_any_array_enum[data.dtype],
         )
     except KeyError:
-        raise ValueError(f"Unsupported scalar dtype: {data.dtype}")
+        raise TypeError(f"Unsupported array dtype: {data.dtype}")
 
 
 def serialise_any(builder: flatbuffers.Builder, data) -> int:
@@ -289,14 +282,10 @@ def serialise_any(builder: flatbuffers.Builder, data) -> int:
         The FlatBuffers offset for the serialised Any object.
 
     Raises:
-        ValueError: If an attempt is made to serialise an empty array.
+        TypeError: If an attempt is made to serialize a multi-dimensional array (ndim > 1).
     """
-    data = np.array(data)
+    data = np.asarray(data)
     dtype = data.dtype
-
-    # Handle empty arrays
-    if data.ndim > 0 and data.size == 0:
-        raise ValueError("Cannot serialise empty arrays.")
 
     if data.ndim == 0:  # Scalar
         if np.issubdtype(data.dtype, np.str_) or np.issubdtype(data.dtype, np.bytes_):
@@ -304,28 +293,26 @@ def serialise_any(builder: flatbuffers.Builder, data) -> int:
                 builder, data
             )
         else:
-            data_start_offset, fb_type, enum_type = _serialise_numeric_scalar(
-                builder, data
-            )
-    else:  # Array
+            data_start_offset, fb_type, enum_type = _serialise_scalar(builder, data)
+    elif data.ndim == 1:  # Array
         if np.issubdtype(dtype, np.str_) or np.issubdtype(dtype, np.bytes_):
             data_start_offset, fb_type, enum_type = _serialise_string_array(
                 builder, data
             )
         else:
-            data_start_offset, fb_type, enum_type = _serialise_numeric_array(
-                builder, data
-            )
+            data_start_offset, fb_type, enum_type = _serialise_array(builder, data)
+    else:
+        raise TypeError("Ony 0D and 1D Arrays are supported.")
 
     # Serialise the data using the FlatBuffer type
     fb_type.Start(builder)
     fb_type.AddValue(builder, data_start_offset)
     data_offset = fb_type.End(builder)
 
-    AnyOuter.Start(builder)
-    AnyOuter.AddValueType(builder, enum_type)
-    AnyOuter.AddValue(builder, data_offset)
-    return AnyOuter.End(builder)
+    AnyT.Start(builder)
+    AnyT.AddValueType(builder, enum_type)
+    AnyT.AddValue(builder, data_offset)
+    return AnyT.End(builder)
 
 
 def deserialise_any(buffer):
@@ -356,7 +343,7 @@ def deserialise_any(buffer):
         data_offset = buffer.Value()
         data_fb.Init(data_offset.Bytes, data_offset.Pos)
         if data_enum == AnyInner.AnyInner.StringArray:
-            data = np.array(
+            data = np.asarray(
                 [str(data_fb.Value(n), "utf-8") for n in range(data_fb.ValueLength())]
             )
         else:
@@ -524,8 +511,7 @@ def serialise_control(builder: flatbuffers.Builder, control_data: dt.ControlT) -
     ControlT.AddLimitLow(builder, control_data.limitLow)
     ControlT.AddLimitHigh(builder, control_data.limitHigh)
     ControlT.AddMinStep(builder, control_data.minStep)
-    control_offset = ControlT.End(builder)
-    return control_offset
+    return ControlT.End(builder)
 
 
 @safe_deserialise
@@ -633,11 +619,13 @@ def serialise_ntattribute(
     Returns:
         The FlatBuffers offset for the serialised NTAttribute object.
     """
-    if not ntattribute_data:
-        return 0
     name_offset = builder.CreateString(ntattribute_data.name)
     value_offset = serialise_any(builder, ntattribute_data.value)
     tags_offsets = [builder.CreateString(tag) for tag in ntattribute_data.tags]
+    NTAttribute.StartTagsVector(builder, len(tags_offsets))
+    for tag_offset in reversed(tags_offsets):
+        builder.PrependUOffsetTRelative(tag_offset)
+    tags_vector_offset = builder.EndVector()
     descriptor_offset = builder.CreateString(ntattribute_data.descriptor)
     alarm_offset = serialise_alarm(builder, ntattribute_data.alarm)
     time_offset = serialise_time(builder, ntattribute_data.time)
@@ -647,9 +635,7 @@ def serialise_ntattribute(
     NTAttribute.Start(builder)
     NTAttribute.AddName(builder, name_offset)
     NTAttribute.AddValue(builder, value_offset)
-    NTAttribute.AddTags(builder, len(tags_offsets))
-    for tag_offset in reversed(tags_offsets):
-        NTAttribute.AddTags(builder, tag_offset)
+    NTAttribute.AddTags(builder, tags_vector_offset)
     NTAttribute.AddDescriptor(builder, descriptor_offset)
     NTAttribute.AddAlarm(builder, alarm_offset)
     NTAttribute.AddTime(builder, time_offset)
@@ -710,47 +696,47 @@ def deserialise_column(buffer: Column.Column) -> dt.Column:
     return dt.Column(value=deserialise_any(buffer.Value()))
 
 
-def serialise_ntscalarall(
-    builder: flatbuffers.Builder, ntscalarall_data: dt.NTScalarAll
+def serialise_ntscalarany(
+    builder: flatbuffers.Builder, ntscalarany_data: dt.NTScalarAny
 ) -> int:
-    """serialises an NTScalarAll table into FlatBuffers format.
+    """serialises an NTScalarAny table into FlatBuffers format.
 
     Args:
         builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        ntscalarall_data (dt.NTScalarAll): The NTScalarAll object containing scalar details.
+        ntscalarany_data (dt.NTScalarAny): The NTScalarAny object containing scalar details.
 
     Returns:
-        The FlatBuffers offset for the serialised NTScalarAll object.
+        The FlatBuffers offset for the serialised NTScalarAny object.
     """
 
-    value_offset = serialise_any(builder, ntscalarall_data.value)
-    descriptor_offset = builder.CreateString(ntscalarall_data.descriptor)
-    alarm_offset = serialise_alarm(builder, ntscalarall_data.alarm)
-    time_stamp_offset = serialise_time(builder, ntscalarall_data.timeStamp)
-    display_offset = serialise_display(builder, ntscalarall_data.display)
-    control_offset = serialise_control(builder, ntscalarall_data.control)
+    value_offset = serialise_any(builder, ntscalarany_data.value)
+    descriptor_offset = builder.CreateString(ntscalarany_data.descriptor)
+    alarm_offset = serialise_alarm(builder, ntscalarany_data.alarm)
+    time_stamp_offset = serialise_time(builder, ntscalarany_data.timeStamp)
+    display_offset = serialise_display(builder, ntscalarany_data.display)
+    control_offset = serialise_control(builder, ntscalarany_data.control)
 
-    # Create NTScalarAll
-    NTScalarAll.Start(builder)
-    NTScalarAll.AddValue(builder, value_offset)
-    NTScalarAll.AddDescriptor(builder, descriptor_offset)
-    NTScalarAll.AddAlarm(builder, alarm_offset)
-    NTScalarAll.AddTimeStamp(builder, time_stamp_offset)
-    NTScalarAll.AddDisplay(builder, display_offset)
-    NTScalarAll.AddControl(builder, control_offset)
-    return NTScalarAll.End(builder)
+    # Create NTScalarAny
+    NTScalarAny.Start(builder)
+    NTScalarAny.AddValue(builder, value_offset)
+    NTScalarAny.AddDescriptor(builder, descriptor_offset)
+    NTScalarAny.AddAlarm(builder, alarm_offset)
+    NTScalarAny.AddTimeStamp(builder, time_stamp_offset)
+    NTScalarAny.AddDisplay(builder, display_offset)
+    NTScalarAny.AddControl(builder, control_offset)
+    return NTScalarAny.End(builder)
 
 
-def deserialise_ntscalarall(buffer: NTScalarAll.NTScalarAll) -> dt.NTScalarAll:
-    """Deserialises the NTScalarAll table from a FlatBuffer.
+def deserialise_ntscalarany(buffer: NTScalarAny.NTScalarAny) -> dt.NTScalarAny:
+    """Deserialises the NTScalarAny table from a FlatBuffer.
 
     Args:
-        buffer: FlatBuffer object containing the serialised NTScalarAll table.
+        buffer: FlatBuffer object containing the serialised NTScalarAny table.
 
     Returns:
-        The deserialised Python object representation of the NTScalarAll data.
+        The deserialised Python object representation of the NTScalarAny data.
     """
-    return dt.NTScalarAll(
+    return dt.NTScalarAny(
         value=deserialise_any(buffer.Value()),
         alarm=deserialise_alarm(buffer.Alarm()),
         timeStamp=deserialise_time(buffer.TimeStamp()),
@@ -882,7 +868,7 @@ def serialise_nttable(builder: flatbuffers.Builder, nttable_data: dt.NTTable) ->
     time_stamp_offset = serialise_time(builder, nttable_data.timeStamp)
     display_offset = serialise_display(builder, nttable_data.display)
 
-    # Create NTScalarAll
+    # Create NTScalarAny
     NTTable.Start(builder)
     NTTable.AddLabels(builder, labels_vector_offset)
     NTTable.NTTableAddValue(builder, value_vector_offset)
@@ -921,7 +907,7 @@ def serialise_data(pv_name: str, data_type: str, data: dt.PVData) -> bytes:
 
     Args:
         pv_name (str): The process variable (PV) name associated with the data.
-        data_type (str): The type of data being serialised (e.g., "NTScalarAll", "NTNDArray", "NTTable").
+        data_type (str): The type of data being serialised (e.g., "NTScalarAny", "NTNDArray", "NTTable").
         data (dt.PVData): The PVData object containing the data to serialise.
 
     Returns:
@@ -932,19 +918,15 @@ def serialise_data(pv_name: str, data_type: str, data: dt.PVData) -> bytes:
     """
     builder = flatbuffers.Builder(1024)
 
-    if isinstance(data.data, dt.NTScalarAll):
-        data_offset = serialise_ntscalarall(builder, data.data)
-        data_enum = PVType.PVType.NTScalarAll
+    if isinstance(data.data, dt.NTScalarAny):
+        data_offset = serialise_ntscalarany(builder, data.data)
+        data_enum = PVType.PVType.NTScalarAny
     elif isinstance(data.data, dt.NTNDArray):
         data_offset = serialise_ntndarray(builder, data.data)
         data_enum = PVType.PVType.NTNDArray
     elif isinstance(data.data, dt.NTTable):
         data_offset = serialise_nttable(builder, data.data)
         data_enum = PVType.PVType.NTTable
-    elif isinstance(data.data, dt.CAScalarAll):
-        converted_data = cascalarall_to_ntscalarall(data.data)
-        data_offset = serialise_ntscalarall(builder, converted_data)
-        data_enum = PVType.PVType.NTScalarAll
     else:
         raise ValueError(f"Unsupported data type: {data_type}")
 
@@ -961,7 +943,7 @@ def serialise_data(pv_name: str, data_type: str, data: dt.PVData) -> bytes:
 
 def deserialise_data(buffer: bytes) -> dt.PVData:
     """Deserialises FlatBuffer bytes containing PVData and dynamically handles
-    various data types like NTScalarAll, NTNDArray, and NTTable.
+    various data types like NTScalarAny, NTNDArray, and NTTable.
 
     Args:
         buffer: FlatBuffer bytes containing PVData data.
@@ -977,11 +959,11 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
     data_buffer = pv_data.Data()
     data_type = pv_data.DataType()
 
-    if data_type == PVType.PVType.NTScalarAll:
-        ntscalarall_data = NTScalarAll.NTScalarAll()
-        ntscalarall_data.Init(data_buffer.Bytes, data_buffer.Pos)
+    if data_type == PVType.PVType.NTScalarAny:
+        ntscalarany_data = NTScalarAny.NTScalarAny()
+        ntscalarany_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
-            data=deserialise_ntscalarall(ntscalarall_data),
+            data=deserialise_ntscalarany(ntscalarany_data),
             pv_name=pv_data.PvName().decode("utf-8"),
         )
     elif data_type == PVType.PVType.NTNDArray:

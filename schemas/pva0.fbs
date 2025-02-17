@@ -31,7 +31,7 @@ union AnyInner {
     BoolArray, ByteArray, UByteArray, ShortArray, UShortArray, IntArray, UIntArray, LongArray, ULongArray, FloatArray, DoubleArray, StringArray
 }
 
-table AnyOuter {
+table AnyT {
   value: AnyInner;
 }
 
@@ -69,20 +69,20 @@ table ControlT {
 
 table CodecT {
   name: string;
-  parameters: AnyOuter;
+  parameters: AnyT;
 }
 
 table DimensionT {
   size: int;
   offset: int;
   full_size: int;
-  binning: int;
+  binning: int = 1;
   reverse: bool;
 }
 
 table NTAttribute {
   name: string;
-  value: AnyOuter;
+  value: AnyT;
   tags: [string];
   descriptor: string;
   alarm: AlarmT;
@@ -92,7 +92,7 @@ table NTAttribute {
 }
 
 table NTNDArray {
-  value: AnyOuter;
+  value: AnyT (required);
   codec: CodecT;
   compressed_size: long;
   uncompressed_size: long;
@@ -106,8 +106,8 @@ table NTNDArray {
   display: DisplayT;
 }
 
-table NTScalarAll {
-  value: AnyOuter;
+table NTScalarAny {
+  value: AnyT (required);
   descriptor: string;
   alarm: AlarmT;
   time_stamp: TimeT;
@@ -116,22 +116,22 @@ table NTScalarAll {
 }
 
 table Column {
-  value: AnyOuter;
+  value: AnyT;
 }
 
 table NTTable {
   labels: [string];
-  value: [Column];
+  value: [Column] (required);
   descriptor: string;
   alarm: AlarmT;
   time_stamp: TimeT;
   display: DisplayT;
 }
 
-union PVType { NTScalarAll, NTNDArray, NTTable }
+union PVType { NTScalarAny, NTNDArray, NTTable }
 
 table PVData {
-  data: PVType;
+  data: PVType (required);
   pv_name: string;
 }
 

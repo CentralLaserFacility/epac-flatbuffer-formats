@@ -1,5 +1,6 @@
-from pydantic import BaseModel
 from typing import Any, Optional, Union
+
+from pydantic import BaseModel
 
 
 class EnumT(BaseModel):
@@ -73,7 +74,7 @@ class NTNDArray(BaseModel):
     display: Optional[DisplayT] = None
 
 
-class NTScalarAll(BaseModel):
+class NTScalarAny(BaseModel):
     value: Any
     descriptor: str = ""
     alarm: Optional[AlarmT] = None
@@ -95,7 +96,7 @@ class NTTable(BaseModel):
     display: Optional[DisplayT] = None
 
 
-class CAScalarAll(BaseModel):
+class CAScalarAny(BaseModel):
     value: Any
     pvname: str = ""
     status: int = 0
@@ -112,5 +113,5 @@ class CAScalarAll(BaseModel):
 
 
 class PVData(BaseModel):
-    data: Union[NTScalarAll, NTNDArray, NTTable, CAScalarAll]
+    data: Union[NTScalarAny, NTNDArray, NTTable, CAScalarAny]
     pv_name: str = ""

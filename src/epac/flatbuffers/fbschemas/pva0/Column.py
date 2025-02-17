@@ -5,7 +5,7 @@
 import flatbuffers
 from flatbuffers.compat import import_numpy
 from typing import Any
-from .AnyOuter import AnyOuter
+from .AnyT import AnyT
 from typing import Optional
 
 np = import_numpy()
@@ -37,11 +37,11 @@ class Column(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # Column
-    def Value(self) -> Optional[AnyOuter]:
+    def Value(self) -> Optional[AnyT]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            obj = AnyOuter()
+            obj = AnyT()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None

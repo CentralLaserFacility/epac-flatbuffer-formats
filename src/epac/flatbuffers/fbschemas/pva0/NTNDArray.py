@@ -6,7 +6,7 @@ import flatbuffers
 from flatbuffers.compat import import_numpy
 from typing import Any
 from .AlarmT import AlarmT
-from .AnyOuter import AnyOuter
+from .AnyT import AnyT
 from .CodecT import CodecT
 from .DimensionT import DimensionT
 from .DisplayT import DisplayT
@@ -43,11 +43,11 @@ class NTNDArray(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # NTNDArray
-    def Value(self) -> Optional[AnyOuter]:
+    def Value(self) -> Optional[AnyT]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            obj = AnyOuter()
+            obj = AnyT()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
