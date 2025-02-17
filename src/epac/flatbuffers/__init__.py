@@ -3,9 +3,9 @@
 
 from ._version import version
 from .area_detector_ADAr import deserialise_ADAr, serialise_ADAr
-from .logdata_f142 import deserialise_f142, serialise_f142
 from .arrays_wa00 import deserialise_wa00, serialise_wa00
-from .pva0_data import serialise_data, deserialise_data
+from .logdata_f142 import deserialise_f142, serialise_f142
+from .pva0_data import deserialise_data, serialise_data
 
 __version__ = version
 

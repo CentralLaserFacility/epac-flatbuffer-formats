@@ -5,6 +5,6 @@
 
 class PVType(object):
     NONE = 0
-    NTScalarAll = 1
+    NTScalarAny = 1
     NTNDArray = 2
     NTTable = 3

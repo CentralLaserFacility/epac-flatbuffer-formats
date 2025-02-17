@@ -6,7 +6,7 @@ import flatbuffers
 from flatbuffers.compat import import_numpy
 from typing import Any
 from .AlarmT import AlarmT
-from .AnyOuter import AnyOuter
+from .AnyT import AnyT
 from .ControlT import ControlT
 from .DisplayT import DisplayT
 from .TimeT import TimeT
@@ -15,49 +15,49 @@ from typing import Optional
 np = import_numpy()
 
 
-class NTScalarAll(object):
+class NTScalarAny(object):
     __slots__ = ["_tab"]
 
     @classmethod
     def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = NTScalarAll()
+        x = NTScalarAny()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAsNTScalarAll(cls, buf, offset=0):
+    def GetRootAsNTScalarAny(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
 
     @classmethod
-    def NTScalarAllBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+    def NTScalarAnyBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(
             buf, offset, b"\x70\x76\x61\x30", size_prefixed=size_prefixed
         )
 
-    # NTScalarAll
+    # NTScalarAny
     def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # NTScalarAll
-    def Value(self) -> Optional[AnyOuter]:
+    # NTScalarAny
+    def Value(self) -> Optional[AnyT]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            obj = AnyOuter()
+            obj = AnyT()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
 
-    # NTScalarAll
+    # NTScalarAny
     def Descriptor(self) -> Optional[str]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # NTScalarAll
+    # NTScalarAny
     def Alarm(self) -> Optional[AlarmT]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
@@ -67,7 +67,7 @@ class NTScalarAll(object):
             return obj
         return None
 
-    # NTScalarAll
+    # NTScalarAny
     def TimeStamp(self) -> Optional[TimeT]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
@@ -77,7 +77,7 @@ class NTScalarAll(object):
             return obj
         return None
 
-    # NTScalarAll
+    # NTScalarAny
     def Display(self) -> Optional[DisplayT]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
@@ -87,7 +87,7 @@ class NTScalarAll(object):
             return obj
         return None
 
-    # NTScalarAll
+    # NTScalarAny
     def Control(self) -> Optional[ControlT]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
@@ -98,77 +98,77 @@ class NTScalarAll(object):
         return None
 
 
-def NTScalarAllStart(builder: flatbuffers.Builder):
+def NTScalarAnyStart(builder: flatbuffers.Builder):
     builder.StartObject(6)
 
 
 def Start(builder: flatbuffers.Builder):
-    NTScalarAllStart(builder)
+    NTScalarAnyStart(builder)
 
 
-def NTScalarAllAddValue(builder: flatbuffers.Builder, value: int):
+def NTScalarAnyAddValue(builder: flatbuffers.Builder, value: int):
     builder.PrependUOffsetTRelativeSlot(
         0, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0
     )
 
 
 def AddValue(builder: flatbuffers.Builder, value: int):
-    NTScalarAllAddValue(builder, value)
+    NTScalarAnyAddValue(builder, value)
 
 
-def NTScalarAllAddDescriptor(builder: flatbuffers.Builder, descriptor: int):
+def NTScalarAnyAddDescriptor(builder: flatbuffers.Builder, descriptor: int):
     builder.PrependUOffsetTRelativeSlot(
         1, flatbuffers.number_types.UOffsetTFlags.py_type(descriptor), 0
     )
 
 
 def AddDescriptor(builder: flatbuffers.Builder, descriptor: int):
-    NTScalarAllAddDescriptor(builder, descriptor)
+    NTScalarAnyAddDescriptor(builder, descriptor)
 
 
-def NTScalarAllAddAlarm(builder: flatbuffers.Builder, alarm: int):
+def NTScalarAnyAddAlarm(builder: flatbuffers.Builder, alarm: int):
     builder.PrependUOffsetTRelativeSlot(
         2, flatbuffers.number_types.UOffsetTFlags.py_type(alarm), 0
     )
 
 
 def AddAlarm(builder: flatbuffers.Builder, alarm: int):
-    NTScalarAllAddAlarm(builder, alarm)
+    NTScalarAnyAddAlarm(builder, alarm)
 
 
-def NTScalarAllAddTimeStamp(builder: flatbuffers.Builder, timeStamp: int):
+def NTScalarAnyAddTimeStamp(builder: flatbuffers.Builder, timeStamp: int):
     builder.PrependUOffsetTRelativeSlot(
         3, flatbuffers.number_types.UOffsetTFlags.py_type(timeStamp), 0
     )
 
 
 def AddTimeStamp(builder: flatbuffers.Builder, timeStamp: int):
-    NTScalarAllAddTimeStamp(builder, timeStamp)
+    NTScalarAnyAddTimeStamp(builder, timeStamp)
 
 
-def NTScalarAllAddDisplay(builder: flatbuffers.Builder, display: int):
+def NTScalarAnyAddDisplay(builder: flatbuffers.Builder, display: int):
     builder.PrependUOffsetTRelativeSlot(
         4, flatbuffers.number_types.UOffsetTFlags.py_type(display), 0
     )
 
 
 def AddDisplay(builder: flatbuffers.Builder, display: int):
-    NTScalarAllAddDisplay(builder, display)
+    NTScalarAnyAddDisplay(builder, display)
 
 
-def NTScalarAllAddControl(builder: flatbuffers.Builder, control: int):
+def NTScalarAnyAddControl(builder: flatbuffers.Builder, control: int):
     builder.PrependUOffsetTRelativeSlot(
         5, flatbuffers.number_types.UOffsetTFlags.py_type(control), 0
     )
 
 
 def AddControl(builder: flatbuffers.Builder, control: int):
-    NTScalarAllAddControl(builder, control)
+    NTScalarAnyAddControl(builder, control)
 
 
-def NTScalarAllEnd(builder: flatbuffers.Builder) -> int:
+def NTScalarAnyEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
 
 
 def End(builder: flatbuffers.Builder) -> int:
-    return NTScalarAllEnd(builder)
+    return NTScalarAnyEnd(builder)

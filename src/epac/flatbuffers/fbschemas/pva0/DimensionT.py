@@ -60,7 +60,7 @@ class DimensionT(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
-        return 0
+        return 1
 
     # DimensionT
     def Reverse(self):
@@ -105,7 +105,7 @@ def AddFullSize(builder: flatbuffers.Builder, fullSize: int):
 
 
 def DimensionTAddBinning(builder: flatbuffers.Builder, binning: int):
-    builder.PrependInt32Slot(3, binning, 0)
+    builder.PrependInt32Slot(3, binning, 1)
 
 
 def AddBinning(builder: flatbuffers.Builder, binning: int):
