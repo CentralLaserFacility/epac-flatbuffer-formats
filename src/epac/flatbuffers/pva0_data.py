@@ -33,7 +33,6 @@ from .fbschemas.pva0 import (
     StringArray,
     AnyT,
     AnyInner,
-    EnumT,
     AlarmT,
     TimeT,
     DisplayT,
@@ -438,21 +437,8 @@ def serialise_display(builder: flatbuffers.Builder, display_data: dt.DisplayT) -
     Returns:
         The FlatBuffers offset for the serialised DisplayT object.
     """
-    # Serialise EnumT (DisplayT.form)
-    if display_data.form:
-        form: dt.EnumT = display_data.form
-        choices_offsets = [builder.CreateString(choice) for choice in form.choices]
-        EnumT.StartChoicesVector(builder, len(choices_offsets))
-        for choice_offset in reversed(choices_offsets):
-            builder.PrependUOffsetTRelative(choice_offset)
-        choices_vector_offset = builder.EndVector()
-        EnumT.Start(builder)
-        EnumT.AddIndex(builder, form.index)
-        EnumT.AddChoices(builder, choices_vector_offset)
-        form_offset = EnumT.EnumTEnd(builder)
-    else:
-        form_offset = 0
     # Serialise DisplayT
+    form_offset = builder.CreateString(display_data.form)
     description_offset = builder.CreateString(display_data.description)
     units_offset = builder.CreateString(display_data.units)
     DisplayT.Start(builder)
@@ -475,18 +461,6 @@ def deserialise_display(buffer: DisplayT.DisplayT) -> dt.DisplayT:
     Returns:
         The deserialised Python object representation of the display data.
     """
-    # Deserialise the DisplayT form (EnumT)
-    form_data = None
-    form_buffer = buffer.Form()
-    if form_buffer is not None:
-        form_data = dt.EnumT(
-            index=form_buffer.Index(),
-            choices=[
-                form_buffer.Choices(i).decode("utf-8")  # type: ignore
-                for i in range(form_buffer.ChoicesLength())
-            ],
-        )
-
     # Deserialise the rest of the DisplayT fields
     return dt.DisplayT(
         limitLow=buffer.LimitLow(),
@@ -494,7 +468,7 @@ def deserialise_display(buffer: DisplayT.DisplayT) -> dt.DisplayT:
         description=buffer.Description().decode("utf-8"),  # type: ignore
         units=buffer.Units().decode("utf-8"),  # type: ignore
         precision=buffer.Precision(),
-        form=form_data,
+        form=buffer.Form().decode("utf-8"),  # type: ignore
     )
 
 
