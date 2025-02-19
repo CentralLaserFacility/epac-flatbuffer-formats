@@ -902,7 +902,7 @@ def deserialise_nttable(buffer: NTTable.NTTable) -> dt.NTTable:
     )
 
 
-def serialise_data(pv_name: str, data_type: str, data: dt.PVData) -> bytes:
+def serialise_data(data: dt.PVData) -> bytes:
     """serialises data into a FlatBuffer using PVData as the container type.
 
     Args:
@@ -928,9 +928,9 @@ def serialise_data(pv_name: str, data_type: str, data: dt.PVData) -> bytes:
         data_offset = serialise_nttable(builder, data.data)
         data_enum = PVType.PVType.NTTable
     else:
-        raise ValueError(f"Unsupported data type: {data_type}")
+        raise TypeError(f"Unsupported data type: {type(data.data)}")
 
-    pv_name_offset = builder.CreateString(pv_name)
+    pv_name_offset = builder.CreateString(data.pv_name)
 
     PVData.Start(builder)
     PVData.AddDataType(builder, data_enum)
