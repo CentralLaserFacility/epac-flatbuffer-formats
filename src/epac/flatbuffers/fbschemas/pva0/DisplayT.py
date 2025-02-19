@@ -5,7 +5,6 @@
 import flatbuffers
 from flatbuffers.compat import import_numpy
 from typing import Any
-from .EnumT import EnumT
 from typing import Optional
 
 np = import_numpy()
@@ -76,13 +75,10 @@ class DisplayT(object):
         return 0
 
     # DisplayT
-    def Form(self) -> Optional[EnumT]:
+    def Form(self) -> Optional[str]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
-            x = self._tab.Indirect(o + self._tab.Pos)
-            obj = EnumT()
-            obj.Init(self._tab.Bytes, x)
-            return obj
+            return self._tab.String(o + self._tab.Pos)
         return None
 
 

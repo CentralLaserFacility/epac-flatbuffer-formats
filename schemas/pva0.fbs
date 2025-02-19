@@ -35,11 +35,6 @@ table AnyT {
   value: AnyInner;
 }
 
-table EnumT {
-  index: int;
-  choices: [string];
-}
-
 table AlarmT {
   severity: int;
   status: int;
@@ -58,7 +53,7 @@ table DisplayT {
   description: string;
   units: string;
   precision: int;
-  form: EnumT;
+  form: string;
 }
 
 table ControlT {

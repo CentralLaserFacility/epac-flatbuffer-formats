@@ -1,11 +1,25 @@
-from typing import Any, Optional, Union
+from typing import Annotated, Any, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, BeforeValidator
 
 
 class EnumT(BaseModel):
     index: int = 0
     choices: list[str] = []
+
+    def get_value(self) -> str:
+        """Returns the selected value from choices based on index."""
+        return self.choices[self.index]
+
+
+def extract_enum(form: Optional[Any]) -> str:
+    """Handles both EnumT-style input and direct string values."""
+    if isinstance(form, dict):
+        enum_obj = EnumT(**form)
+        return enum_obj.get_value()
+    elif isinstance(form, str):
+        return form
+    return ""
 
 
 class AlarmT(BaseModel):
@@ -26,7 +40,7 @@ class DisplayT(BaseModel):
     description: str = ""
     units: str = ""
     precision: int = 0
-    form: Optional[EnumT] = None
+    form: Annotated[str, BeforeValidator(extract_enum)] = ""
 
 
 class ControlT(BaseModel):
