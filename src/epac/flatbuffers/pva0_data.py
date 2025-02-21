@@ -271,6 +271,7 @@ def _serialise_array(builder: flatbuffers.Builder, data: np.ndarray):
         raise TypeError(f"Unsupported array dtype: {data.dtype}")
 
 
+@safe_serialise
 def serialise_any(builder: flatbuffers.Builder, data) -> int:
     """serialises an arbitrary object into a FlatBuffers Any union.
 
@@ -315,6 +316,7 @@ def serialise_any(builder: flatbuffers.Builder, data) -> int:
     return AnyT.End(builder)
 
 
+@safe_deserialise
 def deserialise_any(buffer):
     """Deserialises the Any table from a FlatBuffer.
 
@@ -761,10 +763,12 @@ def serialise_ntndarray(
     value_offset = serialise_any(builder, ntndarray_data.value)
     codec_offset = serialise_codec(builder, ntndarray_data.codec)
     if ntndarray_data.dimension:
-        dimensions_offsets = [
-            serialise_dimension(builder, dimension)
-            for dimension in ntndarray_data.dimension
-        ]
+        dimensions_offsets = []
+        for dimension in ntndarray_data.dimension:
+            if isinstance(dimension, dt.DimensionT):
+                dimensions_offsets.append(serialise_dimension(builder, dimension))
+            else:
+                raise TypeError("Unexpected data in Dimension Vector")
         NTNDArray.StartDimensionVector(builder, len(dimensions_offsets))
         for offset in reversed(dimensions_offsets):
             builder.PrependUOffsetTRelative(offset)
@@ -773,10 +777,12 @@ def serialise_ntndarray(
         dimensions_vector_offset = 0
     data_timestamp_offset = serialise_time(builder, ntndarray_data.dataTimeStamp)
     if ntndarray_data.attribute:
-        attributes_offsets = [
-            serialise_ntattribute(builder, attribute)
-            for attribute in ntndarray_data.attribute
-        ]
+        attributes_offsets = []
+        for attribute in ntndarray_data.attribute:
+            if isinstance(attribute, dt.NTAttribute):
+                attributes_offsets.append(serialise_ntattribute(builder, attribute))
+            else:
+                raise TypeError("Unexpected data in NTAttribute Vector")
         NTNDArray.StartAttributeVector(builder, len(attributes_offsets))
         for offset in reversed(attributes_offsets):
             builder.PrependUOffsetTRelative(offset)
@@ -814,23 +820,29 @@ def deserialise_ntndarray(buffer: NTNDArray.NTNDArray) -> dt.NTNDArray:
     Returns:
         The deserialised Python object representation of the NTNDArray data.
     """
+    dimension = []
+    for i in range(buffer.DimensionLength()):
+        dim = deserialise_dimension(buffer.Dimension(i))
+        if dim is None:
+            raise ValueError("None value in dimension")
+        dimension.append(dim)
+
+    attribute = []
+    for i in range(buffer.AttributeLength()):
+        attr = deserialise_ntattribute(buffer.Attribute(i))
+        if attr is None:
+            raise ValueError("None value in attribute")
+        attribute.append(attr)
+
     return dt.NTNDArray(
         value=deserialise_any(buffer.Value()),
         codec=deserialise_codec(buffer.Codec()),
         compressedSize=buffer.CompressedSize(),
         uncompressedSize=buffer.UncompressedSize(),
-        dimension=[
-            dim
-            for i in range(buffer.DimensionLength())
-            if (dim := deserialise_dimension(buffer.Dimension(i))) is not None
-        ],
+        dimension=dimension,
         uniqueId=buffer.UniqueId(),
         dataTimeStamp=(deserialise_time(buffer.DataTimeStamp())),
-        attribute=[
-            attr
-            for i in range(buffer.AttributeLength())
-            if (attr := deserialise_ntattribute(buffer.Attribute(i))) is not None
-        ],
+        attribute=attribute,
         descriptor=buffer.Descriptor().decode("utf-8"),  # type: ignore
         alarm=deserialise_alarm(buffer.Alarm()),
         timeStamp=deserialise_time(buffer.TimeStamp()),
@@ -854,9 +866,12 @@ def serialise_nttable(builder: flatbuffers.Builder, nttable_data: dt.NTTable) ->
         builder.PrependUOffsetTRelative(label_offset)
     labels_vector_offset = builder.EndVector()
     if nttable_data.value:
-        column_offsets = [
-            serialise_column(builder, column) for column in nttable_data.value
-        ]
+        column_offsets = []
+        for column in nttable_data.value:
+            if isinstance(column, dt.Column):
+                column_offsets.append(serialise_column(builder, column))
+            else:
+                raise TypeError("Unexpected data in Value Vector")
         NTTable.StartValueVector(builder, len(column_offsets))
         for offset in reversed(column_offsets):
             builder.PrependUOffsetTRelative(offset)
@@ -888,13 +903,15 @@ def deserialise_nttable(buffer: NTTable.NTTable) -> dt.NTTable:
     Returns:
         The deserialised Python object representation of the NTTable data.
     """
+    value = []
+    for i in range(buffer.ValueLength()):
+        col = deserialise_column(buffer.Value(i))
+        if col is None:
+            raise ValueError("None value in Value")
+        value.append(col)
     return dt.NTTable(
         labels=[buffer.Labels(i).decode("utf-8") for i in range(buffer.LabelsLength())],
-        value=[
-            col
-            for i in range(buffer.ValueLength())
-            if (col := deserialise_column(buffer.Value(i))) is not None
-        ],
+        value=value,
         descriptor=buffer.Descriptor().decode("utf-8"),  # type: ignore
         alarm=deserialise_alarm(buffer.Alarm()),
         timeStamp=deserialise_time(buffer.TimeStamp()),
@@ -914,7 +931,8 @@ def serialise_data(data: dt.PVData) -> bytes:
         The serialised FlatBuffer as a byte array.
 
     Raises:
-        ValueError: If an unsupported or unknown data type is provided.
+        TypeError: If an unsupported or unknown data type is provided.
+        ValueError: If data without a value is provided.
     """
     builder = flatbuffers.Builder(1024)
 
@@ -931,6 +949,9 @@ def serialise_data(data: dt.PVData) -> bytes:
         raise TypeError(f"Unsupported data type: {type(data.data)}")
 
     pv_name_offset = builder.CreateString(data.pv_name)
+
+    if data.data.value is None:
+        raise ValueError("Must have a value")
 
     PVData.Start(builder)
     PVData.AddDataType(builder, data_enum)
