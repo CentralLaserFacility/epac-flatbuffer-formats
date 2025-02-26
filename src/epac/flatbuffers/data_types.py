@@ -7,19 +7,15 @@ class EnumT(BaseModel):
     index: int = 0
     choices: list[str] = []
 
-    def get_value(self) -> str:
-        """Returns the selected value from choices based on index."""
-        return self.choices[self.index]
 
-
-def extract_enum(form: Optional[Any]) -> str:
+def extract_enum(form: Optional[Any]) -> int:
     """Handles both EnumT-style input and direct string values."""
     if isinstance(form, dict):
         enum_obj = EnumT(**form)
-        return enum_obj.get_value()
-    elif isinstance(form, str):
+        return enum_obj.index
+    elif isinstance(form, int):
         return form
-    return ""
+    return 0
 
 
 class AlarmT(BaseModel):
@@ -40,7 +36,7 @@ class DisplayT(BaseModel):
     description: str = ""
     units: str = ""
     precision: int = 0
-    form: Annotated[str, BeforeValidator(extract_enum)] = ""
+    form: Annotated[int, BeforeValidator(extract_enum)] = 0
 
 
 class ControlT(BaseModel):
