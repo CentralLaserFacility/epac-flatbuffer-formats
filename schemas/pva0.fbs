@@ -47,13 +47,23 @@ table TimeT {
   user_tag: int;
 }
 
+enum DisplayForm : ushort {
+    Default = 0,
+    String = 1,
+    Binary = 2,
+    Decimal = 3,
+    Hex = 4,
+    Exponential = 5,
+    Engineering = 6
+}
+
 table DisplayT {
   limit_low: double;
   limit_high: double;
   description: string;
   units: string;
   precision: int;
-  form: string;
+  form: DisplayForm;
 }
 
 table ControlT {

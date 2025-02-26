@@ -438,7 +438,6 @@ def serialise_display(builder: flatbuffers.Builder, display_data: dt.DisplayT) -
         The FlatBuffers offset for the serialised DisplayT object.
     """
     # Serialise DisplayT
-    form_offset = builder.CreateString(display_data.form)
     description_offset = builder.CreateString(display_data.description)
     units_offset = builder.CreateString(display_data.units)
     DisplayT.Start(builder)
@@ -447,7 +446,7 @@ def serialise_display(builder: flatbuffers.Builder, display_data: dt.DisplayT) -
     DisplayT.AddDescription(builder, description_offset)
     DisplayT.AddUnits(builder, units_offset)
     DisplayT.AddPrecision(builder, display_data.precision)
-    DisplayT.AddForm(builder, form_offset)
+    DisplayT.AddForm(builder, display_data.form)
     return DisplayT.End(builder)
 
 
@@ -468,7 +467,7 @@ def deserialise_display(buffer: DisplayT.DisplayT) -> dt.DisplayT:
         description=buffer.Description().decode("utf-8"),  # type: ignore
         units=buffer.Units().decode("utf-8"),  # type: ignore
         precision=buffer.Precision(),
-        form=buffer.Form().decode("utf-8"),  # type: ignore
+        form=buffer.Form(),
     )
 
 
