@@ -4,10 +4,10 @@
 
 
 class DisplayForm(object):
-    Default = 0
-    String = 1
-    Binary = 2
-    Decimal = 3
-    Hex = 4
-    Exponential = 5
-    Engineering = 6
+    DEFAULT = 0
+    STRING = 1
+    BINARY = 2
+    DECIMAL = 3
+    HEX = 4
+    EXPONENTIAL = 5
+    ENGINEERING = 6

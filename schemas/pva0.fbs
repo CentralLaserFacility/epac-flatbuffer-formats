@@ -35,9 +35,25 @@ table AnyT {
   value: AnyInner;
 }
 
+enum AlarmStatus : ushort {
+    NO_ALARM,
+    DEVICE,
+    DRIVER,
+    RECORD,
+    DATABASE,
+    UNDEFINED
+}
+
+enum AlarmSeverity: ushort {
+    NO_ALARM,
+    MINOR,
+    MAJOR,
+    INVALID
+}
+
 table AlarmT {
-  severity: int;
-  status: int;
+  severity: AlarmStatus;
+  status: AlarmSeverity;
   message: string;
 }
 
@@ -48,13 +64,13 @@ table TimeT {
 }
 
 enum DisplayForm : ushort {
-    Default = 0,
-    String = 1,
-    Binary = 2,
-    Decimal = 3,
-    Hex = 4,
-    Exponential = 5,
-    Engineering = 6
+    DEFAULT,
+    STRING,
+    BINARY,
+    DECIMAL,
+    HEX,
+    EXPONENTIAL,
+    ENGINEERING
 }
 
 table DisplayT {
