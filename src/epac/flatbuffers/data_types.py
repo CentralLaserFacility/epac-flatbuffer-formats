@@ -1,4 +1,8 @@
+from functools import partial
 from typing import Annotated, Any, Optional, Union
+from epac.flatbuffers.fbschemas.pva0.AlarmSeverity import AlarmSeverity
+from epac.flatbuffers.fbschemas.pva0.AlarmStatus import AlarmStatus
+from epac.flatbuffers.fbschemas.pva0.DisplayForm import DisplayForm
 
 from pydantic import BaseModel, BeforeValidator
 
@@ -8,19 +12,38 @@ class EnumT(BaseModel):
     choices: list[str] = []
 
 
-def extract_enum(form: Optional[Any]) -> int:
-    """Handles both EnumT-style input and direct string values."""
-    if isinstance(form, dict):
-        enum_obj = EnumT(**form)
-        return enum_obj.index
-    elif isinstance(form, int):
-        return form
-    return 0
+def extract_enum(enum_value: Optional[Any], enum_name: str, enum_type) -> int:
+    """Handles both EnumT-style input and direct integer values, ensuring validity against enum_type."""
+
+    if not enum_value:
+        return 0
+
+    if isinstance(enum_value, dict):
+        enum_obj = EnumT(**enum_value)
+        enum_value = enum_obj.index  # Extract index
+
+    if not isinstance(enum_value, int):
+        raise TypeError(f"invalid data type provided to {enum_name}")
+
+    if enum_value not in vars(enum_type).values():
+        raise ValueError(f"invalid value {enum_value} provided to {enum_name}")
+
+    return enum_value
 
 
 class AlarmT(BaseModel):
-    severity: int = 0
-    status: int = 0
+    severity: Annotated[
+        int,
+        BeforeValidator(
+            partial(extract_enum, enum_name="Alarm Severity", enum_type=AlarmSeverity)
+        ),
+    ] = 0
+    status: Annotated[
+        int,
+        BeforeValidator(
+            partial(extract_enum, enum_name="Alarm Status", enum_type=AlarmStatus)
+        ),
+    ] = 0
     message: str = ""
 
 
@@ -36,7 +59,12 @@ class DisplayT(BaseModel):
     description: str = ""
     units: str = ""
     precision: int = 0
-    form: Annotated[int, BeforeValidator(extract_enum)] = 0
+    form: Annotated[
+        int,
+        BeforeValidator(
+            partial(extract_enum, enum_name="Display Form", enum_type=DisplayForm)
+        ),
+    ] = 0
 
 
 class ControlT(BaseModel):
