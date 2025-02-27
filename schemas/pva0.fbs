@@ -36,19 +36,22 @@ table AnyT {
 }
 
 enum AlarmStatus : ushort {
-    NO_ALARM,
+    NONE,
     DEVICE,
     DRIVER,
     RECORD,
-    DATABASE,
-    UNDEFINED
+    DB,
+    CONF,
+    UNDEFINED,
+    CLIENT
 }
 
 enum AlarmSeverity: ushort {
-    NO_ALARM,
+    NONE,
     MINOR,
     MAJOR,
-    INVALID
+    INVALID,
+    UNDEFINED
 }
 
 table AlarmT {
