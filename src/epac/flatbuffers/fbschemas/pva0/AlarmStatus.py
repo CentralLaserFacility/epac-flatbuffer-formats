@@ -4,9 +4,11 @@
 
 
 class AlarmStatus(object):
-    NO_ALARM = 0
+    NONE = 0
     DEVICE = 1
     DRIVER = 2
     RECORD = 3
-    DATABASE = 4
-    UNDEFINED = 5
+    DB = 4
+    CONF = 5
+    UNDEFINED = 6
+    CLIENT = 7
