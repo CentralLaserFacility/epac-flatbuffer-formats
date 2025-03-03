@@ -12,6 +12,11 @@ class EnumT(BaseModel):
     choices: list[str] = []
 
 
+def replace_none(default_value):
+    """Returns a validator that replaces None with a given default value."""
+    return BeforeValidator(lambda v: v if v is not None else default_value)
+
+
 def extract_enum(enum_value: Optional[Any], enum_name: str, enum_type) -> int:
     """Handles both EnumT-style input and direct integer values, ensuring validity against enum_type."""
 
@@ -139,9 +144,7 @@ class CAScalarAny(BaseModel):
     value: Any
     pvname: str = ""
     status: int = 0
-    precision: Optional[int] = (
-        0  # precision appears to be the only optional field in pyepics (form="ctrl")
-    )
+    precision: Annotated[int, replace_none(0)]
     units: str = ""
     severity: int = 0
     timestamp: float
