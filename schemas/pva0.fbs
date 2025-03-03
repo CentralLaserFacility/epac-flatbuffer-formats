@@ -35,7 +35,7 @@ table AnyT {
   value: AnyInner;
 }
 
-enum AlarmStatus : ushort {
+enum AlarmStatus : ubyte {
     NONE,
     DEVICE,
     DRIVER,
@@ -46,7 +46,7 @@ enum AlarmStatus : ushort {
     CLIENT
 }
 
-enum AlarmSeverity: ushort {
+enum AlarmSeverity: ubyte {
     NONE,
     MINOR,
     MAJOR,
@@ -66,7 +66,7 @@ table TimeT {
   user_tag: int;
 }
 
-enum DisplayForm : ushort {
+enum DisplayForm : ubyte {
     DEFAULT,
     STRING,
     BINARY,

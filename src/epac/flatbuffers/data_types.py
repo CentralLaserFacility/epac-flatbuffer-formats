@@ -25,6 +25,7 @@ def extract_enum(enum_value: Optional[Any], enum_name: str, enum_type) -> int:
     if not isinstance(enum_value, int):
         raise TypeError(f"invalid data type provided to {enum_name}")
 
+    # TODO optimise this step
     if enum_value not in vars(enum_type).values():
         raise ValueError(f"invalid value {enum_value} provided to {enum_name}")
 

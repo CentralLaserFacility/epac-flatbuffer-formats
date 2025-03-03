@@ -78,9 +78,7 @@ class DisplayT(object):
     def Form(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
-            return self._tab.Get(
-                flatbuffers.number_types.Uint16Flags, o + self._tab.Pos
-            )
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
 
@@ -137,7 +135,7 @@ def AddPrecision(builder: flatbuffers.Builder, precision: int):
 
 
 def DisplayTAddForm(builder: flatbuffers.Builder, form: int):
-    builder.PrependUint16Slot(5, form, 0)
+    builder.PrependUint8Slot(5, form, 0)
 
 
 def AddForm(builder: flatbuffers.Builder, form: int):
