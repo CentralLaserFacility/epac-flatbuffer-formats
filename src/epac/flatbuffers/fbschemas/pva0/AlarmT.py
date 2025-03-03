@@ -39,18 +39,14 @@ class AlarmT(object):
     def Severity(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
-            return self._tab.Get(
-                flatbuffers.number_types.Uint16Flags, o + self._tab.Pos
-            )
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
     # AlarmT
     def Status(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
-            return self._tab.Get(
-                flatbuffers.number_types.Uint16Flags, o + self._tab.Pos
-            )
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
     # AlarmT
@@ -70,7 +66,7 @@ def Start(builder: flatbuffers.Builder):
 
 
 def AlarmTAddSeverity(builder: flatbuffers.Builder, severity: int):
-    builder.PrependUint16Slot(0, severity, 0)
+    builder.PrependUint8Slot(0, severity, 0)
 
 
 def AddSeverity(builder: flatbuffers.Builder, severity: int):
@@ -78,7 +74,7 @@ def AddSeverity(builder: flatbuffers.Builder, severity: int):
 
 
 def AlarmTAddStatus(builder: flatbuffers.Builder, status: int):
-    builder.PrependUint16Slot(1, status, 0)
+    builder.PrependUint8Slot(1, status, 0)
 
 
 def AddStatus(builder: flatbuffers.Builder, status: int):
