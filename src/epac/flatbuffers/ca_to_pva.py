@@ -114,22 +114,41 @@ class CaToNtConverter:
             limitHigh=limit_high,
         )
 
-    @classmethod
-    def convert_scalar(cls, data: dt.CAScalarAny | dict) -> dt.NTScalarAny:
-        """Converts CAScalarAny or scalar ca dictionary to NTScalarAny."""
+    def convert_scalar(
+        self,
+        data: dt.CAScalarAny | dict,
+        include_alarm: bool = True,
+        include_timestamp: bool = True,
+        include_display: bool = True,
+        include_control: bool = True,
+    ) -> dt.NTScalarAny:
+        """Converts CAScalarAny or scalar ca dictionary to NTScalarAny with optional serialization control."""
         if isinstance(data, dict):
             data = dt.CAScalarAny(**data)
+
         return dt.NTScalarAny(
             value=data.value,
-            alarm=cls.create_alarm(severity=data.severity, ca_status=data.status),
-            timeStamp=cls.create_timestamp(timestamp=data.timestamp),
-            display=cls.create_display(
-                limit_low=data.lower_disp_limit,
-                limit_high=data.upper_disp_limit,
-                units=data.units,
-                precision=data.precision,
+            alarm=(
+                self.create_alarm(data.severity, data.status) if include_alarm else None
             ),
-            control=cls.create_control(
-                limit_low=data.lower_ctrl_limit, limit_high=data.upper_ctrl_limit
+            timeStamp=(
+                self.create_timestamp(data.timestamp) if include_timestamp else None
+            ),
+            display=(
+                self.create_display(
+                    limit_low=data.lower_disp_limit,
+                    limit_high=data.upper_disp_limit,
+                    units=data.units,
+                    precision=data.precision,
+                )
+                if include_display
+                else None
+            ),
+            control=(
+                self.create_control(
+                    limit_low=data.lower_ctrl_limit, limit_high=data.upper_ctrl_limit
+                )
+                if include_control
+                else None
             ),
         )
