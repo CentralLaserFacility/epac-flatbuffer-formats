@@ -1,11 +1,10 @@
-from enum import Enum
+from enum import IntEnum
 
 import epac.flatbuffers.data_types as dt
-from epac.flatbuffers.fbschemas.pva0.AlarmStatus import AlarmStatus
 
 
-class PyEpicsConverter:
-    class CAAlarmStatus(Enum):
+class CaToNtConverter:
+    class CaAlarmStatus(IntEnum):
         NO_ALARM = 0
         READ = 1
         WRITE = 2
@@ -30,60 +29,61 @@ class PyEpicsConverter:
         WRITE_ACCESS = 21
 
     ALARM_TYPE = {
-        CAAlarmStatus.NO_ALARM.value: AlarmStatus.NONE,
+        CaAlarmStatus.NO_ALARM: dt.AlarmStatus.NONE,
         **{
-            key: AlarmStatus.DEVICE
+            key: dt.AlarmStatus.DEVICE
             for key in [
-                CAAlarmStatus.READ.value,
-                CAAlarmStatus.WRITE.value,
-                CAAlarmStatus.HIHI.value,
-                CAAlarmStatus.HIGH.value,
-                CAAlarmStatus.LOLO.value,
-                CAAlarmStatus.LOW.value,
-                CAAlarmStatus.STATE.value,
-                CAAlarmStatus.COS.value,
-                CAAlarmStatus.HW_LIMIT.value,
+                CaAlarmStatus.READ,
+                CaAlarmStatus.WRITE,
+                CaAlarmStatus.HIHI,
+                CaAlarmStatus.HIGH,
+                CaAlarmStatus.LOLO,
+                CaAlarmStatus.LOW,
+                CaAlarmStatus.STATE,
+                CaAlarmStatus.COS,
+                CaAlarmStatus.HW_LIMIT,
             ]
         },
         **{
-            key: AlarmStatus.DRIVER
+            key: dt.AlarmStatus.DRIVER
             for key in [
-                CAAlarmStatus.COMM.value,
-                CAAlarmStatus.TIMEOUT.value,
-                CAAlarmStatus.UDF.value,
+                CaAlarmStatus.COMM,
+                CaAlarmStatus.TIMEOUT,
+                CaAlarmStatus.UDF,
             ]
         },
         **{
-            key: AlarmStatus.RECORD
+            key: dt.AlarmStatus.RECORD
             for key in [
-                CAAlarmStatus.CALC.value,
-                CAAlarmStatus.SCAN.value,
-                CAAlarmStatus.LINK.value,
-                CAAlarmStatus.SOFT.value,
-                CAAlarmStatus.BAD_SUB.value,
+                CaAlarmStatus.CALC,
+                CaAlarmStatus.SCAN,
+                CaAlarmStatus.LINK,
+                CaAlarmStatus.SOFT,
+                CaAlarmStatus.BAD_SUB,
             ]
         },
         **{
-            key: AlarmStatus.DB
+            key: dt.AlarmStatus.DB
             for key in [
-                CAAlarmStatus.DISABLE.value,
-                CAAlarmStatus.SIMM.value,
-                CAAlarmStatus.READ_ACCESS.value,
-                CAAlarmStatus.WRITE_ACCESS.value,
+                CaAlarmStatus.DISABLE,
+                CaAlarmStatus.SIMM,
+                CaAlarmStatus.READ_ACCESS,
+                CaAlarmStatus.WRITE_ACCESS,
             ]
         },
     }
 
-    UNDEFINED_ALARM = AlarmStatus.UNDEFINED  # UNDEFINED
+    UNDEFINED_ALARM = dt.AlarmStatus.UNDEFINED  # UNDEFINED
 
     @classmethod
-    def create_alarm(cls, severity: int, status: int) -> dt.AlarmT:
+    def create_alarm(cls, severity: int, ca_status: int) -> dt.AlarmT:
         """Creates and returns an AlarmT object."""
-        alarm_status = cls.ALARM_TYPE.get(status, cls.UNDEFINED_ALARM)
         try:
-            alarm_msg = cls.CAAlarmStatus(status).name
+            alarm_status = cls.ALARM_TYPE[cls.CaAlarmStatus(ca_status)]
+            alarm_msg = cls.CaAlarmStatus(ca_status).name
         except ValueError:
-            alarm_msg = ""
+            alarm_status = cls.UNDEFINED_ALARM
+            alarm_msg = "undefined alarm status"
         return dt.AlarmT(severity=severity, status=alarm_status, message=alarm_msg)
 
     @staticmethod
@@ -115,11 +115,13 @@ class PyEpicsConverter:
         )
 
     @classmethod
-    def cascalarany_to_ntscalarany(cls, data: dt.CAScalarAny) -> dt.NTScalarAny:
-        """Converts CAScalarAny to NTScalarAny."""
+    def convert_scalar(cls, data: dt.CAScalarAny | dict) -> dt.NTScalarAny:
+        """Converts CAScalarAny or scalar ca dictionary to NTScalarAny."""
+        if isinstance(data, dict):
+            data = dt.CAScalarAny(**data)
         return dt.NTScalarAny(
             value=data.value,
-            alarm=cls.create_alarm(severity=data.severity, status=data.status),
+            alarm=cls.create_alarm(severity=data.severity, ca_status=data.status),
             timeStamp=cls.create_timestamp(timestamp=data.timestamp),
             display=cls.create_display(
                 limit_low=data.lower_disp_limit,
