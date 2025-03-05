@@ -11,9 +11,11 @@ from epac.flatbuffers.pva0_data import (
 class TestSerialisationPVA0:
     pv_name = "test-pv"
 
-    def test_serialises_and_deserialises_scalar_ntscalarany_correctly(self):
-        nt_scalar_dict = {
+    @pytest.fixture
+    def nt_scalar_dict(self):
+        return {
             "value": 1,
+            "descriptor": "test nt scalar data",
             "alarm": {"severity": 0, "status": 0, "message": "NO_ALARM"},
             "timeStamp": {
                 "secondsPastEpoch": 1739946490,
@@ -42,14 +44,9 @@ class TestSerialisationPVA0:
             "control": {"limitLow": 0.0, "limitHigh": 0.0, "minStep": 0.0},
         }
 
-        nt_scalar_obj = dt.NTScalarAny(**nt_scalar_dict)
-        pv_data_obj = dt.PVData(data=nt_scalar_obj, pv_name=self.pv_name)
-        buf = serialise_data(pv_data_obj)
-        deserialised_obj = deserialise_data(buf)
-        assert deserialised_obj == pv_data_obj
-
-    def test_serialises_and_deserialises_ntndarray_correctly(self):
-        nt_ndarray_dict = {
+    @pytest.fixture
+    def nt_ndarray_dict(self):
+        return {
             "value": np.array([91, 92, 93, 102, 103, 104], dtype=np.uint8),
             "codec": {"name": "", "parameters": 5},
             "compressedSize": 6,
@@ -71,6 +68,9 @@ class TestSerialisationPVA0:
                     "descriptor": "Color mode",
                     "sourceType": 0,
                     "source": "Driver",
+                    "alarm": None,
+                    "time": None,
+                    "tags": ["tag1", "tag2"],
                 }
             ],
             "descriptor": "",
@@ -84,10 +84,63 @@ class TestSerialisationPVA0:
                 "limitLow": 0.0,
                 "limitHigh": 0.0,
                 "description": "Example NDArray",
-                "format": "",
+                "form": {
+                    "index": 0,
+                    "choices": [
+                        "Default",
+                        "String",
+                        "Binary",
+                        "Decimal",
+                        "Hex",
+                        "Exponential",
+                        "Engineering",
+                    ],
+                },
                 "units": "pixels",
+                "precision": 1,
             },
         }
+
+    def test_ntscalarany_pydantic_correctly_captures_information(self, nt_scalar_dict):
+        nt_scalar_obj = dt.NTScalarAny(**nt_scalar_dict)
+        assert {k: v for k, v in nt_scalar_dict.items() if k != "display"} == {
+            k: v for k, v in nt_scalar_obj.model_dump().items() if k != "display"
+        }
+        assert {k: v for k, v in nt_scalar_dict["display"].items() if k != "form"} == {
+            k: v
+            for k, v in nt_scalar_obj.model_dump()["display"].items()
+            if k != "form"
+        }
+        assert nt_scalar_obj.model_dump()["display"]["form"] == 0
+
+    def test_ntndarray_pydantic_correctly_captures_information(self, nt_ndarray_dict):
+        nt_ndarray_obj = dt.NTNDArray(**nt_ndarray_dict)
+        assert {
+            k: v for k, v in nt_ndarray_dict.items() if k not in {"display", "value"}
+        } == {
+            k: v
+            for k, v in nt_ndarray_obj.model_dump().items()
+            if k not in {"display", "value"}
+        }
+        assert {k: v for k, v in nt_ndarray_dict["display"].items() if k != "form"} == {
+            k: v
+            for k, v in nt_ndarray_obj.model_dump()["display"].items()
+            if k != "form"
+        }
+        assert nt_ndarray_obj.model_dump()["display"]["form"] == 0
+        assert np.array_equal(nt_ndarray_dict["value"], nt_ndarray_obj.value)
+
+    def test_serialises_and_deserialises_scalar_ntscalarany_correctly(
+        self, nt_scalar_dict
+    ):
+
+        nt_scalar_obj = dt.NTScalarAny(**nt_scalar_dict)
+        pv_data_obj = dt.PVData(data=nt_scalar_obj, pv_name=self.pv_name)
+        buf = serialise_data(pv_data_obj)
+        deserialised_obj = deserialise_data(buf)
+        assert deserialised_obj == pv_data_obj
+
+    def test_serialises_and_deserialises_ntndarray_correctly(self, nt_ndarray_dict):
 
         nt_ndarray_obj = dt.NTNDArray(**nt_ndarray_dict)
         pv_data_obj = dt.PVData(data=nt_ndarray_obj, pv_name=self.pv_name)
