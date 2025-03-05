@@ -142,16 +142,16 @@ class NTTable(BaseModel):
 
 class CAScalarAny(BaseModel):
     value: Any
-    pvname: str = ""
-    status: int = 0
-    precision: Annotated[int, replace_none(0)]
-    units: str = ""
-    severity: int = 0
+    pvname: Annotated[str, replace_none("")] = ""
+    status: Annotated[int, replace_none(0)] = 0
+    precision: Annotated[int, replace_none(0)] = 0
+    units: Annotated[str, replace_none("")] = ""
+    severity: Annotated[int, replace_none(0)] = 0
     timestamp: float
-    upper_disp_limit: float = 0
-    lower_disp_limit: float = 0
-    upper_ctrl_limit: float = 0
-    lower_ctrl_limit: float = 0
+    upper_disp_limit: Annotated[float, replace_none(0.0)] = 0.0
+    lower_disp_limit: Annotated[float, replace_none(0.0)] = 0.0
+    upper_ctrl_limit: Annotated[float, replace_none(0.0)] = 0.0
+    lower_ctrl_limit: Annotated[float, replace_none(0.0)] = 0.0
 
 
 class PVData(BaseModel):
