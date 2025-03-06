@@ -117,6 +117,7 @@ class CaToNtConverter:
     def convert_scalar(
         self,
         data: dt.CAScalarAny | dict,
+        *,
         include_alarm: bool = True,
         include_timestamp: bool = True,
         include_display: bool = True,
