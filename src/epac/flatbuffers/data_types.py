@@ -37,18 +37,19 @@ def extract_enum(enum_value: Optional[Any], enum_name: str, enum_type) -> int:
     return enum_value
 
 
+def parse_enum(enum_name: str, enum_type):
+    """Returns a BeforeValidator that validates and extracts enum values."""
+    return BeforeValidator(
+        partial(extract_enum, enum_name=enum_name, enum_type=enum_type)
+    )
+
+
 class AlarmT(BaseModel):
     severity: Annotated[
-        int,
-        BeforeValidator(
-            partial(extract_enum, enum_name="Alarm Severity", enum_type=AlarmSeverity)
-        ),
+        int, parse_enum(enum_name="Alarm Severity", enum_type=AlarmSeverity)
     ] = 0
     status: Annotated[
-        int,
-        BeforeValidator(
-            partial(extract_enum, enum_name="Alarm Status", enum_type=AlarmStatus)
-        ),
+        int, parse_enum(enum_name="Alarm Status", enum_type=AlarmStatus)
     ] = 0
     message: str = ""
 
@@ -66,10 +67,7 @@ class DisplayT(BaseModel):
     units: str = ""
     precision: int = 0
     form: Annotated[
-        int,
-        BeforeValidator(
-            partial(extract_enum, enum_name="Display Form", enum_type=DisplayForm)
-        ),
+        int, parse_enum(enum_name="Display Form", enum_type=DisplayForm)
     ] = 0
 
 
@@ -81,7 +79,6 @@ class ControlT(BaseModel):
 
 class CodecT(BaseModel):
     name: str = ""
-    parameters: Any
 
 
 class DimensionT(BaseModel):
@@ -155,5 +152,5 @@ class CAScalarAny(BaseModel):
 
 
 class PVData(BaseModel):
-    data: Union[NTScalarAny, NTNDArray, NTTable, CAScalarAny]
-    pv_name: str = ""
+    data: Union[NTScalarAny, NTNDArray, NTTable]
+    source_name: str = ""

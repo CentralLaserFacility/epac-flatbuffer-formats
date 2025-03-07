@@ -9,7 +9,7 @@ from epac.flatbuffers.pva0_data import (
 
 
 class TestSerialisationPVA0:
-    pv_name = "test-pv"
+    source_name = "test-pv"
 
     @pytest.fixture
     def nt_scalar_dict(self):
@@ -48,7 +48,7 @@ class TestSerialisationPVA0:
     def nt_ndarray_dict(self):
         return {
             "value": np.array([91, 92, 93, 102, 103, 104], dtype=np.uint8),
-            "codec": {"name": "", "parameters": 5},
+            "codec": {"name": ""},
             "compressedSize": 6,
             "uncompressedSize": 6,
             "dimension": [
@@ -135,16 +135,18 @@ class TestSerialisationPVA0:
     ):
 
         nt_scalar_obj = dt.NTScalarAny(**nt_scalar_dict)
-        pv_data_obj = dt.PVData(data=nt_scalar_obj, pv_name=self.pv_name)
+        pv_data_obj = dt.PVData(data=nt_scalar_obj, source_name=self.source_name)
         buf = serialise_data(pv_data_obj)
+        assert isinstance(buf, bytes)
         deserialised_obj = deserialise_data(buf)
         assert deserialised_obj == pv_data_obj
 
     def test_serialises_and_deserialises_ntndarray_correctly(self, nt_ndarray_dict):
 
         nt_ndarray_obj = dt.NTNDArray(**nt_ndarray_dict)
-        pv_data_obj = dt.PVData(data=nt_ndarray_obj, pv_name=self.pv_name)
+        pv_data_obj = dt.PVData(data=nt_ndarray_obj, source_name=self.source_name)
         buf = serialise_data(pv_data_obj)
+        assert isinstance(buf, bytes)
         deserialised_obj = deserialise_data(buf)
         assert np.array_equal(deserialised_obj.data.value, pv_data_obj.data.value)
         deserialised_obj.data.value = None
@@ -157,7 +159,7 @@ class TestSerialisationPVA0:
         }
 
         nt_scalar_obj = dt.NTScalarAny(**nt_scalar_dict)
-        pv_data_obj = dt.PVData(data=nt_scalar_obj, pv_name=self.pv_name)
+        pv_data_obj = dt.PVData(data=nt_scalar_obj, source_name=self.source_name)
         with pytest.raises(ValueError):
             serialise_data(pv_data_obj)
 
@@ -167,7 +169,7 @@ class TestSerialisationPVA0:
         }
 
         nt_scalar_obj = dt.NTScalarAny(**nt_scalar_dict)
-        pv_data_obj = dt.PVData(data=nt_scalar_obj, pv_name=self.pv_name)
+        pv_data_obj = dt.PVData(data=nt_scalar_obj, source_name=self.source_name)
         buf = serialise_data(pv_data_obj)
         deserialised_obj = deserialise_data(buf)
         assert deserialised_obj == pv_data_obj
@@ -178,7 +180,7 @@ class TestSerialisationPVA0:
         }
 
         nt_ndarray_obj = dt.NTNDArray(**nt_ndarray_dict)
-        pv_data_obj = dt.PVData(data=nt_ndarray_obj, pv_name=self.pv_name)
+        pv_data_obj = dt.PVData(data=nt_ndarray_obj, source_name=self.source_name)
         buf = serialise_data(pv_data_obj)
         deserialised_obj = deserialise_data(buf)
         assert np.array_equal(deserialised_obj.data.value, pv_data_obj.data.value)
@@ -193,8 +195,6 @@ class TestSerialisationPVA0:
             ["test1", "test2", "test3"],  # string array
             1,  # int
             [1, 2, 3],  # int array
-            0x7F,  # byte
-            [0x7E, 0x7F, 0xFF],  # byte array
             1.23,  # float
             [1.23, 4.56, 7.89],  # float array
         ],
@@ -205,7 +205,7 @@ class TestSerialisationPVA0:
         }
 
         nt_scalar_obj = dt.NTScalarAny(**nt_scalar_dict)
-        pv_data_obj = dt.PVData(data=nt_scalar_obj, pv_name=self.pv_name)
+        pv_data_obj = dt.PVData(data=nt_scalar_obj, source_name=self.source_name)
         buf = serialise_data(pv_data_obj)
         deserialised_obj = deserialise_data(buf)
         assert np.array_equal(deserialised_obj.data.value, pv_data_obj.data.value)

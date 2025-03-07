@@ -5,7 +5,6 @@
 import flatbuffers
 from flatbuffers.compat import import_numpy
 from typing import Any
-from .AnyT import AnyT
 from typing import Optional
 
 np = import_numpy()
@@ -43,19 +42,9 @@ class CodecT(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # CodecT
-    def Parameters(self) -> Optional[AnyT]:
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        if o != 0:
-            x = self._tab.Indirect(o + self._tab.Pos)
-            obj = AnyT()
-            obj.Init(self._tab.Bytes, x)
-            return obj
-        return None
-
 
 def CodecTStart(builder: flatbuffers.Builder):
-    builder.StartObject(2)
+    builder.StartObject(1)
 
 
 def Start(builder: flatbuffers.Builder):
@@ -70,16 +59,6 @@ def CodecTAddName(builder: flatbuffers.Builder, name: int):
 
 def AddName(builder: flatbuffers.Builder, name: int):
     CodecTAddName(builder, name)
-
-
-def CodecTAddParameters(builder: flatbuffers.Builder, parameters: int):
-    builder.PrependUOffsetTRelativeSlot(
-        1, flatbuffers.number_types.UOffsetTFlags.py_type(parameters), 0
-    )
-
-
-def AddParameters(builder: flatbuffers.Builder, parameters: int):
-    CodecTAddParameters(builder, parameters)
 
 
 def CodecTEnd(builder: flatbuffers.Builder) -> int:

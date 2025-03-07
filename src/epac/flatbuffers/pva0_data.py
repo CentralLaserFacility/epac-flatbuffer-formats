@@ -1,5 +1,6 @@
 from functools import wraps
-from typing import Callable, Optional, TypeVar
+from types import ModuleType
+from typing import Any, Callable, Optional, TypeVar
 
 import flatbuffers
 import numpy as np
@@ -135,7 +136,7 @@ map_dtype_to_array_fb = {k: v[1] for k, v in base_dtype_map.items()}
 map_dtype_to_any_scalar_enum = {k: v[2] for k, v in base_dtype_map.items()}
 map_dtype_to_any_array_enum = {k: v[3] for k, v in base_dtype_map.items()}
 
-map_any_scalar_enum_to_type = {
+map_any_scalar_enum_to_type: dict[int, Any] = {
     AnyInner.AnyInner.Bool: Bool.Bool,
     AnyInner.AnyInner.Byte: Byte.Byte,
     AnyInner.AnyInner.UByte: UByte.UByte,
@@ -150,7 +151,7 @@ map_any_scalar_enum_to_type = {
     AnyInner.AnyInner.String: String.String,
 }
 
-map_any_array_enum_to_type = {
+map_any_array_enum_to_type: dict[int, Any] = {
     AnyInner.AnyInner.BoolArray: BoolArray.BoolArray,
     AnyInner.AnyInner.ByteArray: ByteArray.ByteArray,
     AnyInner.AnyInner.UByteArray: UByteArray.UByteArray,
@@ -236,11 +237,15 @@ def safe_deserialise(func: Callable[[T], U]) -> Callable[[Optional[T]], Optional
 # - If the data type is unsupported, a `TypeError` is raised for scalar and array types.
 
 
-def _serialise_string_scalar(builder: flatbuffers.Builder, data: np.ndarray):
+def _serialise_string_scalar(
+    builder: flatbuffers.Builder, data: np.ndarray
+) -> tuple[int, ModuleType, int]:
     return builder.CreateString(data.item()), String, AnyInner.AnyInner.String
 
 
-def _serialise_scalar(builder: flatbuffers.Builder, data: np.ndarray):
+def _serialise_scalar(
+    builder: flatbuffers.Builder, data: np.ndarray
+) -> tuple[Any, ModuleType, int]:
     try:
         return (
             data.item(),
@@ -251,7 +256,9 @@ def _serialise_scalar(builder: flatbuffers.Builder, data: np.ndarray):
         raise TypeError(f"unsupported scalar dtype: {data.dtype}")
 
 
-def _serialise_string_array(builder: flatbuffers.Builder, data: np.ndarray):
+def _serialise_string_array(
+    builder: flatbuffers.Builder, data: np.ndarray
+) -> tuple[int, ModuleType, int]:
     internal_values_offsets = [builder.CreateString(item) for item in reversed(data)]
     StringArray.StringArrayStartValueVector(builder, len(data))
     for start_offset in internal_values_offsets:
@@ -259,7 +266,9 @@ def _serialise_string_array(builder: flatbuffers.Builder, data: np.ndarray):
     return builder.EndVector(), StringArray, AnyInner.AnyInner.StringArray
 
 
-def _serialise_array(builder: flatbuffers.Builder, data: np.ndarray):
+def _serialise_array(
+    builder: flatbuffers.Builder, data: np.ndarray
+) -> tuple[int, ModuleType, int]:
     try:
         return (
             builder.CreateNumpyVector(data),
@@ -271,7 +280,7 @@ def _serialise_array(builder: flatbuffers.Builder, data: np.ndarray):
 
 
 @safe_serialise
-def serialise_any(builder: flatbuffers.Builder, data) -> int:
+def serialise_any(builder: flatbuffers.Builder, data: Any) -> int:
     """Serialises an arbitrary object into a FlatBuffers Any union.
 
     Args:
@@ -316,7 +325,7 @@ def serialise_any(builder: flatbuffers.Builder, data) -> int:
 
 
 @safe_deserialise
-def deserialise_any(buffer):
+def deserialise_any(buffer: AnyT.AnyT) -> Any:
     """Deserialises the Any table from a FlatBuffer.
 
     Args:
@@ -333,6 +342,8 @@ def deserialise_any(buffer):
     if data_enum in map_any_scalar_enum_to_type:
         data_fb = map_any_scalar_enum_to_type[data_enum]()
         data_offset = buffer.Value()
+        if data_offset is None:
+            return None
         data_fb.Init(data_offset.Bytes, data_offset.Pos)
         data = data_fb.Value()
         if data_enum == AnyInner.AnyInner.String:
@@ -342,6 +353,8 @@ def deserialise_any(buffer):
     elif data_enum in map_any_array_enum_to_type:
         data_fb = map_any_array_enum_to_type[data_enum]()
         data_offset = buffer.Value()
+        if data_offset is None:
+            return None
         data_fb.Init(data_offset.Bytes, data_offset.Pos)
         if data_enum == AnyInner.AnyInner.StringArray:
             data = np.asarray(
@@ -518,10 +531,8 @@ def serialise_codec(builder: flatbuffers.Builder, codec_data: dt.CodecT) -> int:
         int: The FlatBuffers offset for the serialised CodecT object.
     """
     name_offset = builder.CreateString(codec_data.name)
-    parameters_offset = serialise_any(builder, codec_data.parameters)
     CodecT.Start(builder)
     CodecT.AddName(builder, name_offset)
-    CodecT.AddParameters(builder, parameters_offset)
     return CodecT.End(builder)
 
 
@@ -537,7 +548,6 @@ def deserialise_codec(buffer: CodecT.CodecT) -> dt.CodecT:
     """
     return dt.CodecT(
         name=buffer.Name().decode("utf-8"),  # type: ignore
-        parameters=deserialise_any(buffer.Parameters()),
     )
 
 
@@ -934,7 +944,7 @@ def serialise_data(data: dt.PVData) -> bytes:
     else:
         raise TypeError(f"unsupported data type: {type(data.data)}")
 
-    pv_name_offset = builder.CreateString(data.pv_name)
+    source_name_offset = builder.CreateString(data.source_name)
 
     if data.data.value is None:
         raise ValueError("must have a value")
@@ -942,7 +952,7 @@ def serialise_data(data: dt.PVData) -> bytes:
     PVData.Start(builder)
     PVData.AddDataType(builder, data_enum)
     PVData.AddData(builder, data_offset)
-    PVData.AddPvName(builder, pv_name_offset)
+    PVData.AddSourceName(builder, source_name_offset)
     pv_offset = PVData.End(builder)
     builder.Finish(pv_offset, file_identifier=FILE_IDENTIFIER)
     return bytes(builder.Output())
@@ -971,21 +981,21 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
         ntscalarany_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_ntscalarany(ntscalarany_data),
-            pv_name=pv_data.PvName().decode("utf-8"),
+            source_name=pv_data.SourceName().decode("utf-8"),
         )
     elif data_type == PVType.PVType.NTNDArray:
         ntndarray_data = NTNDArray.NTNDArray()
         ntndarray_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_ntndarray(ntndarray_data),
-            pv_name=pv_data.PvName().decode("utf-8"),
+            source_name=pv_data.SourceName().decode("utf-8"),
         )
     elif data_type == PVType.PVType.NTTable:
         nttable_data = NTTable.NTTable()
         nttable_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_nttable(nttable_data),
-            pv_name=pv_data.PvName().decode("utf-8"),
+            source_name=pv_data.SourceName().decode("utf-8"),
         )
     else:
         raise ValueError(f"unsupported data type: {data_type}")

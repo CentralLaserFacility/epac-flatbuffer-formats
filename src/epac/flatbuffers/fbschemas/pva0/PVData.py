@@ -53,7 +53,7 @@ class PVData(object):
         return None
 
     # PVData
-    def PvName(self) -> Optional[str]:
+    def SourceName(self) -> Optional[str]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -86,14 +86,14 @@ def AddData(builder: flatbuffers.Builder, data: int):
     PVDataAddData(builder, data)
 
 
-def PVDataAddPvName(builder: flatbuffers.Builder, pvName: int):
+def PVDataAddSourceName(builder: flatbuffers.Builder, sourceName: int):
     builder.PrependUOffsetTRelativeSlot(
-        2, flatbuffers.number_types.UOffsetTFlags.py_type(pvName), 0
+        2, flatbuffers.number_types.UOffsetTFlags.py_type(sourceName), 0
     )
 
 
-def AddPvName(builder: flatbuffers.Builder, pvName: int):
-    PVDataAddPvName(builder, pvName)
+def AddSourceName(builder: flatbuffers.Builder, sourceName: int):
+    PVDataAddSourceName(builder, sourceName)
 
 
 def PVDataEnd(builder: flatbuffers.Builder) -> int:

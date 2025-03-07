@@ -55,8 +55,8 @@ enum AlarmSeverity: ubyte {
 }
 
 table AlarmT {
-  severity: AlarmStatus;
-  status: AlarmSeverity;
+  severity: AlarmSeverity;
+  status: AlarmStatus;
   message: string;
 }
 
@@ -93,7 +93,6 @@ table ControlT {
 
 table CodecT {
   name: string;
-  parameters: AnyT;
 }
 
 table DimensionT {
@@ -156,7 +155,7 @@ union PVType { NTScalarAny, NTNDArray, NTTable }
 
 table PVData {
   data: PVType (required);
-  pv_name: string;
+  source_name: string;
 }
 
 root_type PVData;
