@@ -3,8 +3,9 @@
 
 from ._version import version
 from .area_detector_ADAr import deserialise_ADAr, serialise_ADAr
-from .logdata_f142 import deserialise_f142, serialise_f142
 from .arrays_wa00 import deserialise_wa00, serialise_wa00
+from .logdata_f142 import deserialise_f142, serialise_f142
+from .pva0_data import deserialise_data, serialise_data
 
 __version__ = version
 
@@ -12,6 +13,7 @@ SERIALISERS = {
     "f142": serialise_f142,
     "ADAr": serialise_ADAr,
     "wa00": serialise_wa00,
+    "pva0": serialise_data,
 }
 
 
@@ -19,4 +21,5 @@ DESERIALISERS = {
     "f142": deserialise_f142,
     "ADAr": deserialise_ADAr,
     "wa00": deserialise_wa00,
+    "pva0": deserialise_data,
 }
