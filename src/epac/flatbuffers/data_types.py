@@ -153,4 +153,4 @@ class CAScalarAny(BaseModel):
 
 class PVData(BaseModel):
     data: Union[NTScalarAny, NTNDArray, NTTable]
-    source_name: str = ""
+    sourceName: str = ""

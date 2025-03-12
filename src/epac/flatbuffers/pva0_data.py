@@ -944,7 +944,7 @@ def serialise_data(data: dt.PVData) -> bytes:
     else:
         raise TypeError(f"unsupported data type: {type(data.data)}")
 
-    source_name_offset = builder.CreateString(data.source_name)
+    source_name_offset = builder.CreateString(data.sourceName)
 
     if data.data.value is None:
         raise ValueError("must have a value")
@@ -981,21 +981,21 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
         ntscalarany_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_ntscalarany(ntscalarany_data),
-            source_name=pv_data.SourceName().decode("utf-8"),
+            sourceName=pv_data.SourceName().decode("utf-8"),
         )
     elif data_type == PVType.PVType.NTNDArray:
         ntndarray_data = NTNDArray.NTNDArray()
         ntndarray_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_ntndarray(ntndarray_data),
-            source_name=pv_data.SourceName().decode("utf-8"),
+            sourceName=pv_data.SourceName().decode("utf-8"),
         )
     elif data_type == PVType.PVType.NTTable:
         nttable_data = NTTable.NTTable()
         nttable_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_nttable(nttable_data),
-            source_name=pv_data.SourceName().decode("utf-8"),
+            sourceName=pv_data.SourceName().decode("utf-8"),
         )
     else:
         raise ValueError(f"unsupported data type: {data_type}")
