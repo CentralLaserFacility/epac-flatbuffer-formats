@@ -4,10 +4,13 @@ This repository contains the canonical schema definitions for the flatbuffer
 data formats used in the EPAC data management system, as well as Python code to
 serialise and deserialise those formats.
 
-Both of these are heavily based on/copied from the
+`f142` and `ADAr` are heavily based on/copied from the
 [ESS schemas][streaming-data-types] and [ESS code][python-streaming-data-types].
 Code using the ESS `streaming_data_types` package should be able to be ported to
 this package with few if any changes beyond the import path.
+
+These, in addition to `wa00` will soon be deprecated in favor of the singlular `pva0`
+schema.
 
 ## Getting started
 
@@ -21,7 +24,7 @@ support for git URLs. For example, you can add the following to your
 
 ```toml
 dependencies = [
-    "epac-flatbuffer-formats @ git+https://github.com/CentralLaserFacility/epac-flatbuffer-formats@v0.1.1",
+    "epac-flatbuffer-formats @ git+https://github.com/CentralLaserFacility/epac-flatbuffer-formats@v0.2.0",
 ]
 ```
 
@@ -51,7 +54,107 @@ decoded_value = deserialise_f142(buf)
 print(decoded_value.value)
 ```
 
-## Comparison with upstream
+Note that each of these will have different arguments, in particular for `pva0` a PVData object
+as defined in data_types.py is expected.
+
+## Currently supported schemas and details
+
+### f142
+This is intended for scalar and array values from channel access with limited metadata.
+
+#### Implementation Details
+f142 is defined in the schema as a structure with the following fields:
+- source_name: a string value identifying source
+- value: main value of the pv in question, which can be any non string scalar
+- timestamp: nanoseconds past epoch
+- status: an enum representing alarm_status, details are in the schema
+- schema: an enum representing alarm_severity, details are in the schema
+- units: units of the value
+
+For python:
+This kind of data is serialised using the `serialise_f142` function, which takes each field as an
+argument.
+The bytes can be deserialised using the corresponding `deserialise_f142`.
+
+As value can take multiple data types it is implemented as a Value union, made of tables of the
+different standard types and arrays. This requires an extra serialization step, where NumPy ndarray
+dtypes are used to map the received value to the corresponding type for serialization. This is
+also encoded in the byte string which is used during the deserialisation.
+
+### ADAr
+This is intended for image data from channel access with limited metadata.
+
+#### Implementation Details
+ADAr is defined in the schema as a structure with the following fields:
+- source_name: a string value identifying source
+- id: a unique integer id
+- timestamp: nanoseconds past epoch
+- dimensions: an array containing details on the dimensions of the image
+- data_type: type of the data stored in the array
+- data: elements of the array
+- attribute: these are extra metadata values, with each having name, description, source, data_type
+and data fields
+
+For python:
+This kind of data is serialised using the `serialise_ADAr` function, which takes each field as an
+argument.
+The bytes can be deserialised using the corresponding `deserialise_ADAr`.
+
+### wa00
+This is intended for waveform data from channel access via two PVs with limited metadata.
+
+#### Implementation Details
+wa00 is defined in the schema as a structure with the following fields:
+
+timestamp: nanoseconds past epoch for the last y update
+x_timestamp: nanoseconds past epoch for the last x update
+x_data_type: type of the data stored in the x_data array
+y_data_type: type of the data stored in the y_data array
+x_data: elements in the x array
+y_data: elements in the y array
+x_unit: units of the x array
+y_unit: units of the y array
+
+For python:
+This kind of data is serialised using the `serialise_wa00` function, which takes each field as an
+argument.
+The bytes can be deserialised using the corresponding `deserialise_wa00`.
+
+
+### pva0
+This is intended for various types of data from pv access. There is currently support (based
+on [normative types][normative-types]) for `NTScalarAny`, `NTNDArray` and `NTTable`.
+
+#### Implementation Details
+This schema was built based on [normative types][normative-types]. A `PVData` object is defined
+which contains the following fields:
+- data: the value of the PV as sent from pv access, in the form of one of the supported normative
+types
+- source_name: a string value identifying source
+
+Currently `NTScalarAny` is used to handle both `NTScalar` and `NTScalarArray` types of data. `NTTable` is
+also supported for any potential use cases.
+
+For python:
+To assist with and validate the use of these FlatBuffers, Pydantic-based classes have been defined to
+mimic the schema. Serialization and deserialization are performed using these classes. Specifically, a
+PVData object (defined in data_types.py) should be passed to serialise_data when using pva0.`deserialise_data`
+can be used to decode the bytes into a `PVData` object.
+
+Additionally there are some special considerations made for more optimal usage:
+- Alarm status and severity are handled as enums, as they have standard values.
+- Enums such as display form are not handled via EnumT as per the normative types specification, rather
+they use the style of flatbuffer enums.
+- To convert between the case of Alarm enums, and the case of display form, they pydantic objects come
+with parser support, which formats the data as required.
+
+### ca_to_pva
+ca_to_pva contains the CatoNTConverter class, which has functionality to convert data received from
+channel access into a resultant pydantic `PVData` object which can then be used with `pva0`. This
+supports being passed both a dictionary as well as corresponding custom types (eg. `CAScalarAny`) into
+the corresponding convert_scalar or convert_waveform (not yet implemented) functions.
+
+## Comparison with upstream for f142 and ADAr
 
 The "upstreams" for this project are two ESS projects:
 [`streaming-data-types`][streaming-data-types] and
@@ -69,7 +172,7 @@ any code using the Python [`streaming_data_types`][python-streaming-data-types]
 package (`ess-streaming-data-types` on PyPI) can be adapted to use this package
 with little effort beyond changing the import paths.
 
-### Major differences with upstream
+### Major differences with upstream for f142 and ADAr
 
 Most schemas present in upstream are missing. At the time of writing, only
 `f142` and `ADAr` have been kept.
@@ -155,3 +258,4 @@ generation process.
 
 [streaming-data-types]: https://github.com/ess-dmsc/streaming-data-types
 [python-streaming-data-types]: https://github.com/ess-dmsc/python-streaming-data-types
+[normative-types]: https://docs.epics-controls.org/en/latest/pv-access/Normative-Types-Specification
