@@ -9,7 +9,7 @@ serialise and deserialise those formats.
 Code using the ESS `streaming_data_types` package should be able to be ported to
 this package with few if any changes beyond the import path.
 
-These, in addition to `wa00` will soon be deprecated in favor of the singlular `pva0`
+These, in addition to `wa00` will eventually be deprecated in favor of the singlular `pva0`
 schema.
 
 ## Getting started
@@ -82,7 +82,7 @@ dtypes are used to map the received value to the corresponding type for serializ
 also encoded in the byte string which is used during the deserialisation.
 
 ### ADAr
-This is intended for image data from channel access with limited metadata.
+This is intended for image data from AreaDetector via ADPluginKafka with limited metadata.
 
 #### Implementation Details
 ADAr is defined in the schema as a structure with the following fields:
@@ -91,7 +91,7 @@ ADAr is defined in the schema as a structure with the following fields:
 - timestamp: nanoseconds past epoch
 - dimensions: an array containing details on the dimensions of the image
 - data_type: type of the data stored in the array
-- data: elements of the array
+- data: a raw bytes array
 - attribute: these are extra metadata values, with each having name, description, source, data_type
 and data fields
 
@@ -123,17 +123,17 @@ The bytes can be deserialised using the corresponding `deserialise_wa00`.
 
 ### pva0
 This is intended for various types of data from pv access. There is currently support (based
-on [normative types][normative-types]) for `NTScalarAny`, `NTNDArray` and `NTTable`.
+on the EPICS V4 [normative types][normative-types]) for `NTScalarAny`, `NTNDArray` and `NTTable`.
 
 #### Implementation Details
-This schema was built based on [normative types][normative-types]. A `PVData` object is defined
+This schema was built based on the EPICS V4 [normative types][normative-types]. A `PVData` object is defined
 which contains the following fields:
 - data: the value of the PV as sent from pv access, in the form of one of the supported normative
 types
 - source_name: a string value identifying source
 
-Currently `NTScalarAny` is used to handle both `NTScalar` and `NTScalarArray` types of data. `NTTable` is
-also supported for any potential use cases.
+Currently `NTScalarAny` is used to handle both `NTScalar` and `NTScalarArray` types of data. `NTNDArray` is used for AreaDetector/Image data.
+NTTable` is also supported for any potential use cases.
 
 For python:
 To assist with and validate the use of these FlatBuffers, Pydantic-based classes have been defined to
@@ -258,4 +258,4 @@ generation process.
 
 [streaming-data-types]: https://github.com/ess-dmsc/streaming-data-types
 [python-streaming-data-types]: https://github.com/ess-dmsc/python-streaming-data-types
-[normative-types]: https://docs.epics-controls.org/en/latest/pv-access/Normative-Types-Specification
+[normative-types]: https://docs.epics-controls.org/en/latest/pv-access/Normative-Types-Specification.html
