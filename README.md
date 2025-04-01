@@ -130,7 +130,7 @@ This schema was built based on the EPICS V4 [normative types][normative-types]. 
 which contains the following fields:
 - data: the value of the PV as sent from pv access, in the form of one of the supported normative
 types
-- source_name: a string value identifying source
+- source_name: the source of the data; for example, the name of a PV
 
 Currently `NTScalarAny` is used to handle both `NTScalar` and `NTScalarArray` types of data. `NTNDArray` is used for AreaDetector/Image data.
 NTTable` is also supported for any potential use cases.
