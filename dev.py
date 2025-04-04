@@ -251,6 +251,16 @@ def cmd_test():
     venv.run_cmd("pytest")
 
 
+@command("benchmark")
+def cmd_benchmark():
+    """Run benchmarking tests."""
+
+    venv = require("venv")
+
+    venv.run_cmd("mypy", *mypy_check_paths())
+    venv.run_cmd("pytest", "benchmarks")
+
+
 @command("api-docs")
 def cmd_api_docs():
     """Browse API docs."""
