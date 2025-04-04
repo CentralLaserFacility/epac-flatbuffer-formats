@@ -18,6 +18,7 @@ dev = [
     "flake8",
     "Flake8-pyproject",
     "pytest",
+    "pytest-benchmark",
     "pdoc",
 ]
 
@@ -43,3 +44,8 @@ exclude = [
     # Generated code
     "src/epac/flatbuffers/fbschemas",
     ]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
