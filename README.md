@@ -61,6 +61,129 @@ schema files define the fields contained within. For pva00 the EPICS V4 [normati
 can be referred to for most cases with minimal changes. Refer to [epac-forwarder][epac-forwarder] to see
 direct use cases.
 
+### pva0
+
+This is intended for various types of data from pv access.
+
+#### Implementation Details
+
+The pva0 schema was built based on the EPICS V4 [normative types][normative-types]. A `PVData` object
+contains the value of the PV as sent from pv access, in the form of one of the supported data types,
+as well as some additional metadata, such as the name of the PV (the `source_name`).
+
+Currently `NTScalarAny` is used to handle both `NTScalar` and `NTScalarArray` types of data. `NTNDArray`
+is used for AreaDetector/Image data. `NTTable` is also supported for any potential use cases.
+
+#### Usage (Python)
+
+To assist with and validate the use of these FlatBuffers, Pydantic-based classes have been defined to
+mimic the schema. Serialization and deserialization are performed utilising these classes to ensure
+standardisation.
+
+For optimal usage, Enums are provided for the alarm status and severity, as well as the display format.
+These are automatically converted from the corresponding parts of the normative types.
+
+```python
+
+from p4p.client.thread import Context  # type: ignore
+from epac.flatbuffers.data_types import PVData, NTScalarAny, NTNDArray, NTTable
+from epac.flatbuffers.pva0_data import serialise_data, deserialise_data
+
+context = Context("pva", nt=False)
+# This pv returns an NTScalar
+pv_name = "EPAC-DEV:CAM1:stats1:Net_RBV"
+pv_data = context.get(pv_name)
+pv_data_object = PVData(
+    data=NTScalarAny(**pv_data.todict()), sourceName=pv_name
+)
+serialised_data = serialise_data(pv_data_object)
+deserialised_data = deserialise_data(serialised_data)
+# attributes are accessible based on the schema
+alarm_severity = deserialised_data.data.alarm.severity
+
+# NTNDArray and NTTable work in similar ways as above.
+# Furthermore, it is possible to set up a monitor via using p4p subscription and monitor.
+# An example of this can be found in the epac-forwarder.
+
+# It is also possible to directly pass a dictionary as follows.
+
+value = {
+    "value": 1,
+    "alarm": {"severity": 0, "status": 0, "message": "NO_ALARM"},
+    "timeStamp": {
+        "secondsPastEpoch": 1739946490,
+        "nanoseconds": 410324754,
+        "userTag": 0,
+    },
+}
+
+
+pv_data_object = PVData(
+    data=NTScalarAny(**value), sourceName=pv_name
+)
+serialised_data = serialise_data(pv_data_object)
+deserialised_data = deserialise_data(serialised_data)
+
+
+# the defined pydantic types can also freely be used
+from epac.flatbuffers.data_types import PVData, NTNDArray, AlarmT, TimeT
+
+value = {
+    "value": np.array([91, 92, 93, 102, 103, 104], dtype=np.uint8),
+    "codec": {"name": ""},
+    "compressedSize": 6,
+    "uncompressedSize": 6,
+    "dimension": [
+        {"size": 1, "offset": 0, "fullSize": 1, "binning": 1, "reverse": False},
+        {"size": 6, "offset": 0, "fullSize": 6, "binning": 1, "reverse": False},
+    ],
+    "uniqueId": 16991836,
+    "alarm": AlarmT(**{"severity": 0, "status": 0, "message": "NO_ALARM"}),
+    "timeStamp": TimeT(**{
+        "secondsPastEpoch": 1740045680,
+        "nanoseconds": 233594955,
+        "userTag": 0,
+    }),
+}
+
+pv_data_object = PVData(
+    data=NTNDArray(**value), sourceName=pv_name
+)
+serialised_data = serialise_data(pv_data_object)
+deserialised_data = deserialise_data(serialised_data)
+```
+
+### ca_to_pva
+
+ca_to_pva contains the CatoNTConverter class, which has functionality to convert data received from
+channel access into a resultant pydantic `PVData` object which can then be used with `pva0`. This
+supports being passed both a dictionary as well as corresponding custom types (eg. `CAScalarAny`) into
+the corresponding convert_scalar or convert_waveform (not yet implemented) functions.
+
+#### Usage (Python)
+
+```python
+from epac.flatbuffers.ca_to_pva import CaToNtConverter
+from epac.flatbuffers import data_types as dt
+value = {
+    "value": 42.5,
+    "pvname": "some pv name",
+    "status": 1,
+    "precision": 2,
+    "units": "V",
+    "severity": 0,
+    "timestamp": 1713201234.567,
+    "upper_disp_limit": 100.0,
+    "lower_disp_limit": 0.0,
+    "upper_ctrl_limit": 95.0,
+    "lower_ctrl_limit": 5.0
+}
+ca_scalar_obj = dt.CAScalarAny(**value)
+# value could also have been passed directly to convert_scalar
+nt_scalar_object = CaToNtConverter().convert_scalar(ca_scalar_obj)
+pv_data_object = PVData(data=nt_scalar_object, sourceName=self.pv_name)
+```
+
 ### f142
 
 The f142 schema is intended for scalar and array values from channel access.
@@ -189,129 +312,6 @@ alarm_severity = deserialised_data.values_x_array
 
 # as with f142 it is possible to setup pv monitioring using a callback; as this concerns two pvs,
 # a decision will  have to be taken accordingly, in epac-forwarder this is done via y-value updates
-```
-
-### pva0
-
-This is intended for various types of data from pv access.
-
-#### Implementation Details
-
-The pva0 schema was built based on the EPICS V4 [normative types][normative-types]. A `PVData` object
-contains the value of the PV as sent from pv access, in the form of one of the supported data types,
-as well as some additional metadata, such as the name of the PV (the `source_name`).
-
-Currently `NTScalarAny` is used to handle both `NTScalar` and `NTScalarArray` types of data. `NTNDArray`
-is used for AreaDetector/Image data. `NTTable` is also supported for any potential use cases.
-
-#### Usage (Python)
-
-To assist with and validate the use of these FlatBuffers, Pydantic-based classes have been defined to
-mimic the schema. Serialization and deserialization are performed utilising these classes to ensure
-standardisation.
-
-For optimal usage, Enums are provided for the alarm status and severity, as well as the display format.
-These are automatically converted from the corresponding parts of the normative types.
-
-```python
-
-from p4p.client.thread import Context  # type: ignore
-from epac.flatbuffers.data_types import PVData, NTScalarAny, NTNDArray, NTTable
-from epac.flatbuffers.pva0_data import serialise_data, deserialise_data
-
-context = Context("pva", nt=False)
-# This pv returns an NTScalar
-pv_name = "EPAC-DEV:CAM1:stats1:Net_RBV"
-pv_data = context.get(pv_name)
-pv_data_object = PVData(
-    data=NTScalarAny(**pv_data.todict()), sourceName=pv_name
-)
-serialised_data = serialise_data(pv_data_object)
-deserialised_data = deserialise_data(serialised_data)
-# attributes are accessible based on the schema
-alarm_severity = deserialised_data.data.alarm.severity
-
-# NTNDArray and NTTable work in similar ways as above.
-# Furthermore, it is possible to set up a monitor via using p4p subscription and monitor.
-# An example of this can be found in the epac-forwarder.
-
-# It is also possible to directly pass a dictionary as follows.
-
-value = {
-    "value": 1,
-    "alarm": {"severity": 0, "status": 0, "message": "NO_ALARM"},
-    "timeStamp": {
-        "secondsPastEpoch": 1739946490,
-        "nanoseconds": 410324754,
-        "userTag": 0,
-    },
-}
-
-
-pv_data_object = PVData(
-    data=NTScalarAny(**value), sourceName=pv_name
-)
-serialised_data = serialise_data(pv_data_object)
-deserialised_data = deserialise_data(serialised_data)
-
-
-# the defined pydantic types can also freely be used
-from epac.flatbuffers.data_types import PVData, NTNDArray, AlarmT, TimeT
-
-value = {
-    "value": np.array([91, 92, 93, 102, 103, 104], dtype=np.uint8),
-    "codec": {"name": ""},
-    "compressedSize": 6,
-    "uncompressedSize": 6,
-    "dimension": [
-        {"size": 1, "offset": 0, "fullSize": 1, "binning": 1, "reverse": False},
-        {"size": 6, "offset": 0, "fullSize": 6, "binning": 1, "reverse": False},
-    ],
-    "uniqueId": 16991836,
-    "alarm": AlarmT(**{"severity": 0, "status": 0, "message": "NO_ALARM"}),
-    "timeStamp": TimeT(**{
-        "secondsPastEpoch": 1740045680,
-        "nanoseconds": 233594955,
-        "userTag": 0,
-    }),
-}
-
-pv_data_object = PVData(
-    data=NTNDArray(**value), sourceName=pv_name
-)
-serialised_data = serialise_data(pv_data_object)
-deserialised_data = deserialise_data(serialised_data)
-```
-
-### ca_to_pva
-
-ca_to_pva contains the CatoNTConverter class, which has functionality to convert data received from
-channel access into a resultant pydantic `PVData` object which can then be used with `pva0`. This
-supports being passed both a dictionary as well as corresponding custom types (eg. `CAScalarAny`) into
-the corresponding convert_scalar or convert_waveform (not yet implemented) functions.
-
-#### Usage (Python)
-
-```python
-from epac.flatbuffers.ca_to_pva import CaToNtConverter
-from epac.flatbuffers import data_types as dt
-value = {
-    "value": 42.5,
-    "pvname": "some pv name",
-    "status": 1,
-    "precision": 2,
-    "units": "V",
-    "severity": 0,
-    "timestamp": 1713201234.567,
-    "upper_disp_limit": 100.0,
-    "lower_disp_limit": 0.0,
-    "upper_ctrl_limit": 95.0,
-    "lower_ctrl_limit": 5.0
-}
-ca_scalar_obj = dt.CAScalarAny(**value)
-# value could also have been passed directly to convert_scalar
-nt_scalar_object = CaToNtConverter().convert_scalar(ca_scalar_obj)
-pv_data_object = PVData(data=nt_scalar_object, sourceName=self.pv_name)
 ```
 
 ## Comparison with upstream for f142 and ADAr
