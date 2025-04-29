@@ -49,6 +49,8 @@ serialised_data = serialise_f142(42,
 )
 
 deserialised_data = deserialise_f142(serialised_data)
+# attributes are accessible based on the fbs schema
+alarm_severity = deserialised_data.severity
 ```
 
 Note that each of these will have different arguments, in particular for `pva0` a PVData object
@@ -57,8 +59,8 @@ as defined in data_types.py is expected.
 ## Currently supported schemas and details
 
 The currently supported schemas are f142, ADAr, wa00 and pva0. For the former three, the corresponding
-schema files define the fields contained within. For pva00 the EPICS V4 [normative types][normative-types]
-can be referred to for most cases with minimal changes. Refer to [epac-forwarder][epac-forwarder] to see
+schema files define the fields contained within. For pva00 the EPICS V4 [normative-types]
+can be referred to for most cases with minimal changes. Refer to [epac-forwarder] to see some
 direct use cases.
 
 ### pva0
@@ -67,7 +69,7 @@ This is intended for various types of data from pv access.
 
 #### Implementation Details
 
-The pva0 schema was built based on the EPICS V4 [normative types][normative-types]. A `PVData` object
+The pva0 schema was built based on the EPICS V4 [normative-types]. A `PVData` object
 contains the value of the PV as sent from pv access, in the form of one of the supported data types,
 as well as some additional metadata, such as the name of the PV (the `source_name`).
 
@@ -98,14 +100,14 @@ pv_data_object = PVData(
 )
 serialised_data = serialise_data(pv_data_object)
 deserialised_data = deserialise_data(serialised_data)
-# attributes are accessible based on the schema
+# attributes are accessible based on the fbs schema, but for pva0 it is better to refer to data_types.py
 alarm_severity = deserialised_data.data.alarm.severity
 
 # NTNDArray and NTTable work in similar ways as above.
 # Furthermore, it is possible to set up a monitor via using p4p subscription and monitor.
 # An example of this can be found in the epac-forwarder.
 
-# It is also possible to directly pass a dictionary as follows.
+# It is also possible to directly use a dictionary as follows.
 
 value = {
     "value": 1,
@@ -121,36 +123,7 @@ value = {
 pv_data_object = PVData(
     data=NTScalarAny(**value), sourceName=pv_name
 )
-serialised_data = serialise_data(pv_data_object)
-deserialised_data = deserialise_data(serialised_data)
 
-
-# the defined pydantic types can also freely be used
-from epac.flatbuffers.data_types import PVData, NTNDArray, AlarmT, TimeT
-
-value = {
-    "value": np.array([91, 92, 93, 102, 103, 104], dtype=np.uint8),
-    "codec": {"name": ""},
-    "compressedSize": 6,
-    "uncompressedSize": 6,
-    "dimension": [
-        {"size": 1, "offset": 0, "fullSize": 1, "binning": 1, "reverse": False},
-        {"size": 6, "offset": 0, "fullSize": 6, "binning": 1, "reverse": False},
-    ],
-    "uniqueId": 16991836,
-    "alarm": AlarmT(**{"severity": 0, "status": 0, "message": "NO_ALARM"}),
-    "timeStamp": TimeT(**{
-        "secondsPastEpoch": 1740045680,
-        "nanoseconds": 233594955,
-        "userTag": 0,
-    }),
-}
-
-pv_data_object = PVData(
-    data=NTNDArray(**value), sourceName=pv_name
-)
-serialised_data = serialise_data(pv_data_object)
-deserialised_data = deserialise_data(serialised_data)
 ```
 
 ### ca_to_pva
@@ -179,7 +152,7 @@ value = {
     "lower_ctrl_limit": 5.0
 }
 ca_scalar_obj = dt.CAScalarAny(**value)
-# value could also have been passed directly to convert_scalar
+# value could also have been passed directly to convert_scalar, and it would do the object conversion
 nt_scalar_object = CaToNtConverter().convert_scalar(ca_scalar_obj)
 pv_data_object = PVData(data=nt_scalar_object, sourceName=self.pv_name)
 ```
@@ -216,9 +189,6 @@ serialised_data = serialise_f142(
 
 deserialised_data = deserialise_f142(serialised_data)
 
-# LogDataInfo namedtuple is returned with accessible attributes
-alarm_severity = deserialised_data.alarm_severity
-
 # similarly it is possible to setup pv monitioring using a callback, this is what is done with the
 # epac-forwarder
 ```
@@ -234,7 +204,7 @@ supported.
 
 ### ADAr
 
-The ADAr schema is intended for image data from AreaDetector via [ADPluginKafka][ADPluginKafka]. While direct serialisation
+The ADAr schema is intended for image data from AreaDetector via [ADPluginKafka]. While direct serialisation
 is possible, ADPluginKafka is the currently preferred usage.
 
 #### Usage (Python)
