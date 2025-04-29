@@ -137,9 +137,9 @@ class NTTable(BaseModel):
     display: Optional[DisplayT] = None
 
 
-class Waveform(BaseModel):
-    dataX: NTScalarAny
-    dataY: NTScalarAny
+class XYData(BaseModel):
+    x: NTScalarAny
+    y: NTScalarAny
 
 
 class CAScalarAny(BaseModel):
@@ -157,5 +157,5 @@ class CAScalarAny(BaseModel):
 
 
 class PVData(BaseModel):
-    data: Union[NTScalarAny, NTNDArray, NTTable, Waveform]
+    data: Union[NTScalarAny, NTNDArray, NTTable, XYData]
     sourceName: str = ""

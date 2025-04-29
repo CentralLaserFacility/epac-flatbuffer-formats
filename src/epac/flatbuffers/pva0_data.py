@@ -45,7 +45,7 @@ from .fbschemas.pva0 import (
     NTScalarAny,
     NTNDArray,
     NTTable,
-    Waveform,
+    XYData,
     PVType,
     PVData,
 )
@@ -918,45 +918,45 @@ def deserialise_nttable(buffer: NTTable.NTTable) -> dt.NTTable:
     )
 
 
-def serialise_waveform(builder: flatbuffers.Builder, waveform_data: dt.Waveform) -> int:
-    """Serialises an Waveform table into FlatBuffers format.
+def serialise_xydata(builder: flatbuffers.Builder, xy_data: dt.XYData) -> int:
+    """Serialises an XYData table into FlatBuffers format.
 
     Args:
         builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        nttable_data (dt.Waveform): The Waveform object containing table data.
+        nttable_data (dt.XYData): The XYData object containing table data.
 
     Returns:
-        int: The FlatBuffers offset for the serialised Waveform object.
+        int: The FlatBuffers offset for the serialised XYData object.
     """
-    data_x_offset = serialise_ntscalarany(builder, waveform_data.dataX)
-    data_y_offset = serialise_ntscalarany(builder, waveform_data.dataY)
+    x_offset = serialise_ntscalarany(builder, xy_data.x)
+    y_offset = serialise_ntscalarany(builder, xy_data.y)
 
-    # Create Waveform
-    Waveform.Start(builder)
-    Waveform.AddDataX(builder, data_x_offset)
-    Waveform.AddDataY(builder, data_y_offset)
-    return Waveform.End(builder)
+    # Create XYData
+    XYData.Start(builder)
+    XYData.AddX(builder, x_offset)
+    XYData.AddY(builder, y_offset)
+    return XYData.End(builder)
 
 
-def deserialise_waveform(buffer: Waveform.Waveform) -> dt.Waveform:
-    """Deserialises an Waveform from a FlatBuffer.
+def deserialise_xydata(buffer: XYData.XYData) -> dt.XYData:
+    """Deserialises an XYData from a FlatBuffer.
 
     Args:
-        buffer (Waveform.Waveform): The FlatBuffer object containing the serialised Waveform.
+        buffer (XYData.XYData): The FlatBuffer object containing the serialised XYData.
 
     Returns:
-        dt.Waveform: The deserialized Waveform object.
+        dt.XYData: The deserialized XYData object.
     Raises:
-        ValueError: If dataX or dataY buffer returns None.
+        ValueError: If x or y buffer returns None.
     """
-    dataX_buffer = buffer.DataX()
-    dataY_buffer = buffer.DataY()
-    if dataX_buffer is not None and dataY_buffer is not None:
-        dataX = deserialise_ntscalarany(dataX_buffer)
-        dataY = deserialise_ntscalarany(dataY_buffer)
+    x_buffer = buffer.X()
+    y_buffer = buffer.Y()
+    if x_buffer is not None and y_buffer is not None:
+        x = deserialise_ntscalarany(x_buffer)
+        y = deserialise_ntscalarany(y_buffer)
     else:
-        raise ValueError("missing data in waveform")
-    return dt.Waveform(dataX=dataX, dataY=dataY)
+        raise ValueError("missing data in xydata")
+    return dt.XYData(x=x, y=y)
 
 
 def serialise_data(data: dt.PVData) -> bytes:
@@ -972,12 +972,12 @@ def serialise_data(data: dt.PVData) -> bytes:
         TypeError: If an unsupported or unknown data type is provided.
         ValueError: If data without a value is provided.
     """
-    if isinstance(data.data, dt.Waveform):
-        if data.data.dataX is None or data.data.dataY is None:
-            raise ValueError("must have x and y values")
+    if isinstance(data.data, dt.XYData):
+        if data.data.y is None:
+            raise ValueError("must have a y value")
     else:
         if data.data.value is None:
-            raise ValueError("must have a value")
+            raise ValueError("must have a data value")
 
     builder = flatbuffers.Builder(1024)
 
@@ -990,9 +990,9 @@ def serialise_data(data: dt.PVData) -> bytes:
     elif isinstance(data.data, dt.NTTable):
         data_offset = serialise_nttable(builder, data.data)
         data_enum = PVType.PVType.NTTable
-    elif isinstance(data.data, dt.Waveform):
-        data_offset = serialise_waveform(builder, data.data)
-        data_enum = PVType.PVType.Waveform
+    elif isinstance(data.data, dt.XYData):
+        data_offset = serialise_xydata(builder, data.data)
+        data_enum = PVType.PVType.XYData
     else:
         raise TypeError(f"unsupported data type: {type(data.data)}")
 
@@ -1046,11 +1046,11 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
             data=deserialise_nttable(nttable_data),
             sourceName=pv_data.SourceName().decode("utf-8"),
         )
-    elif data_type == PVType.PVType.Waveform:
-        waveform_data = Waveform.Waveform()
-        waveform_data.Init(data_buffer.Bytes, data_buffer.Pos)
+    elif data_type == PVType.PVType.XYData:
+        xy_data = XYData.XYData()
+        xy_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
-            data=deserialise_waveform(waveform_data),
+            data=deserialise_xydata(xy_data),
             sourceName=pv_data.SourceName().decode("utf-8"),
         )
     else:

@@ -151,12 +151,12 @@ table NTTable {
   display: DisplayT;
 }
 
-table Waveform {
-  data_x: NTScalarAny;
-  data_y: NTScalarAny;
+table XYData {
+  x: NTScalarAny;
+  y: NTScalarAny (required);
 }
 
-union PVType { NTScalarAny, NTNDArray, NTTable, Waveform }
+union PVType { NTScalarAny, NTNDArray, NTTable, XYData }
 
 table PVData {
   data: PVType (required);

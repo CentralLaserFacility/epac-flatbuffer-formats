@@ -11,33 +11,33 @@ from typing import Optional
 np = import_numpy()
 
 
-class Waveform(object):
+class XYData(object):
     __slots__ = ["_tab"]
 
     @classmethod
     def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = Waveform()
+        x = XYData()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAsWaveform(cls, buf, offset=0):
+    def GetRootAsXYData(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
 
     @classmethod
-    def WaveformBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+    def XYDataBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(
             buf, offset, b"\x70\x76\x61\x30", size_prefixed=size_prefixed
         )
 
-    # Waveform
+    # XYData
     def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # Waveform
-    def DataX(self) -> Optional[NTScalarAny]:
+    # XYData
+    def X(self) -> Optional[NTScalarAny]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
@@ -46,8 +46,8 @@ class Waveform(object):
             return obj
         return None
 
-    # Waveform
-    def DataY(self) -> Optional[NTScalarAny]:
+    # XYData
+    def Y(self) -> Optional[NTScalarAny]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
@@ -57,37 +57,37 @@ class Waveform(object):
         return None
 
 
-def WaveformStart(builder: flatbuffers.Builder):
+def XYDataStart(builder: flatbuffers.Builder):
     builder.StartObject(2)
 
 
 def Start(builder: flatbuffers.Builder):
-    WaveformStart(builder)
+    XYDataStart(builder)
 
 
-def WaveformAddDataX(builder: flatbuffers.Builder, dataX: int):
+def XYDataAddX(builder: flatbuffers.Builder, x: int):
     builder.PrependUOffsetTRelativeSlot(
-        0, flatbuffers.number_types.UOffsetTFlags.py_type(dataX), 0
+        0, flatbuffers.number_types.UOffsetTFlags.py_type(x), 0
     )
 
 
-def AddDataX(builder: flatbuffers.Builder, dataX: int):
-    WaveformAddDataX(builder, dataX)
+def AddX(builder: flatbuffers.Builder, x: int):
+    XYDataAddX(builder, x)
 
 
-def WaveformAddDataY(builder: flatbuffers.Builder, dataY: int):
+def XYDataAddY(builder: flatbuffers.Builder, y: int):
     builder.PrependUOffsetTRelativeSlot(
-        1, flatbuffers.number_types.UOffsetTFlags.py_type(dataY), 0
+        1, flatbuffers.number_types.UOffsetTFlags.py_type(y), 0
     )
 
 
-def AddDataY(builder: flatbuffers.Builder, dataY: int):
-    WaveformAddDataY(builder, dataY)
+def AddY(builder: flatbuffers.Builder, y: int):
+    XYDataAddY(builder, y)
 
 
-def WaveformEnd(builder: flatbuffers.Builder) -> int:
+def XYDataEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
 
 
 def End(builder: flatbuffers.Builder) -> int:
-    return WaveformEnd(builder)
+    return XYDataEnd(builder)

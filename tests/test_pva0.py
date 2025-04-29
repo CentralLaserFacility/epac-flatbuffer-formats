@@ -130,11 +130,11 @@ class TestSerialisationPVA0:
         assert nt_ndarray_obj.model_dump()["display"]["form"] == 0
         assert np.array_equal(nt_ndarray_dict["value"], nt_ndarray_obj.value)
 
-    def test_serialises_and_deserialises_waveform_correctly(self, nt_scalar_dict):
+    def test_serialises_and_deserialises_xydata_correctly(self, nt_scalar_dict):
 
         nt_scalar_obj = dt.NTScalarAny(**nt_scalar_dict)
-        waveform_obj = dt.Waveform(dataX=nt_scalar_obj, dataY=nt_scalar_obj)
-        pv_data_obj = dt.PVData(data=waveform_obj, source_name=self.source_name)
+        xydata_obj = dt.XYData(x=nt_scalar_obj, y=nt_scalar_obj)
+        pv_data_obj = dt.PVData(data=xydata_obj, source_name=self.source_name)
         buf = serialise_data(pv_data_obj)
         assert isinstance(buf, bytes)
         deserialised_obj = deserialise_data(buf)

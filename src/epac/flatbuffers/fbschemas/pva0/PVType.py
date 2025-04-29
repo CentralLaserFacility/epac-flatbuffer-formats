@@ -8,4 +8,4 @@ class PVType(object):
     NTScalarAny = 1
     NTNDArray = 2
     NTTable = 3
-    Waveform = 4
+    XYData = 4
