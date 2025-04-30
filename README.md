@@ -91,6 +91,7 @@ from p4p.client.thread import Context  # type: ignore
 from epac.flatbuffers.data_types import PVData, NTScalarAny, NTNDArray, NTTable
 from epac.flatbuffers.pva0_data import serialise_data, deserialise_data
 
+# nt=False disables automatic unwrapping, which suits us as we are using our own structures
 context = Context("pva", nt=False)
 # This pv returns an NTScalar
 pv_name = "EPAC-DEV:CAM1:stats1:Net_RBV"
