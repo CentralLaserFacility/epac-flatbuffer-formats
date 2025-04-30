@@ -8,3 +8,4 @@ class PVType(object):
     NTScalarAny = 1
     NTNDArray = 2
     NTTable = 3
+    XYData = 4

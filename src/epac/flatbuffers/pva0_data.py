@@ -45,6 +45,7 @@ from .fbschemas.pva0 import (
     NTScalarAny,
     NTNDArray,
     NTTable,
+    XYData,
     PVType,
     PVData,
 )
@@ -917,6 +918,47 @@ def deserialise_nttable(buffer: NTTable.NTTable) -> dt.NTTable:
     )
 
 
+def serialise_xydata(builder: flatbuffers.Builder, xy_data: dt.XYData) -> int:
+    """Serialises an XYData table into FlatBuffers format.
+
+    Args:
+        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
+        nttable_data (dt.XYData): The XYData object containing table data.
+
+    Returns:
+        int: The FlatBuffers offset for the serialised XYData object.
+    """
+    x_offset = serialise_ntscalarany(builder, xy_data.x)
+    y_offset = serialise_ntscalarany(builder, xy_data.y)
+
+    # Create XYData
+    XYData.Start(builder)
+    XYData.AddX(builder, x_offset)
+    XYData.AddY(builder, y_offset)
+    return XYData.End(builder)
+
+
+def deserialise_xydata(buffer: XYData.XYData) -> dt.XYData:
+    """Deserialises an XYData from a FlatBuffer.
+
+    Args:
+        buffer (XYData.XYData): The FlatBuffer object containing the serialised XYData.
+
+    Returns:
+        dt.XYData: The deserialized XYData object.
+    Raises:
+        ValueError: If x or y buffer returns None.
+    """
+    x_buffer = buffer.X()
+    y_buffer = buffer.Y()
+    if x_buffer is not None and y_buffer is not None:
+        x = deserialise_ntscalarany(x_buffer)
+        y = deserialise_ntscalarany(y_buffer)
+    else:
+        raise ValueError("missing data in xydata")
+    return dt.XYData(x=x, y=y)
+
+
 def serialise_data(data: dt.PVData) -> bytes:
     """Serialises data into a FlatBuffer using PVData as the container type.
 
@@ -930,6 +972,13 @@ def serialise_data(data: dt.PVData) -> bytes:
         TypeError: If an unsupported or unknown data type is provided.
         ValueError: If data without a value is provided.
     """
+    if isinstance(data.data, dt.XYData):
+        if data.data.y is None:
+            raise ValueError("must have a y value")
+    else:
+        if data.data.value is None:
+            raise ValueError("must have a data value")
+
     builder = flatbuffers.Builder(1024)
 
     if isinstance(data.data, dt.NTScalarAny):
@@ -941,13 +990,13 @@ def serialise_data(data: dt.PVData) -> bytes:
     elif isinstance(data.data, dt.NTTable):
         data_offset = serialise_nttable(builder, data.data)
         data_enum = PVType.PVType.NTTable
+    elif isinstance(data.data, dt.XYData):
+        data_offset = serialise_xydata(builder, data.data)
+        data_enum = PVType.PVType.XYData
     else:
         raise TypeError(f"unsupported data type: {type(data.data)}")
 
     source_name_offset = builder.CreateString(data.sourceName)
-
-    if data.data.value is None:
-        raise ValueError("must have a value")
 
     PVData.Start(builder)
     PVData.AddDataType(builder, data_enum)
@@ -995,6 +1044,13 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
         nttable_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_nttable(nttable_data),
+            sourceName=pv_data.SourceName().decode("utf-8"),
+        )
+    elif data_type == PVType.PVType.XYData:
+        xy_data = XYData.XYData()
+        xy_data.Init(data_buffer.Bytes, data_buffer.Pos)
+        return dt.PVData(
+            data=deserialise_xydata(xy_data),
             sourceName=pv_data.SourceName().decode("utf-8"),
         )
     else:

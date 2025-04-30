@@ -151,7 +151,12 @@ table NTTable {
   display: DisplayT;
 }
 
-union PVType { NTScalarAny, NTNDArray, NTTable }
+table XYData {
+  x: NTScalarAny;
+  y: NTScalarAny (required);
+}
+
+union PVType { NTScalarAny, NTNDArray, NTTable, XYData }
 
 table PVData {
   data: PVType (required);

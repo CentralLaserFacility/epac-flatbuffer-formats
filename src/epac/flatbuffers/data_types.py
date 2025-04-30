@@ -137,6 +137,11 @@ class NTTable(BaseModel):
     display: Optional[DisplayT] = None
 
 
+class XYData(BaseModel):
+    x: NTScalarAny
+    y: NTScalarAny
+
+
 class CAScalarAny(BaseModel):
     value: Any
     pvname: Annotated[str, replace_none("")] = ""
@@ -152,5 +157,5 @@ class CAScalarAny(BaseModel):
 
 
 class PVData(BaseModel):
-    data: Union[NTScalarAny, NTNDArray, NTTable]
+    data: Union[NTScalarAny, NTNDArray, NTTable, XYData]
     sourceName: str = ""
