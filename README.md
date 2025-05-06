@@ -76,6 +76,8 @@ as well as some additional metadata, such as the name of the PV (the `source_nam
 Currently `NTScalarAny` is used to handle both `NTScalar` and `NTScalarArray` types of data. `NTNDArray`
 is used for AreaDetector/Image data. `NTTable` is also supported for any potential use cases.
 
+A custom `XYData` is also implemented, which is made up of `x` and `y` which are each meant to be a `NTScalarArray`.
+
 #### Usage (Python)
 
 To assist with and validate the use of these FlatBuffers, Pydantic-based classes have been defined to
@@ -104,7 +106,7 @@ deserialised_data = deserialise_data(serialised_data)
 # attributes are accessible based on the fbs schema, but for pva0 it is better to refer to data_types.py
 alarm_severity = deserialised_data.data.alarm.severity
 
-# NTNDArray and NTTable work in similar ways as above.
+# NTNDArray, NTTable and XYData work in similar ways as above.
 # Furthermore, it is possible to set up a monitor via using p4p subscription and monitor.
 # An example of this can be found in the epac-forwarder.
 
