@@ -257,7 +257,6 @@ def cmd_benchmark():
 
     venv = require("venv")
 
-    venv.run_cmd("mypy", *mypy_check_paths())
     venv.run_cmd("pytest", "benchmarks")
 
 
