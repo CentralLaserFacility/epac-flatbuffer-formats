@@ -48,6 +48,7 @@ from .fbschemas.pva0 import (
     XYData,
     PVType,
     PVData,
+    PulseID,
 )
 
 
@@ -681,6 +682,37 @@ def deserialise_column(buffer: Column.Column) -> dt.Column:
         dt.Column: The deserialised Column object.
     """
     return dt.Column(value=deserialise_any(buffer.Value()))
+
+
+def serialise_pulseid(builder: flatbuffers.Builder, pulseid_data: dt.PulseID) -> int:
+    """Serialises a PulseId table into FlatBuffers format.
+
+    Args:
+        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
+        pulseid_data (dt.PulseId): The PulseId object containing pulseid and timestamp.
+
+    Returns:
+        int: The FlatBuffers offset for the serialised PulseId object.
+    """
+    PulseID.Start(builder)
+    PulseID.AddValue(builder, pulseid_data.value)
+    PulseID.AddTimeStamp(builder, pulseid_data.timestamp)
+    return PulseID.End(builder)
+
+
+def deserialise_pulseid(buffer: PulseID.PulseID) -> dt.PulseID:
+    """Deserialises the PulseId table from a FlatBuffer.
+
+    Args:
+        buffer (PulseID.PulseID): FlatBuffer object containing the serialised PulseID table.
+
+    Returns:
+        dt.PulseIdData: The deserialised PulseID object.
+    """
+    return dt.PulseID(
+        value=buffer.Value(),
+        timestamp=buffer.TimeStamp(),
+    )
 
 
 def serialise_ntscalarany(
