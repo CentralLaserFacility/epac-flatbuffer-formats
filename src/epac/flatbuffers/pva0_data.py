@@ -1030,10 +1030,13 @@ def serialise_data(data: dt.PVData) -> bytes:
 
     source_name_offset = builder.CreateString(data.sourceName)
 
+    pulseid_offset = serialise_pulseid(builder, data.pulseId)
+
     PVData.Start(builder)
     PVData.AddDataType(builder, data_enum)
     PVData.AddData(builder, data_offset)
     PVData.AddSourceName(builder, source_name_offset)
+    PVData.AddPulseId(builder, pulseid_offset)
     pv_offset = PVData.End(builder)
     builder.Finish(pv_offset, file_identifier=FILE_IDENTIFIER)
     return bytes(builder.Output())
@@ -1053,7 +1056,7 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
         ValueError: If an unsupported or unknown data type is encountered.
     """
     pv_data = PVData.PVData.GetRootAsPVData(buffer, 0)
-
+    pulse_id_buffer = pv_data.PulseId()
     data_buffer = pv_data.Data()
     data_type = pv_data.DataType()
 
@@ -1063,6 +1066,7 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
         return dt.PVData(
             data=deserialise_ntscalarany(ntscalarany_data),
             sourceName=pv_data.SourceName().decode("utf-8"),
+            pulseId=deserialise_pulseid(pulse_id_buffer),
         )
     elif data_type == PVType.PVType.NTNDArray:
         ntndarray_data = NTNDArray.NTNDArray()
@@ -1070,6 +1074,7 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
         return dt.PVData(
             data=deserialise_ntndarray(ntndarray_data),
             sourceName=pv_data.SourceName().decode("utf-8"),
+            pulseId=deserialise_pulseid(pulse_id_buffer),
         )
     elif data_type == PVType.PVType.NTTable:
         nttable_data = NTTable.NTTable()
@@ -1077,6 +1082,7 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
         return dt.PVData(
             data=deserialise_nttable(nttable_data),
             sourceName=pv_data.SourceName().decode("utf-8"),
+            pulseId=deserialise_pulseid(pulse_id_buffer),
         )
     elif data_type == PVType.PVType.XYData:
         xy_data = XYData.XYData()
@@ -1084,6 +1090,7 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
         return dt.PVData(
             data=deserialise_xydata(xy_data),
             sourceName=pv_data.SourceName().decode("utf-8"),
+            pulseId=deserialise_pulseid(pulse_id_buffer),
         )
     else:
         raise ValueError(f"unsupported data type: {data_type}")
