@@ -1059,38 +1059,40 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
     pulse_id_buffer = pv_data.PulseId()
     data_buffer = pv_data.Data()
     data_type = pv_data.DataType()
+    sourceName = pv_data.SourceName().decode("utf-8")
+    pulseId = deserialise_pulseid(pulse_id_buffer)
 
     if data_type == PVType.PVType.NTScalarAny:
         ntscalarany_data = NTScalarAny.NTScalarAny()
         ntscalarany_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_ntscalarany(ntscalarany_data),
-            sourceName=pv_data.SourceName().decode("utf-8"),
-            pulseId=deserialise_pulseid(pulse_id_buffer),
+            sourceName=sourceName,
+            pulseId=pulseId,
         )
     elif data_type == PVType.PVType.NTNDArray:
         ntndarray_data = NTNDArray.NTNDArray()
         ntndarray_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_ntndarray(ntndarray_data),
-            sourceName=pv_data.SourceName().decode("utf-8"),
-            pulseId=deserialise_pulseid(pulse_id_buffer),
+            sourceName=sourceName,
+            pulseId=pulseId,
         )
     elif data_type == PVType.PVType.NTTable:
         nttable_data = NTTable.NTTable()
         nttable_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_nttable(nttable_data),
-            sourceName=pv_data.SourceName().decode("utf-8"),
-            pulseId=deserialise_pulseid(pulse_id_buffer),
+            sourceName=sourceName,
+            pulseId=pulseId,
         )
     elif data_type == PVType.PVType.XYData:
         xy_data = XYData.XYData()
         xy_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_xydata(xy_data),
-            sourceName=pv_data.SourceName().decode("utf-8"),
-            pulseId=deserialise_pulseid(pulse_id_buffer),
+            sourceName=sourceName,
+            pulseId=pulseId,
         )
     else:
         raise ValueError(f"unsupported data type: {data_type}")
