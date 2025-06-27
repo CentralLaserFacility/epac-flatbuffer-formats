@@ -164,4 +164,4 @@ class PulseID(BaseModel):
 class PVData(BaseModel):
     data: Union[NTScalarAny, NTNDArray, NTTable, XYData]
     sourceName: str = ""
-    pulseId: PulseID
+    pulseId: Optional[PulseID] = None

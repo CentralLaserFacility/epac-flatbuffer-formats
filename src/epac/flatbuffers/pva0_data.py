@@ -684,6 +684,7 @@ def deserialise_column(buffer: Column.Column) -> dt.Column:
     return dt.Column(value=deserialise_any(buffer.Value()))
 
 
+@safe_serialise
 def serialise_pulseid(builder: flatbuffers.Builder, pulseid_data: dt.PulseID) -> int:
     """Serialises a PulseId table into FlatBuffers format.
 
@@ -700,6 +701,7 @@ def serialise_pulseid(builder: flatbuffers.Builder, pulseid_data: dt.PulseID) ->
     return PulseID.End(builder)
 
 
+@safe_deserialise
 def deserialise_pulseid(buffer: PulseID.PulseID) -> dt.PulseID:
     """Deserialises the PulseId table from a FlatBuffer.
 
