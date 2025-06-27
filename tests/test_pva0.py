@@ -200,12 +200,7 @@ class TestSerialisationPVA0:
         }
 
         nt_scalar_obj = dt.NTScalarAny(**nt_scalar_dict)
-        pulseid_obj = dt.PulseID(
-            value=self.pulseid["value"], timestamp=self.pulseid["timestamp"]
-        )
-        pv_data_obj = dt.PVData(
-            data=nt_scalar_obj, source_name=self.source_name, pulseId=pulseid_obj
-        )
+        pv_data_obj = dt.PVData(data=nt_scalar_obj, source_name=self.source_name)
         buf = serialise_data(pv_data_obj)
         deserialised_obj = deserialise_data(buf)
         assert deserialised_obj == pv_data_obj
@@ -216,12 +211,7 @@ class TestSerialisationPVA0:
         }
 
         nt_ndarray_obj = dt.NTNDArray(**nt_ndarray_dict)
-        pulseid_obj = dt.PulseID(
-            value=self.pulseid["value"], timestamp=self.pulseid["timestamp"]
-        )
-        pv_data_obj = dt.PVData(
-            data=nt_ndarray_obj, source_name=self.source_name, pulseId=pulseid_obj
-        )
+        pv_data_obj = dt.PVData(data=nt_ndarray_obj, source_name=self.source_name)
         buf = serialise_data(pv_data_obj)
         deserialised_obj = deserialise_data(buf)
         assert np.array_equal(deserialised_obj.data.value, pv_data_obj.data.value)
