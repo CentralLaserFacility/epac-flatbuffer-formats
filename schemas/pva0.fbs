@@ -151,6 +151,11 @@ table NTTable {
   display: DisplayT;
 }
 
+table PulseID {
+  value: uint64;
+  time_stamp: double;
+}
+
 table XYData {
   x: NTScalarAny;
   y: NTScalarAny (required);
@@ -161,6 +166,7 @@ union PVType { NTScalarAny, NTNDArray, NTTable, XYData }
 table PVData {
   data: PVType (required);
   source_name: string;
+  pulse_id: PulseID;
 }
 
 root_type PVData;

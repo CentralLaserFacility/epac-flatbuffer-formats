@@ -48,6 +48,7 @@ from .fbschemas.pva0 import (
     XYData,
     PVType,
     PVData,
+    PulseID,
 )
 
 
@@ -683,6 +684,39 @@ def deserialise_column(buffer: Column.Column) -> dt.Column:
     return dt.Column(value=deserialise_any(buffer.Value()))
 
 
+@safe_serialise
+def serialise_pulseid(builder: flatbuffers.Builder, pulseid_data: dt.PulseID) -> int:
+    """Serialises a PulseId table into FlatBuffers format.
+
+    Args:
+        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
+        pulseid_data (dt.PulseId): The PulseId object containing pulseid and timestamp.
+
+    Returns:
+        int: The FlatBuffers offset for the serialised PulseId object.
+    """
+    PulseID.Start(builder)
+    PulseID.AddValue(builder, pulseid_data.value)
+    PulseID.AddTimeStamp(builder, pulseid_data.timestamp)
+    return PulseID.End(builder)
+
+
+@safe_deserialise
+def deserialise_pulseid(buffer: PulseID.PulseID) -> dt.PulseID:
+    """Deserialises the PulseId table from a FlatBuffer.
+
+    Args:
+        buffer (PulseID.PulseID): FlatBuffer object containing the serialised PulseID table.
+
+    Returns:
+        dt.PulseIdData: The deserialised PulseID object.
+    """
+    return dt.PulseID(
+        value=buffer.Value(),
+        timestamp=buffer.TimeStamp(),
+    )
+
+
 def serialise_ntscalarany(
     builder: flatbuffers.Builder, ntscalarany_data: dt.NTScalarAny
 ) -> int:
@@ -998,10 +1032,13 @@ def serialise_data(data: dt.PVData) -> bytes:
 
     source_name_offset = builder.CreateString(data.sourceName)
 
+    pulseid_offset = serialise_pulseid(builder, data.pulseId)
+
     PVData.Start(builder)
     PVData.AddDataType(builder, data_enum)
     PVData.AddData(builder, data_offset)
     PVData.AddSourceName(builder, source_name_offset)
+    PVData.AddPulseId(builder, pulseid_offset)
     pv_offset = PVData.End(builder)
     builder.Finish(pv_offset, file_identifier=FILE_IDENTIFIER)
     return bytes(builder.Output())
@@ -1021,37 +1058,43 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
         ValueError: If an unsupported or unknown data type is encountered.
     """
     pv_data = PVData.PVData.GetRootAsPVData(buffer, 0)
-
+    pulse_id_buffer = pv_data.PulseId()
     data_buffer = pv_data.Data()
     data_type = pv_data.DataType()
+    sourceName = pv_data.SourceName().decode("utf-8")
+    pulseId = deserialise_pulseid(pulse_id_buffer)
 
     if data_type == PVType.PVType.NTScalarAny:
         ntscalarany_data = NTScalarAny.NTScalarAny()
         ntscalarany_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_ntscalarany(ntscalarany_data),
-            sourceName=pv_data.SourceName().decode("utf-8"),
+            sourceName=sourceName,
+            pulseId=pulseId,
         )
     elif data_type == PVType.PVType.NTNDArray:
         ntndarray_data = NTNDArray.NTNDArray()
         ntndarray_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_ntndarray(ntndarray_data),
-            sourceName=pv_data.SourceName().decode("utf-8"),
+            sourceName=sourceName,
+            pulseId=pulseId,
         )
     elif data_type == PVType.PVType.NTTable:
         nttable_data = NTTable.NTTable()
         nttable_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_nttable(nttable_data),
-            sourceName=pv_data.SourceName().decode("utf-8"),
+            sourceName=sourceName,
+            pulseId=pulseId,
         )
     elif data_type == PVType.PVType.XYData:
         xy_data = XYData.XYData()
         xy_data.Init(data_buffer.Bytes, data_buffer.Pos)
         return dt.PVData(
             data=deserialise_xydata(xy_data),
-            sourceName=pv_data.SourceName().decode("utf-8"),
+            sourceName=sourceName,
+            pulseId=pulseId,
         )
     else:
         raise ValueError(f"unsupported data type: {data_type}")

@@ -5,6 +5,7 @@
 import flatbuffers
 from flatbuffers.compat import import_numpy
 from typing import Any
+from .PulseID import PulseID
 from flatbuffers.table import Table
 from typing import Optional
 
@@ -59,9 +60,19 @@ class PVData(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
+    # PVData
+    def PulseId(self) -> Optional[PulseID]:
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            x = self._tab.Indirect(o + self._tab.Pos)
+            obj = PulseID()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
 
 def PVDataStart(builder: flatbuffers.Builder):
-    builder.StartObject(3)
+    builder.StartObject(4)
 
 
 def Start(builder: flatbuffers.Builder):
@@ -94,6 +105,16 @@ def PVDataAddSourceName(builder: flatbuffers.Builder, sourceName: int):
 
 def AddSourceName(builder: flatbuffers.Builder, sourceName: int):
     PVDataAddSourceName(builder, sourceName)
+
+
+def PVDataAddPulseId(builder: flatbuffers.Builder, pulseId: int):
+    builder.PrependUOffsetTRelativeSlot(
+        3, flatbuffers.number_types.UOffsetTFlags.py_type(pulseId), 0
+    )
+
+
+def AddPulseId(builder: flatbuffers.Builder, pulseId: int):
+    PVDataAddPulseId(builder, pulseId)
 
 
 def PVDataEnd(builder: flatbuffers.Builder) -> int:

@@ -156,6 +156,12 @@ class CAScalarAny(BaseModel):
     lower_ctrl_limit: Annotated[float, replace_none(0.0)] = 0.0
 
 
+class PulseID(BaseModel):
+    value: int = 0
+    timestamp: float = 0.0
+
+
 class PVData(BaseModel):
     data: Union[NTScalarAny, NTNDArray, NTTable, XYData]
     sourceName: str = ""
+    pulseId: Optional[PulseID] = None
