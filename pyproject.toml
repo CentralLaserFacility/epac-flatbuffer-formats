@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "epac-data-py-skeleton"
-version = "0.0.1"
+dynamic = ["version"]
 
 [project.optional-dependencies]
 dev = [
@@ -33,3 +33,5 @@ exclude = [".venv"]
 
 [tool.isort]
 profile = "black"
+
+[tool.setuptools_scm]

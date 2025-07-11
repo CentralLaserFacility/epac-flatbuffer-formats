@@ -1,0 +1,59 @@
+name: Release process
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*'
+
+
+permissions:
+  contents: write
+
+env:
+  PACKAGE_NAME: <name here>
+ 
+
+jobs:
+  release-wheel:
+    if: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install build
+        run: python -m pip install build
+      - name: Build wheel
+        run: python -m build
+
+      - name: Set up development environment
+        run: python -m venv .venv
+      - name: Install wheel
+        run: .venv/bin/pip install dist/*.whl
+      # - name: Generate a token
+      #   id: generate-token
+      #   uses: actions/create-github-app-token@v1
+      #   with:
+      #     app-id: ${{ vars.EPAC_DATA_CI_AUTH_ID }}
+      #     private-key: ${{ secrets.EPAC_DATA_CI_AUTH_KEY }}
+      #     repositories: <repository-containing-dependency>
+      # - name: Install Private Dependencies
+      #   env:
+      #     GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+      #   run: ./dev.py setup private
+      - name: Create lockfile
+        run: .venv/bin/pip list --format freeze --exclude pip --exclude setuptools > dist/requirements.txt
+      - name: Install development dependencies
+        run: .venv/bin/pip install "$PACKAGE_NAME[dev]"
+      - name: Run tests
+        run: ./dev.py test
+      - name: Release
+        # Commit sha is v2.3.2 tag at time of writing
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8
+        with:
+          files: ./dist/*
+          generate_release_notes: true
