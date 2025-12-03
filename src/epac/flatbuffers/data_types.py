@@ -12,6 +12,17 @@ class EnumT(BaseModel):
     choices: list[str] = []
 
 
+def required():
+    """Returns a BeforeValidator that raises an error if the field is None."""
+
+    def _validate(v):
+        if v is None:
+            raise ValueError("value is missing")
+        return v
+
+    return BeforeValidator(_validate)
+
+
 def replace_none(default_value):
     """Returns a validator that replaces None with a given default value."""
     return BeforeValidator(lambda v: v if v is not None else default_value)
@@ -91,7 +102,7 @@ class DimensionT(BaseModel):
 
 class NTAttribute(BaseModel):
     name: str = ""
-    value: Any
+    value: Annotated[Any, required()]
     tags: list[str] = []
     descriptor: str = ""
     alarm: Optional[AlarmT] = None
@@ -101,7 +112,7 @@ class NTAttribute(BaseModel):
 
 
 class NTNDArray(BaseModel):
-    value: Any
+    value: Annotated[Any, required()]
     codec: Optional[CodecT] = None
     compressedSize: int = 0
     uncompressedSize: int = 0
@@ -116,7 +127,7 @@ class NTNDArray(BaseModel):
 
 
 class NTScalarAny(BaseModel):
-    value: Any
+    value: Annotated[Any, required()]
     descriptor: str = ""
     alarm: Optional[AlarmT] = None
     timeStamp: Optional[TimeT] = None
@@ -125,7 +136,7 @@ class NTScalarAny(BaseModel):
 
 
 class Column(BaseModel):
-    value: Any
+    value: Annotated[Any, required()]
 
 
 class NTTable(BaseModel):
@@ -143,7 +154,7 @@ class XYData(BaseModel):
 
 
 class CAScalarAny(BaseModel):
-    value: Any
+    value: Annotated[Any, required()]
     pvname: Annotated[str, replace_none("")] = ""
     status: Annotated[int, replace_none(0)] = 0
     precision: Annotated[int, replace_none(0)] = 0
