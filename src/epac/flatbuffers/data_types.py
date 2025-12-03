@@ -55,6 +55,9 @@ def parse_enum(enum_name: str, enum_type):
     )
 
 
+RequiredAny = Annotated[Any, required()]
+
+
 class AlarmT(BaseModel):
     severity: Annotated[
         int, parse_enum(enum_name="Alarm Severity", enum_type=AlarmSeverity)
@@ -102,7 +105,7 @@ class DimensionT(BaseModel):
 
 class NTAttribute(BaseModel):
     name: str = ""
-    value: Annotated[Any, required()]
+    value: RequiredAny
     tags: list[str] = []
     descriptor: str = ""
     alarm: Optional[AlarmT] = None
@@ -112,7 +115,7 @@ class NTAttribute(BaseModel):
 
 
 class NTNDArray(BaseModel):
-    value: Annotated[Any, required()]
+    value: RequiredAny
     codec: Optional[CodecT] = None
     compressedSize: int = 0
     uncompressedSize: int = 0
@@ -127,7 +130,7 @@ class NTNDArray(BaseModel):
 
 
 class NTScalarAny(BaseModel):
-    value: Annotated[Any, required()]
+    value: RequiredAny
     descriptor: str = ""
     alarm: Optional[AlarmT] = None
     timeStamp: Optional[TimeT] = None
@@ -136,7 +139,7 @@ class NTScalarAny(BaseModel):
 
 
 class Column(BaseModel):
-    value: Annotated[Any, required()]
+    value: RequiredAny
 
 
 class NTTable(BaseModel):
@@ -154,7 +157,7 @@ class XYData(BaseModel):
 
 
 class CAScalarAny(BaseModel):
-    value: Annotated[Any, required()]
+    value: RequiredAny
     pvname: Annotated[str, replace_none("")] = ""
     status: Annotated[int, replace_none(0)] = 0
     precision: Annotated[int, replace_none(0)] = 0
