@@ -184,15 +184,36 @@ class TestSerialisationPVA0:
             "value": None,
         }
 
-        nt_scalar_obj = dt.NTScalarAny(**nt_scalar_dict)
-        pulseid_obj = dt.PulseID(
-            value=self.pulseid["value"], timestamp=self.pulseid["timestamp"]
-        )
-        pv_data_obj = dt.PVData(
-            data=nt_scalar_obj, source_name=self.source_name, pulseId=pulseid_obj
-        )
+        nt_ndarray_dict = {
+            "value": None,
+        }
+
+        nt_attribute_dict = {
+            "value": None,
+        }
+
+        nt_column_dict = {
+            "value": None,
+        }
+
+        ca_scalar_dict = {
+            "value": None,
+        }
+
         with pytest.raises(ValueError):
-            serialise_data(pv_data_obj)
+            dt.NTScalarAny(**nt_scalar_dict)
+
+        with pytest.raises(ValueError):
+            dt.NTNDArray(**nt_ndarray_dict)
+
+        with pytest.raises(ValueError):
+            dt.NTAttribute(**nt_attribute_dict)
+
+        with pytest.raises(ValueError):
+            dt.Column(**nt_column_dict)
+
+        with pytest.raises(ValueError):
+            dt.CAScalarAny(**ca_scalar_dict)
 
     def test_serialises_and_deserialises_missing_ntscalarany_fields_correctly(self):
         nt_scalar_dict = {
