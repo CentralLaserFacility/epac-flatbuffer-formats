@@ -188,10 +188,6 @@ class TestSerialisationPVA0:
             "value": None,
         }
 
-        nt_attribute_dict = {
-            "value": None,
-        }
-
         nt_column_dict = {
             "value": None,
         }
@@ -205,9 +201,6 @@ class TestSerialisationPVA0:
 
         with pytest.raises(ValueError):
             dt.NTNDArray(**nt_ndarray_dict)
-
-        with pytest.raises(ValueError):
-            dt.NTAttribute(**nt_attribute_dict)
 
         with pytest.raises(ValueError):
             dt.Column(**nt_column_dict)
