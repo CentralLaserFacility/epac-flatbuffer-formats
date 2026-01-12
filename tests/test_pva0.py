@@ -72,7 +72,17 @@ class TestSerialisationPVA0:
                     "alarm": None,
                     "time": None,
                     "tags": ["tag1", "tag2"],
-                }
+                },
+                {
+                    "name": "Empty",
+                    "value": None,
+                    "descriptor": "",
+                    "sourceType": 0,
+                    "source": "",
+                    "alarm": None,
+                    "time": None,
+                    "tags": [],
+                },
             ],
             "descriptor": "",
             "alarm": {"severity": 0, "status": 0, "message": "NO_ALARM"},
@@ -188,10 +198,6 @@ class TestSerialisationPVA0:
             "value": None,
         }
 
-        nt_attribute_dict = {
-            "value": None,
-        }
-
         nt_column_dict = {
             "value": None,
         }
@@ -205,9 +211,6 @@ class TestSerialisationPVA0:
 
         with pytest.raises(ValueError):
             dt.NTNDArray(**nt_ndarray_dict)
-
-        with pytest.raises(ValueError):
-            dt.NTAttribute(**nt_attribute_dict)
 
         with pytest.raises(ValueError):
             dt.Column(**nt_column_dict)

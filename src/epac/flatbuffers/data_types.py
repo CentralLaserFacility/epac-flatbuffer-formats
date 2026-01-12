@@ -105,7 +105,7 @@ class DimensionT(BaseModel):
 
 class NTAttribute(BaseModel):
     name: str = ""
-    value: RequiredAny
+    value: Any
     tags: list[str] = []
     descriptor: str = ""
     alarm: Optional[AlarmT] = None
