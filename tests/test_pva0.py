@@ -72,7 +72,17 @@ class TestSerialisationPVA0:
                     "alarm": None,
                     "time": None,
                     "tags": ["tag1", "tag2"],
-                }
+                },
+                {
+                    "name": "Empty",
+                    "value": None,
+                    "descriptor": "",
+                    "sourceType": 0,
+                    "source": "",
+                    "alarm": None,
+                    "time": None,
+                    "tags": [],
+                },
             ],
             "descriptor": "",
             "alarm": {"severity": 0, "status": 0, "message": "NO_ALARM"},
