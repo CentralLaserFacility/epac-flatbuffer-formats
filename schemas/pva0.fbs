@@ -167,6 +167,7 @@ table PVData {
   data: PVType (required);
   source_name: string;
   pulse_id: PulseID;
+  modified_timestamp: TimeT;
 }
 
 root_type PVData;

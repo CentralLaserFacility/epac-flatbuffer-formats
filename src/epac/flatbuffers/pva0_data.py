@@ -51,7 +51,6 @@ from .fbschemas.pva0 import (
     PulseID,
 )
 
-
 base_dtype_map = {
     np.dtype("bool"): (
         Bool,
