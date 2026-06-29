@@ -149,7 +149,10 @@ class TestSerialisationPVA0:
             value=self.pulseid["value"], timestamp=self.pulseid["timestamp"]
         )
         pv_data_obj = dt.PVData(
-            data=xydata_obj, source_name=self.source_name, pulseId=pulseid_obj
+            data=xydata_obj,
+            source_name=self.source_name,
+            pulseId=pulseid_obj,
+            modifiedTimeStamp=nt_scalar_obj.timeStamp,
         )
         buf = serialise_data(pv_data_obj)
         assert isinstance(buf, bytes)
@@ -165,7 +168,10 @@ class TestSerialisationPVA0:
             value=self.pulseid["value"], timestamp=self.pulseid["timestamp"]
         )
         pv_data_obj = dt.PVData(
-            data=nt_scalar_obj, source_name=self.source_name, pulseId=pulseid_obj
+            data=nt_scalar_obj,
+            source_name=self.source_name,
+            pulseId=pulseid_obj,
+            modifiedTimeStamp=nt_scalar_obj.timeStamp,
         )
         buf = serialise_data(pv_data_obj)
         assert isinstance(buf, bytes)
@@ -179,7 +185,10 @@ class TestSerialisationPVA0:
             value=self.pulseid["value"], timestamp=self.pulseid["timestamp"]
         )
         pv_data_obj = dt.PVData(
-            data=nt_ndarray_obj, source_name=self.source_name, pulseId=pulseid_obj
+            data=nt_ndarray_obj,
+            source_name=self.source_name,
+            pulseId=pulseid_obj,
+            modifiedTimeStamp=nt_ndarray_obj.timeStamp,
         )
         buf = serialise_data(pv_data_obj)
         assert isinstance(buf, bytes)
@@ -264,7 +273,9 @@ class TestSerialisationPVA0:
             value=self.pulseid["value"], timestamp=self.pulseid["timestamp"]
         )
         pv_data_obj = dt.PVData(
-            data=nt_scalar_obj, source_name=self.source_name, pulseId=pulseid_obj
+            data=nt_scalar_obj,
+            source_name=self.source_name,
+            pulseId=pulseid_obj,
         )
         buf = serialise_data(pv_data_obj)
         deserialised_obj = deserialise_data(buf)
