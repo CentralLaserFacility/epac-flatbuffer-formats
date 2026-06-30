@@ -72,7 +72,7 @@ class PVData(object):
         return None
 
     # PVData
-    def ModifiedTimestamp(self) -> Optional[TimeT]:
+    def ModifiedTimeStamp(self) -> Optional[TimeT]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
@@ -128,14 +128,14 @@ def AddPulseId(builder: flatbuffers.Builder, pulseId: int):
     PVDataAddPulseId(builder, pulseId)
 
 
-def PVDataAddModifiedTimestamp(builder: flatbuffers.Builder, modifiedTimestamp: int):
+def PVDataAddModifiedTimeStamp(builder: flatbuffers.Builder, modifiedTimeStamp: int):
     builder.PrependUOffsetTRelativeSlot(
-        4, flatbuffers.number_types.UOffsetTFlags.py_type(modifiedTimestamp), 0
+        4, flatbuffers.number_types.UOffsetTFlags.py_type(modifiedTimeStamp), 0
     )
 
 
-def AddModifiedTimestamp(builder: flatbuffers.Builder, modifiedTimestamp: int):
-    PVDataAddModifiedTimestamp(builder, modifiedTimestamp)
+def AddModifiedTimeStamp(builder: flatbuffers.Builder, modifiedTimeStamp: int):
+    PVDataAddModifiedTimeStamp(builder, modifiedTimeStamp)
 
 
 def PVDataEnd(builder: flatbuffers.Builder) -> int:

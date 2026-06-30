@@ -179,4 +179,4 @@ class PVData(BaseModel):
     data: Union[NTScalarAny, NTNDArray, NTTable, XYData]
     sourceName: str = ""
     pulseId: Optional[PulseID] = None
-    modifiedTimestamp: Optional[TimeT] = None
+    modifiedTimeStamp: Optional[TimeT] = None
