@@ -54,3 +54,27 @@ jobs:
         run: ./dev.py schema-generate
       - name: Compare generated code to committed
         run: git diff --exit-code src
+  rust-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rust/epac-flatbuffer-formats-rs
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Install rustfmt and clippy
+        run: rustup component add rustfmt clippy
+      - name: Check formatting
+        run: cargo fmt --check
+      - name: Run clippy
+        run: cargo clippy --all-targets -- -D warnings
+  rust-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rust/epac-flatbuffer-formats-rs
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Run tests
+        run: cargo test
