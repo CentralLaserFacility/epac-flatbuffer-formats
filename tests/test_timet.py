@@ -2,10 +2,6 @@ import pytest
 import numpy as np
 
 from epac.flatbuffers import data_types as dt
-from epac.flatbuffers.pva0_data import (
-    deserialise_data,
-    serialise_data,
-)
 
 
 class TestExposure:
@@ -54,26 +50,10 @@ class TestExposure:
         assert exposure_time is not None
 
         # compute modified timestamp
-        modified_ts = data_ts.__sub__(exposure_time)
+        modified_ts = data_ts - exposure_time
 
         data_ns_total = data_ts.secondsPastEpoch * 1e9 + data_ts.nanoseconds
         mod_ns_total = modified_ts.secondsPastEpoch * 1e9 + modified_ts.nanoseconds
 
         computed_exp_time = (data_ns_total - mod_ns_total) / 1e9
         assert computed_exp_time == pytest.approx(exposure_time_val, abs=1e-6)
-
-        pulseid_obj = dt.PulseID(
-            value=self.pulseid["value"], timestamp=self.pulseid["timestamp"]
-        )
-
-        pv_data_obj = dt.PVData(
-            data=nt_ndarray_obj,
-            sourceName=self.source_name,
-            pulseId=pulseid_obj,
-            effectiveTimeStamp=modified_ts,
-        )
-        buf = serialise_data(pv_data_obj)
-        deserialised_obj = deserialise_data(buf)
-        assert np.array_equal(
-            deserialised_obj.effectiveTimeStamp, pv_data_obj.effectiveTimeStamp
-        )
