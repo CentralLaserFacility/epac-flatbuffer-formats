@@ -1033,14 +1033,14 @@ def serialise_data(data: dt.PVData) -> bytes:
 
     pulseid_offset = serialise_pulseid(builder, data.pulseId)
 
-    modified_ts_offset = serialise_time(builder, data.modifiedTimeStamp)
+    effective_ts_offset = serialise_time(builder, data.effectiveTimeStamp)
 
     PVData.Start(builder)
     PVData.AddDataType(builder, data_enum)
     PVData.AddData(builder, data_offset)
     PVData.AddSourceName(builder, source_name_offset)
     PVData.AddPulseId(builder, pulseid_offset)
-    PVData.AddModifiedTimeStamp(builder, modified_ts_offset)
+    PVData.AddEffectiveTimeStamp(builder, effective_ts_offset)
     pv_offset = PVData.End(builder)
     builder.Finish(pv_offset, file_identifier=FILE_IDENTIFIER)
     return bytes(builder.Output())
@@ -1065,7 +1065,7 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
     data_type = pv_data.DataType()
     sourceName = pv_data.SourceName().decode("utf-8")
     pulseId = deserialise_pulseid(pulse_id_buffer)
-    modifiedTs_buffer = pv_data.ModifiedTimeStamp()
+    modifiedTs_buffer = pv_data.EffectiveTimeStamp()
     modified_ts = deserialise_time(modifiedTs_buffer)
 
     if data_type == PVType.PVType.NTScalarAny:
@@ -1075,7 +1075,7 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
             data=deserialise_ntscalarany(ntscalarany_data),
             sourceName=sourceName,
             pulseId=pulseId,
-            modifiedTimeStamp=modified_ts,
+            effectiveTimeStamp=modified_ts,
         )
     elif data_type == PVType.PVType.NTNDArray:
         ntndarray_data = NTNDArray.NTNDArray()
@@ -1084,7 +1084,7 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
             data=deserialise_ntndarray(ntndarray_data),
             sourceName=sourceName,
             pulseId=pulseId,
-            modifiedTimeStamp=modified_ts,
+            effectiveTimeStamp=modified_ts,
         )
     elif data_type == PVType.PVType.NTTable:
         nttable_data = NTTable.NTTable()
@@ -1093,7 +1093,7 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
             data=deserialise_nttable(nttable_data),
             sourceName=sourceName,
             pulseId=pulseId,
-            modifiedTimeStamp=modified_ts,
+            effectiveTimeStamp=modified_ts,
         )
     elif data_type == PVType.PVType.XYData:
         xy_data = XYData.XYData()
@@ -1102,7 +1102,7 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
             data=deserialise_xydata(xy_data),
             sourceName=sourceName,
             pulseId=pulseId,
-            modifiedTimeStamp=modified_ts,
+            effectiveTimeStamp=modified_ts,
         )
     else:
         raise ValueError(f"unsupported data type: {data_type}")
