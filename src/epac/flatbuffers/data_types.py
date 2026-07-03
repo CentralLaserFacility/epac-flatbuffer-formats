@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Annotated, Any, Optional, Union
+from typing import Annotated, Any, Optional, Tuple, Union
 from epac.flatbuffers.fbschemas.pva0.AlarmSeverity import AlarmSeverity
 from epac.flatbuffers.fbschemas.pva0.AlarmStatus import AlarmStatus
 from epac.flatbuffers.fbschemas.pva0.DisplayForm import DisplayForm
@@ -72,6 +72,44 @@ class TimeT(BaseModel):
     secondsPastEpoch: int = 0
     nanoseconds: int = 0
     userTag: int = 0
+
+    @staticmethod
+    def float_to_time_components(timestamp: float) -> Tuple[int, int]:
+        """Convert float seconds -> (seconds, nanoseconds)"""
+        seconds = int(timestamp)
+        nanoseconds = int((timestamp - seconds) * 1e9)
+        return seconds, nanoseconds
+
+    def __sub__(self, exposure_time: float) -> "TimeT":
+        """Subtract exposure_time (float seconds)
+
+        Args:
+        - exposure_time: float seconds
+
+        Returns: Self (TimeT)
+        """
+        if not isinstance(exposure_time, (int, float)):
+            return NotImplemented
+
+        if exposure_time < 0:
+            raise ValueError("Exposure_time must be non-negative")
+
+        # Convert exposure time
+        exposure_time_s, exposure_time_ns = self.float_to_time_components(exposure_time)
+
+        seconds = self.secondsPastEpoch
+        nanoseconds = self.nanoseconds
+
+        # Borrow if needed for nanoseconds subtraction
+        if nanoseconds < exposure_time_ns:
+            nanoseconds += int(1e9)
+            seconds -= 1
+
+        return TimeT(
+            secondsPastEpoch=seconds - exposure_time_s,
+            nanoseconds=nanoseconds - exposure_time_ns,
+            userTag=self.userTag,
+        )
 
 
 class DisplayT(BaseModel):
@@ -179,3 +217,4 @@ class PVData(BaseModel):
     data: Union[NTScalarAny, NTNDArray, NTTable, XYData]
     sourceName: str = ""
     pulseId: Optional[PulseID] = None
+    effectiveTimeStamp: Optional[TimeT] = None
