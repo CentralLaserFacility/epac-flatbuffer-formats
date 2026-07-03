@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 
-from epac.flatbuffers.time_utils import subtract_exposure_time
 from epac.flatbuffers import data_types as dt
 from epac.flatbuffers.pva0_data import (
     deserialise_data,
@@ -55,7 +54,7 @@ class TestExposure:
         assert exposure_time is not None
 
         # compute modified timestamp
-        modified_ts = subtract_exposure_time(data_ts, exposure_time)
+        modified_ts = data_ts.__sub__(exposure_time)
 
         data_ns_total = data_ts.secondsPastEpoch * 1e9 + data_ts.nanoseconds
         mod_ns_total = modified_ts.secondsPastEpoch * 1e9 + modified_ts.nanoseconds
@@ -71,10 +70,10 @@ class TestExposure:
             data=nt_ndarray_obj,
             sourceName=self.source_name,
             pulseId=pulseid_obj,
-            modifiedTimeStamp=modified_ts,
+            effectiveTimeStamp=modified_ts,
         )
         buf = serialise_data(pv_data_obj)
         deserialised_obj = deserialise_data(buf)
         assert np.array_equal(
-            deserialised_obj.modifiedTimeStamp, pv_data_obj.modifiedTimeStamp
+            deserialised_obj.effectiveTimeStamp, pv_data_obj.effectiveTimeStamp
         )
