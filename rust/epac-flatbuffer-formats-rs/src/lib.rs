@@ -12,7 +12,7 @@ mod pva0_data;
 mod epac_flatbuffer_formats_rs {
     use super::pva0_data::{NTScalarAny, PVData};
     use pyo3::prelude::*;
-    use pyo3::{PyResult, types::PyBytes};
+    use pyo3::{types::PyBytes, PyResult};
 
     #[pyfunction]
     pub fn serialise_nt_scalar_any(py: Python<'_>, scalar: NTScalarAny) -> PyResult<Py<PyBytes>> {

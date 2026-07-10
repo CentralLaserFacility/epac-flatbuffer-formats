@@ -155,7 +155,6 @@ enum AnyArray<T> {
     PyArray2(PyArray2<T>),
 }
 
-
 #[derive(FromPyObject)]
 struct AlarmT {
     severity: u8,
@@ -209,7 +208,6 @@ impl TimeT {
 
 #[derive(FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
-#[allow(unused)]
 struct DisplayT {
     limit_low: f64,
     limit_high: f64,
@@ -219,7 +217,6 @@ struct DisplayT {
     form: u8,
 }
 
-#[allow(unused)]
 impl DisplayT {
     fn serialise<'a>(
         &self,
@@ -242,7 +239,6 @@ impl DisplayT {
     }
 }
 
-#[allow(unused)]
 #[derive(FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 struct ControlT {
@@ -251,7 +247,6 @@ struct ControlT {
     min_step: f64,
 }
 
-#[allow(unused)]
 impl ControlT {
     fn serialise<'a>(
         &self,
@@ -267,6 +262,61 @@ impl ControlT {
         )
     }
 }
+
+#[allow(unused)]
+#[derive(FromPyObject)]
+struct CodecT {
+    name: String,
+}
+
+#[allow(unused)]
+#[derive(FromPyObject)]
+struct Column {
+    value: f64, // RequiredAny
+}
+
+#[allow(unused)]
+#[derive(FromPyObject)]
+struct DimensionT {
+    size: i64,
+    offset: i64,
+    fullsize: i64,
+    binning: i64,
+    reverse: bool,
+}
+
+#[allow(unused)]
+#[derive(FromPyObject)]
+#[pyo3(rename_all = "camelCase")]
+pub struct NTAttribute {
+    name: String,
+    value: f64, // ANY - fix this
+    tags: Vec<String>,
+    descriptor: String,
+    alarm: Option<AlarmT>,
+    time: Option<TimeT>,
+    source_type: i64,
+    source: String,
+}
+
+#[allow(unused)]
+#[derive(FromPyObject)]
+#[pyo3(rename_all = "camelCase")]
+pub struct NTNDArray {
+    value: f64, // change type (RequiredAny)
+    codec: Option<CodecT>,
+    compressed_size: i64,
+    uncompressed_seize: i64,
+    dimension: Vec<DimensionT>,
+    unique_id: i64,
+    data_timestamp: Option<TimeT>,
+    attribute: Vec<NTAttribute>,
+    descriptor: String,
+    alarm: Option<AlarmT>,
+    time_stamp: Option<TimeT>,
+    display: Option<DisplayT>,
+}
+
 #[derive(FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 pub struct NTScalarAny {
@@ -309,6 +359,32 @@ impl NTScalarAny {
             },
         )
     }
+}
+
+#[allow(unused)]
+#[derive(FromPyObject)]
+#[pyo3(rename_all = "camelCase")]
+pub struct NTTable {
+    labels: Vec<String>,
+    value: Vec<Column>,
+    descriptor: String,
+    alarm: Option<TimeT>,
+    time_stamp: Option<TimeT>,
+    display: Option<DisplayT>,
+}
+
+#[allow(unused)]
+#[derive(FromPyObject)]
+pub struct XYData {
+    x: NTScalarAny,
+    y: NTScalarAny,
+}
+
+#[allow(unused)]
+#[derive(FromPyObject)]
+struct PulseId {
+    value: u64,
+    timestamp: f64,
 }
 
 #[allow(unused)]
