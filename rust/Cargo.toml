@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "epac_flatbuffers_derive",
+    "epac-flatbuffer-formats-rs",
+]
+
+resolver = "2"

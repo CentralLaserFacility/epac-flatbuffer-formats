@@ -2,6 +2,9 @@ use crate::pva0_generated;
 use numpy::{PyArray1, PyArray2};
 use pyo3::prelude::*;
 
+#[allow(unused_imports)]
+use epac_flatbuffers_derive::Serialise;
+
 trait SerialiseAny {
     fn serialise_any<'a>(
         &self,
