@@ -226,8 +226,8 @@ fn do_derive_serialise_struct(
         .named
         .iter()
         .map(|field| {
-            let fname = field.ident.as_ref().unwrap();
-            let mut attrs = SerialiseFieldAttributes::default();
+            let fname = field.ident.as_ref().ok_or_else(|| Error::new_spanned(field, "expected named field"))?;
+            let mut field_attrs = SerialiseFieldAttributes::default();
             for a in field.attrs.iter() {
                 attrs.add_attribute(a)?;
             }
@@ -259,7 +259,7 @@ fn do_derive_serialise_struct(
     let fb_name = attributes.flatbuffers_name.unwrap_or(name.clone());
     let args_ident = format_ident!("{}Args", fb_name);
     let expanded = quote! {
-        impl ::epac_flatbuffer_formats::serialise::Serialise for #name {
+        impl crate::serialise::Serialise for #name {
             type Output<'a> = ::flatbuffers::WIPOffset<fb::#fb_name<'a>>;
             fn serialise<'a>(&self, builder: &mut ::flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
                 #(#assignments)*
@@ -350,7 +350,7 @@ fn do_derive_serialise_enum(
         let fb_name = attributes.flatbuffers_name.unwrap_or(name.clone());
         let args_ident = format_ident!("{}Args", fb_name);
         quote! {
-            impl ::epac_flatbuffer_formats::serialise::Serialise for #name {
+            impl crate::serialise::Serialise for #name {
             type Output<'a> = ::flatbuffers::WIPOffset<fb::#fb_name<'a>>;
                 fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
                     let value_type = self.discriminant();
@@ -369,7 +369,7 @@ fn do_derive_serialise_enum(
         }
     } else {
         quote! {
-            impl ::epac_flatbuffer_formats::serialise::Serialise for #name {
+            impl crate::serialise::Serialise for #name {
                 type Output<'a> = ::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>;
                 fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
                     match self {
@@ -383,7 +383,7 @@ fn do_derive_serialise_enum(
     let disc_name = attributes.discriminant.unwrap_or(name.clone());
 
     let discriminant_impl = quote! {
-        impl ::epac_flatbuffer_formats::serialise::Discriminant for #name {
+        impl crate::serialise::Discriminant for #name {
             type Disc = fb::#disc_name;
 
             fn discriminant(&self) -> Self::Disc {

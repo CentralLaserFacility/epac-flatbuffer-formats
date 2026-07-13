@@ -5,12 +5,15 @@ use pyo3::prelude::*;
 #[allow(warnings)]
 #[allow(clippy::all)]
 #[path="generated/pva0_generated.rs"] // this is the flatbuffer automatically generated module
-pub mod pva0_generated;
+mod pva0_generated;
 mod pva0_data;
+pub mod serialise;
 
 #[pymodule]
 mod epac_flatbuffer_formats_rs {
+
     use super::pva0_data::{NTScalarAny, PVData};
+    use crate::serialise::Serialise;
     use pyo3::prelude::*;
     use pyo3::{types::PyBytes, PyResult};
 

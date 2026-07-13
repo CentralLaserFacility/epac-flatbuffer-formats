@@ -5,8 +5,6 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-# This is name of libraray that will be generated
-# Snappier name?
 name = "epac_flatbuffer_formats_rs"
 crate-type = ["cdylib", "rlib"]
 

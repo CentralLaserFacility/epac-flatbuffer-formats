@@ -1,188 +1,309 @@
-use crate::pva0_generated;
-use numpy::{PyArray1, PyArray2};
-use pyo3::prelude::*;
-
-#[allow(unused_imports)]
+use crate::pva0_generated::{self as fb, AlarmSeverity, AlarmStatus, DisplayForm};
+use crate::serialise::{Discriminant, SerialiseCoerce};
 use epac_flatbuffers_derive::Serialise;
+use flatbuffers::UnionWIPOffset;
+use numpy::{
+    PyArrayDescrMethods, PyArrayDyn, PyArrayMethods, PyUntypedArray, PyUntypedArrayMethods,
+};
+use pyo3::exceptions::PyTypeError;
+use pyo3::prelude::*;
+use pyo3::types::{PyAny, PyBool, PyFloat, PyInt, PyString};
 
-trait SerialiseAny {
-    fn serialise_any<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::AnyT<'a>>;
+#[derive(FromPyObject)]
+pub enum AnyT {
+    Scalar(AnyScalar),
+    Array(AnyArray),
 }
 
-impl<T> SerialiseAny for Option<T>
-where
-    T: SerialiseAny,
-{
-    fn serialise_any<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::AnyT<'a>> {
+#[allow(unused)]
+pub enum AnyScalar {
+    Bool(bool),
+    Double(f64),
+    String(String),
+    Long(i64),
+    ULong(u64),
+    Byte(i8),
+    UByte(u8),
+    Short(i16),
+    UShort(u16),
+    Int(i32),
+    UInt(u32),
+    Float(f32),
+}
+pub enum AnyArray {
+    BoolArray(Vec<bool>),
+    ByteArray(Vec<i8>),
+    UByteArray(Vec<u8>),
+    ShortArray(Vec<i16>),
+    UShortArray(Vec<u16>),
+    IntArray(Vec<i32>),
+    UIntArray(Vec<u32>),
+    LongArray(Vec<i64>),
+    ULongArray(Vec<u64>),
+    FloatArray(Vec<f32>),
+    DoubleArray(Vec<f64>),
+    StringArray(Vec<String>),
+}
+
+macro_rules! serialise_variant {
+    ($builder:expr, $item:expr, $variant:ident, $args:ident) => {{
+        let value = $item.serialise($builder);
+        let args = fb::$args {
+            value: value.serialise_coerce(),
+        };
+        let offset = fb::$variant::create($builder, &args);
+        offset.as_union_value()
+    }};
+}
+
+impl crate::serialise::Serialise for AnyT {
+    type Output<'out> = flatbuffers::WIPOffset<fb::AnyT<'out>>;
+    fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
+        let inner = {
+            match self {
+                AnyT::Scalar(item) => item.serialise(builder),
+                AnyT::Array(item) => item.serialise(builder),
+            }
+        };
+        let val_type = self.discriminant();
+
+        let args = fb::AnyTArgs {
+            value_type: val_type.serialise_coerce(),
+            value: inner.serialise_coerce(),
+        };
+
+        fb::AnyT::create(builder, &args)
+    }
+}
+
+impl crate::serialise::Discriminant for AnyT {
+    type Disc = fb::AnyInner;
+    fn discriminant(&self) -> Self::Disc {
         match self {
-            Some(value) => value.serialise_any(builder),
-            None => pva0_generated::AnyT::create(
-                builder,
-                &pva0_generated::AnyTArgs {
-                    value: None,
-                    value_type: pva0_generated::AnyInner::NONE,
-                },
-            ),
+            AnyT::Scalar(item) => item.discriminant(),
+            AnyT::Array(item) => item.discriminant(),
         }
     }
 }
 
-impl SerialiseAny for [u8] {
-    fn serialise_any<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::AnyT<'a>> {
-        let value = builder.create_vector(self);
-        let value = pva0_generated::UByteArray::create(
-            builder,
-            &pva0_generated::UByteArrayArgs { value: Some(value) },
-        );
-        pva0_generated::AnyT::create(
-            builder,
-            &pva0_generated::AnyTArgs {
-                value: Some(value.as_union_value()),
-                value_type: pva0_generated::AnyInner::UByteArray,
-            },
-        )
+impl crate::serialise::Serialise for AnyScalar {
+    type Output<'out> = flatbuffers::WIPOffset<UnionWIPOffset>;
+    fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
+        match self {
+            Self::Bool(item) => serialise_variant!(builder, item, Bool, BoolArgs),
+            Self::Double(item) => serialise_variant!(builder, item, Double, DoubleArgs),
+            Self::String(item) => serialise_variant!(builder, item, String, StringArgs),
+            Self::Long(item) => serialise_variant!(builder, item, Long, LongArgs),
+            Self::ULong(item) => serialise_variant!(builder, item, ULong, ULongArgs),
+            Self::Byte(item) => serialise_variant!(builder, item, Byte, ByteArgs),
+            Self::UByte(item) => serialise_variant!(builder, item, UByte, UByteArgs),
+            Self::Short(item) => serialise_variant!(builder, item, Short, ShortArgs),
+            Self::UShort(item) => serialise_variant!(builder, item, UShort, UShortArgs),
+            Self::Int(item) => serialise_variant!(builder, item, Int, IntArgs),
+            Self::UInt(item) => serialise_variant!(builder, item, UInt, UIntArgs),
+            Self::Float(item) => serialise_variant!(builder, item, Float, FloatArgs),
+        }
     }
 }
 
-impl SerialiseAny for str {
-    fn serialise_any<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::AnyT<'a>> {
-        let value = builder.create_string(self);
-        let value = pva0_generated::String::create(
-            builder,
-            &pva0_generated::StringArgs { value: Some(value) },
-        );
-        pva0_generated::AnyT::create(
-            builder,
-            &pva0_generated::AnyTArgs {
-                value: Some(value.as_union_value()),
-                value_type: pva0_generated::AnyInner::String,
-            },
-        )
+impl crate::serialise::Discriminant for AnyScalar {
+    type Disc = fb::AnyInner;
+    fn discriminant(&self) -> Self::Disc {
+        match self {
+            AnyScalar::Bool(_) => fb::AnyInner::Bool,
+            AnyScalar::Double(_) => fb::AnyInner::Double,
+            AnyScalar::String(_) => fb::AnyInner::String,
+            AnyScalar::Long(_) => fb::AnyInner::Long,
+            AnyScalar::ULong(_) => fb::AnyInner::ULong,
+            AnyScalar::Byte(_) => fb::AnyInner::Byte,
+            AnyScalar::UByte(_) => fb::AnyInner::UByte,
+            AnyScalar::Short(_) => fb::AnyInner::Short,
+            AnyScalar::UShort(_) => fb::AnyInner::UShort,
+            AnyScalar::Int(_) => fb::AnyInner::Int,
+            AnyScalar::UInt(_) => fb::AnyInner::UInt,
+            AnyScalar::Float(_) => fb::AnyInner::Float,
+        }
     }
 }
 
-impl SerialiseAny for String {
-    fn serialise_any<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::AnyT<'a>> {
-        self.as_str().serialise_any(builder)
+impl crate::serialise::Serialise for AnyArray {
+    type Output<'out> = flatbuffers::WIPOffset<UnionWIPOffset>;
+    fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
+        match self {
+            Self::BoolArray(item) => serialise_variant!(builder, item, BoolArray, BoolArrayArgs),
+            Self::ByteArray(item) => serialise_variant!(builder, item, ByteArray, ByteArrayArgs),
+            Self::UByteArray(item) => serialise_variant!(builder, item, UByteArray, UByteArrayArgs),
+            Self::ShortArray(item) => serialise_variant!(builder, item, ShortArray, ShortArrayArgs),
+            Self::UShortArray(item) => {
+                serialise_variant!(builder, item, UShortArray, UShortArrayArgs)
+            }
+            Self::IntArray(item) => serialise_variant!(builder, item, IntArray, IntArrayArgs),
+            Self::UIntArray(item) => serialise_variant!(builder, item, UIntArray, UIntArrayArgs),
+            Self::LongArray(item) => serialise_variant!(builder, item, LongArray, LongArrayArgs),
+            Self::ULongArray(item) => serialise_variant!(builder, item, ULongArray, ULongArrayArgs),
+            Self::FloatArray(item) => serialise_variant!(builder, item, FloatArray, FloatArrayArgs),
+            Self::DoubleArray(item) => {
+                serialise_variant!(builder, item, DoubleArray, DoubleArrayArgs)
+            }
+            Self::StringArray(item) => {
+                serialise_variant!(builder, item, StringArray, StringArrayArgs)
+            }
+        }
     }
 }
 
-impl SerialiseAny for f64 {
-    fn serialise_any<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::AnyT<'a>> {
-        let value =
-            pva0_generated::Double::create(builder, &pva0_generated::DoubleArgs { value: *self });
-        pva0_generated::AnyT::create(
-            builder,
-            &pva0_generated::AnyTArgs {
-                value: Some(value.as_union_value()),
-                value_type: pva0_generated::AnyInner::Double,
-            },
-        )
+impl crate::serialise::Discriminant for AnyArray {
+    type Disc = fb::AnyInner;
+    fn discriminant(&self) -> Self::Disc {
+        match self {
+            AnyArray::BoolArray(_) => fb::AnyInner::BoolArray,
+            AnyArray::ByteArray(_) => fb::AnyInner::ByteArray,
+            AnyArray::UByteArray(_) => fb::AnyInner::UByteArray,
+            AnyArray::ShortArray(_) => fb::AnyInner::ShortArray,
+            AnyArray::UShortArray(_) => fb::AnyInner::UShortArray,
+            AnyArray::IntArray(_) => fb::AnyInner::IntArray,
+            AnyArray::UIntArray(_) => fb::AnyInner::UIntArray,
+            AnyArray::LongArray(_) => fb::AnyInner::LongArray,
+            AnyArray::ULongArray(_) => fb::AnyInner::ULongArray,
+            AnyArray::FloatArray(_) => fb::AnyInner::FloatArray,
+            AnyArray::DoubleArray(_) => fb::AnyInner::DoubleArray,
+            AnyArray::StringArray(_) => fb::AnyInner::StringArray,
+        }
     }
 }
 
-impl SerialiseAny for i64 {
-    fn serialise_any<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::AnyT<'a>> {
-        let value =
-            pva0_generated::Long::create(builder, &pva0_generated::LongArgs { value: *self });
-        pva0_generated::AnyT::create(
-            builder,
-            &pva0_generated::AnyTArgs {
-                value: Some(value.as_union_value()),
-                value_type: pva0_generated::AnyInner::Long,
-            },
-        )
+/// This is used as an intermediate to enable proper
+/// strongly-typed conversions from numpy array to Vec<T>
+/// The problem is that PyO3 tries to hard to convert
+/// "any iterable of things that can be converted to type T"
+/// to `Vec<T>`, so in particular the types of integers can be lost.
+#[derive(FromPyObject)]
+enum PyAnyArray<'py> {
+    Numeric(Bound<'py, PyUntypedArray>),
+    Str(Vec<String>),
+}
+
+impl TryFrom<PyAnyArray<'_>> for AnyArray {
+    type Error = PyErr;
+    fn try_from(value: PyAnyArray<'_>) -> Result<Self, Self::Error> {
+        let v = match value {
+            PyAnyArray::Numeric(arr) => {
+                let dtype = arr.dtype();
+                match dtype.char() as char {
+                    '?' => AnyArray::BoolArray(arr.cast::<PyArrayDyn<bool>>()?.to_vec()?),
+                    'b' => AnyArray::ByteArray(arr.cast::<PyArrayDyn<i8>>()?.to_vec()?),
+                    'B' => AnyArray::UByteArray(arr.cast::<PyArrayDyn<u8>>()?.to_vec()?),
+                    'h' => AnyArray::ShortArray(arr.cast::<PyArrayDyn<i16>>()?.to_vec()?),
+                    'H' => AnyArray::UShortArray(arr.cast::<PyArrayDyn<u16>>()?.to_vec()?),
+                    'i' => AnyArray::IntArray(arr.cast::<PyArrayDyn<i32>>()?.to_vec()?),
+                    'I' => AnyArray::UIntArray(arr.cast::<PyArrayDyn<u32>>()?.to_vec()?),
+                    // int64 (LONG AND LONGLONG)
+                    'l' | 'q' => AnyArray::LongArray(arr.cast::<PyArrayDyn<i64>>()?.to_vec()?),
+                    // Uint64
+                    'L' | 'Q' => AnyArray::ULongArray(arr.cast::<PyArrayDyn<u64>>()?.to_vec()?),
+                    'f' => AnyArray::FloatArray(arr.cast::<PyArrayDyn<f32>>()?.to_vec()?),
+                    'd' => AnyArray::DoubleArray(arr.cast::<PyArrayDyn<f64>>()?.to_vec()?),
+                    'U' => {
+                        let values: Vec<String> = arr.call_method0("tolist")?.extract()?;
+                        AnyArray::StringArray(values)
+                    }
+                    _c => Err(PyTypeError::new_err(format!("unknown dtype: char is {_c}")))?,
+                }
+            }
+            PyAnyArray::Str(s) => AnyArray::StringArray(s),
+        };
+        Ok(v)
     }
 }
 
-impl SerialiseAny for bool {
-    fn serialise_any<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::AnyT<'a>> {
-        let value =
-            pva0_generated::Bool::create(builder, &pva0_generated::BoolArgs { value: *self });
-        pva0_generated::AnyT::create(
-            builder,
-            &pva0_generated::AnyTArgs {
-                value: Some(value.as_union_value()),
-                value_type: pva0_generated::AnyInner::Bool,
-            },
-        )
+impl<'a, 'py> FromPyObject<'a, 'py> for AnyArray {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        let pyanyarray: PyAnyArray = obj.extract()?;
+        let anyvec = pyanyarray.try_into()?;
+        Ok(anyvec)
     }
-}
-
-#[allow(unused)]
-enum AnyScalar {
-    Bool(bool),
-    // Byte(i8),
-    // UByte(u8),
-    // Short(i16),
-    // UShort(u16),
-    // Int(i32),
-    // UInt(u32),
-    Long(i64),
-    ULong(u64),
-    // Float(f32),
-    Double(f64),
-    String(String),
-}
-
-#[allow(unused)]
-enum AnyArray<T> {
-    PyArray1(PyArray1<T>),
-    PyArray2(PyArray2<T>),
 }
 
 #[derive(FromPyObject)]
+enum PyAnyScalar<'py> {
+    Bool(Bound<'py, PyBool>),
+    Int(Bound<'py, PyInt>),
+    Float(Bound<'py, PyFloat>),
+    Str(Bound<'py, PyString>),
+}
+impl TryFrom<PyAnyScalar<'_>> for AnyScalar {
+    type Error = PyErr;
+    fn try_from(value: PyAnyScalar<'_>) -> Result<Self, Self::Error> {
+        Ok(match value {
+            PyAnyScalar::Bool(b) => AnyScalar::Bool(b.is_true()),
+            PyAnyScalar::Int(i) => {
+                if let Ok(signed) = i.extract::<i64>() {
+                    AnyScalar::Long(signed)
+                } else {
+                    let unsigned = i.extract::<u64>()?;
+                    AnyScalar::ULong(unsigned)
+                }
+            }
+            PyAnyScalar::Float(f) => AnyScalar::Double(f.value()),
+            PyAnyScalar::Str(s) => AnyScalar::String(s.to_string()),
+        })
+    }
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for AnyScalar {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        let pyanyarray: PyAnyScalar = obj.extract()?;
+        let anyvec = pyanyarray.try_into()?;
+        Ok(anyvec)
+    }
+}
+
+// decalrative macro to serialise wrapper
+macro_rules! impl_serialise_u8_wrappers {
+    ($($t:ty) *) => {
+        $(
+            impl crate::serialise::Serialise for $t {
+                type Output<'a> = $t;
+                fn serialise<'a>(
+                    &self,
+                    _builder: &mut flatbuffers::FlatBufferBuilder<'a>,
+                ) -> $t {
+                    *self
+                }
+            }
+        )*
+    };
+}
+
+// declarative macro to get u8 wrapper from py object
+macro_rules! impl_from_pyobject_u8_wrappers {
+    ($ty:ty, $err:expr) => {
+        impl<'py> FromPyObject<'_, 'py> for $ty {
+            type Error = PyErr;
+            fn extract(obj: pyo3::Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+                obj.extract::<u8>()
+                    .map(Self)
+                    .map_err(|_| pyo3::exceptions::PyTypeError::new_err($err))
+            }
+        }
+    };
+}
+
+impl_serialise_u8_wrappers!(AlarmSeverity AlarmStatus DisplayForm);
+impl_from_pyobject_u8_wrappers!(AlarmSeverity, "unable to extract alarm severity");
+impl_from_pyobject_u8_wrappers!(AlarmStatus, "unable to extract alarm status");
+impl_from_pyobject_u8_wrappers!(DisplayForm, "unable to extract display form");
+
+#[derive(Serialise, FromPyObject)]
 struct AlarmT {
-    severity: u8,
-    status: u8,
+    severity: AlarmSeverity,
+    status: AlarmStatus,
     message: Option<String>,
 }
 
-impl AlarmT {
-    // this generates the flatbuffer's offset... better name?
-    fn serialise<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::AlarmT<'a>> {
-        let svty = pva0_generated::AlarmSeverity(self.severity);
-        let sts = pva0_generated::AlarmStatus(self.status);
-        let msg = builder.create_string(self.message.as_ref().unwrap());
-        pva0_generated::AlarmT::create(
-            builder,
-            &pva0_generated::AlarmTArgs {
-                severity: svty,
-                status: sts,
-                message: Some(msg),
-            },
-        )
-    }
-}
-
-#[derive(FromPyObject)]
+#[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 struct TimeT {
     seconds_past_epoch: i64,
@@ -190,23 +311,7 @@ struct TimeT {
     user_tag: i32,
 }
 
-impl TimeT {
-    fn serialise<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::TimeT<'a>> {
-        pva0_generated::TimeT::create(
-            builder,
-            &pva0_generated::TimeTArgs {
-                seconds_past_epoch: self.seconds_past_epoch,
-                nanoseconds: self.nanoseconds,
-                user_tag: self.user_tag,
-            },
-        )
-    }
-}
-
-#[derive(FromPyObject)]
+#[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 struct DisplayT {
     limit_low: f64,
@@ -214,32 +319,10 @@ struct DisplayT {
     description: String,
     units: String,
     precision: i32,
-    form: u8,
+    form: DisplayForm,
 }
 
-impl DisplayT {
-    fn serialise<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::DisplayT<'a>> {
-        let desc = builder.create_string(&self.description);
-        let unit = builder.create_string(&self.units);
-        let display_form = pva0_generated::DisplayForm(self.form);
-        pva0_generated::DisplayT::create(
-            builder,
-            &pva0_generated::DisplayTArgs {
-                limit_low: self.limit_low,
-                limit_high: self.limit_high,
-                description: Some(desc),
-                units: Some(unit),
-                precision: self.precision,
-                form: display_form,
-            },
-        )
-    }
-}
-
-#[derive(FromPyObject)]
+#[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 struct ControlT {
     limit_low: f64,
@@ -247,69 +330,49 @@ struct ControlT {
     min_step: f64,
 }
 
-impl ControlT {
-    fn serialise<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::ControlT<'a>> {
-        pva0_generated::ControlT::create(
-            builder,
-            &pva0_generated::ControlTArgs {
-                limit_low: self.limit_low,
-                limit_high: self.limit_high,
-                min_step: self.min_step,
-            },
-        )
-    }
-}
-
-#[allow(unused)]
-#[derive(FromPyObject)]
+#[derive(Serialise, FromPyObject)]
 struct CodecT {
     name: String,
 }
 
-#[allow(unused)]
-#[derive(FromPyObject)]
+#[derive(Serialise, FromPyObject)]
 struct Column {
-    value: f64, // RequiredAny
+    value: AnyT,
 }
 
-#[allow(unused)]
-#[derive(FromPyObject)]
+#[derive(Serialise, FromPyObject)]
+#[pyo3(rename_all = "camelCase")]
 struct DimensionT {
-    size: i64,
-    offset: i64,
-    fullsize: i64,
-    binning: i64,
+    size_: i32,
+    offset: i32,
+    full_size: i32,
+    binning: i32,
     reverse: bool,
 }
 
-#[allow(unused)]
-#[derive(FromPyObject)]
+#[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 pub struct NTAttribute {
     name: String,
-    value: f64, // ANY - fix this
+    value: AnyT,
     tags: Vec<String>,
     descriptor: String,
     alarm: Option<AlarmT>,
     time: Option<TimeT>,
-    source_type: i64,
+    source_type: i32,
     source: String,
 }
 
-#[allow(unused)]
-#[derive(FromPyObject)]
+#[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 pub struct NTNDArray {
-    value: f64, // change type (RequiredAny)
+    value: AnyT,
     codec: Option<CodecT>,
     compressed_size: i64,
-    uncompressed_seize: i64,
+    uncompressed_size: i64,
     dimension: Vec<DimensionT>,
-    unique_id: i64,
-    data_timestamp: Option<TimeT>,
+    unique_id: i32,
+    data_time_stamp: Option<TimeT>,
     attribute: Vec<NTAttribute>,
     descriptor: String,
     alarm: Option<AlarmT>,
@@ -317,11 +380,10 @@ pub struct NTNDArray {
     display: Option<DisplayT>,
 }
 
-#[derive(FromPyObject)]
+#[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 pub struct NTScalarAny {
-    // AnyScalar work been done by anuj
-    value: f64,
+    value: AnyT,
     descriptor: String,
     alarm: Option<AlarmT>,
     time_stamp: Option<TimeT>,
@@ -329,88 +391,91 @@ pub struct NTScalarAny {
     control: Option<ControlT>,
 }
 
-#[allow(unused)]
-impl NTScalarAny {
-    pub fn serialise<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::NTScalarAny<'a>> {
-        let value = self.value.serialise_any(builder);
-        let desc = builder.create_string(&self.descriptor);
-        let alarm = self.alarm.as_ref().map(|alarm| alarm.serialise(builder));
-        let ts = self.time_stamp.as_ref().map(|ts| ts.serialise(builder));
-        let display = self
-            .display
-            .as_ref()
-            .map(|display| display.serialise(builder));
-        let ctrl = self
-            .control
-            .as_ref()
-            .map(|control| control.serialise(builder));
-        pva0_generated::NTScalarAny::create(
-            builder,
-            &pva0_generated::NTScalarAnyArgs {
-                value: Some(value),
-                descriptor: Some(desc),
-                alarm,
-                time_stamp: ts,
-                display,
-                control: ctrl,
-            },
-        )
-    }
-}
-
-#[allow(unused)]
-#[derive(FromPyObject)]
+#[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 pub struct NTTable {
     labels: Vec<String>,
     value: Vec<Column>,
     descriptor: String,
-    alarm: Option<TimeT>,
+    alarm: Option<AlarmT>,
     time_stamp: Option<TimeT>,
     display: Option<DisplayT>,
 }
 
-#[allow(unused)]
-#[derive(FromPyObject)]
+#[derive(Serialise, FromPyObject)]
 pub struct XYData {
     x: NTScalarAny,
     y: NTScalarAny,
 }
 
-#[allow(unused)]
-#[derive(FromPyObject)]
-struct PulseId {
+#[derive(Serialise, FromPyObject)]
+struct PulseID {
     value: u64,
-    timestamp: f64,
+    #[pyo3(attribute("timestamp"))]
+    time_stamp: f64,
 }
 
-#[allow(unused)]
-#[derive(FromPyObject)]
+enum PVType {
+    Scalar(NTScalarAny),
+    NdArray(NTNDArray),
+    Table(NTTable),
+    XY(XYData),
+}
+
+impl<'py> FromPyObject<'_, 'py> for PVType {
+    type Error = PyErr;
+    fn extract(obj: pyo3::Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        if let Ok(v) = obj.extract::<NTScalarAny>() {
+            return Ok(PVType::Scalar(v));
+        }
+
+        if let Ok(v) = obj.extract::<NTNDArray>() {
+            return Ok(PVType::NdArray(v));
+        }
+
+        if let Ok(v) = obj.extract::<NTTable>() {
+            return Ok(PVType::Table(v));
+        }
+
+        if let Ok(v) = obj.extract::<XYData>() {
+            return Ok(PVType::XY(v));
+        }
+
+        Err(pyo3::exceptions::PyTypeError::new_err(
+            "unable to convert object into Data",
+        ))
+    }
+}
+
+impl crate::serialise::Serialise for PVType {
+    type Output<'out> = flatbuffers::WIPOffset<UnionWIPOffset>;
+    fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
+        match self {
+            PVType::Scalar(val) => val.serialise(builder).as_union_value(),
+            PVType::NdArray(val) => val.serialise(builder).as_union_value(),
+            PVType::Table(val) => val.serialise(builder).as_union_value(),
+            PVType::XY(val) => val.serialise(builder).as_union_value(),
+        }
+    }
+}
+
+impl crate::serialise::Discriminant for PVType {
+    type Disc = fb::PVType;
+    fn discriminant(&self) -> Self::Disc {
+        match self {
+            PVType::Scalar(_) => fb::PVType::NTScalarAny,
+            PVType::NdArray(_) => fb::PVType::NTNDArray,
+            PVType::Table(_) => fb::PVType::NTTable,
+            PVType::XY(_) => fb::PVType::XYData,
+        }
+    }
+}
+
+#[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 pub struct PVData {
-    data: NTScalarAny,
+    #[serialise(variant)]
+    data: PVType,
     source_name: String,
-}
-
-#[allow(unused)]
-impl PVData {
-    pub fn serialise<'a>(
-        &self,
-        builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-    ) -> flatbuffers::WIPOffset<pva0_generated::PVData<'a>> {
-        let data = self.data.serialise(builder);
-        let source_name = builder.create_string(&self.source_name);
-        pva0_generated::PVData::create(
-            builder,
-            &pva0_generated::PVDataArgs {
-                data_type: pva0_generated::PVType::NTScalarAny,
-                data: Some(data.as_union_value()),
-                source_name: Some(source_name),
-                pulse_id: None,
-            },
-        )
-    }
+    pulse_id: Option<PulseID>,
 }
