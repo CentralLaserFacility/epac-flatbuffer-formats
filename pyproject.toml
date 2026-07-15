@@ -20,6 +20,7 @@ dev = [
     "pytest",
     "pytest-benchmark",
     "pdoc",
+    "hypothesis"
 ]
 
 [tool.setuptools_scm]
@@ -56,4 +57,5 @@ exclude = [
 [tool.pytest.ini_options]
 testpaths = [
     "tests",
+    "rust/epac-flatbuffer-formats-rs/python/tests",
 ]
