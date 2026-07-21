@@ -201,17 +201,33 @@ impl TryFrom<PyAnyArray<'_>> for AnyArray {
                     'H' => AnyArray::UShortArray(arr.cast::<PyArrayDyn<u16>>()?.to_vec()?),
                     'i' => AnyArray::IntArray(arr.cast::<PyArrayDyn<i32>>()?.to_vec()?),
                     'I' => AnyArray::UIntArray(arr.cast::<PyArrayDyn<u32>>()?.to_vec()?),
-                    // int64 (LONG AND LONGLONG)
-                    'l' | 'q' => AnyArray::LongArray(arr.cast::<PyArrayDyn<i64>>()?.to_vec()?),
-                    // Uint64
-                    'L' | 'Q' => AnyArray::ULongArray(arr.cast::<PyArrayDyn<u64>>()?.to_vec()?),
+                    'l' => match dtype.itemsize() {
+                        4 => AnyArray::IntArray(arr.cast::<PyArrayDyn<i32>>()?.to_vec()?),
+                        8 => AnyArray::LongArray(arr.cast::<PyArrayDyn<i64>>()?.to_vec()?),
+                        n => {
+                            return Err(PyTypeError::new_err(format!(
+                                "unsupported numpy long itemsize {n}"
+                            )))
+                        }
+                    },
+                    'L' => match dtype.itemsize() {
+                        4 => AnyArray::UIntArray(arr.cast::<PyArrayDyn<u32>>()?.to_vec()?),
+                        8 => AnyArray::ULongArray(arr.cast::<PyArrayDyn<u64>>()?.to_vec()?),
+                        n => {
+                            return Err(PyTypeError::new_err(format!(
+                                "unsupported numpy ulong itemsize {n}"
+                            )))
+                        }
+                    },
+                    'q' => AnyArray::LongArray(arr.cast::<PyArrayDyn<i64>>()?.to_vec()?),
+                    'Q' => AnyArray::ULongArray(arr.cast::<PyArrayDyn<u64>>()?.to_vec()?),
                     'f' => AnyArray::FloatArray(arr.cast::<PyArrayDyn<f32>>()?.to_vec()?),
                     'd' => AnyArray::DoubleArray(arr.cast::<PyArrayDyn<f64>>()?.to_vec()?),
                     'U' => {
                         let values: Vec<String> = arr.call_method0("tolist")?.extract()?;
                         AnyArray::StringArray(values)
                     }
-                    _c => Err(PyTypeError::new_err(format!("unknown dtype: char is {_c}")))?,
+                    _c => return Err(PyTypeError::new_err(format!("unknown dtype: char is {_c}"))),
                 }
             }
             PyAnyArray::Str(s) => AnyArray::StringArray(s),
