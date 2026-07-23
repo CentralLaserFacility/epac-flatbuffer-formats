@@ -250,6 +250,7 @@ def mock_pv_data(draw):
         data=draw(st.one_of(payload_types)),
         sourceName=draw(st.text()),
         pulseId=draw(st.one_of(pulse_id(), st.none())),
+        effectiveTimeStamp=draw(st.one_of(mock_time(), st.none())),
     )
 
 
@@ -340,6 +341,7 @@ def test_empty_array_roundtrip() -> None:
         data=empty_scalar,
         sourceName="",
         pulseId=None,
+        effectiveTimeStamp=None,
     )
     _roundtrip(empty_data, "rust")
 
@@ -358,5 +360,6 @@ def test_array_with_256() -> None:
         data=val,
         sourceName="",
         pulseId=None,
+        effectiveTimeStamp=None,
     )
     _roundtrip(data, "rust")

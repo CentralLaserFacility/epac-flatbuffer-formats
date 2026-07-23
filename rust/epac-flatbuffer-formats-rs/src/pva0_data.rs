@@ -501,4 +501,5 @@ pub struct PVData {
     data: PVType,
     source_name: String,
     pulse_id: Option<PulseID>,
+    effective_time_stamp: Option<TimeT>,
 }
