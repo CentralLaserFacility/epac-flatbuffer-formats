@@ -20,7 +20,8 @@ dev = [
     "pytest",
     "pytest-benchmark",
     "pdoc",
-    "hypothesis"
+    "hypothesis",
+    "p4p",
 ]
 
 [tool.setuptools_scm]
