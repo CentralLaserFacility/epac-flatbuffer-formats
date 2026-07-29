@@ -267,7 +267,6 @@ fn do_derive_serialise_struct(
 
                 let __args = fb::#args_ident {
                     #(#initialisers,)*
-                    ..Default::default()
                 };
                 fb::#fb_name::create(builder, &__args)
             }

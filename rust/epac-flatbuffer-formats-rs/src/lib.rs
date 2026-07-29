@@ -6,6 +6,7 @@ use pyo3::prelude::*;
 #[allow(clippy::all)]
 #[path="generated/pva0_generated.rs"] // this is the flatbuffer automatically generated module
 mod pva0_generated;
+#[allow(clippy::enum_variant_names)]
 mod pva0_data;
 pub mod serialise;
 
