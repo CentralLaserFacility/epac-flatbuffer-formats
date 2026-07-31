@@ -1,4 +1,4 @@
-from .epac_flatbuffer_formats_rs import (  # type: ignore
+from ._bindings import (  # type: ignore
     serialise_pv_data,
 )
 

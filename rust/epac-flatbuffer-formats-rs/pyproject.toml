@@ -14,3 +14,4 @@ dynamic = ["version"]
 
 [tool.maturin]
 python-source = "python"
+module-name = "epac_flatbuffer_formats_rs._bindings"

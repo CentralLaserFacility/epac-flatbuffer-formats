@@ -9,8 +9,13 @@ mod pva0_generated;
 mod pva0_data;
 pub mod serialise;
 
+/// This module is the entry point for the Python bindings
+/// It exposes the `serialise_pv_data` function which takes a python (pydantic) `PVData` object and
+/// serialises to python bytes.
+///
 #[pymodule]
-mod epac_flatbuffer_formats_rs {
+#[pyo3(name = "_bindings")]
+pub mod epac_flatbuffer_formats_rs {
 
     use super::pva0_data::PVData;
     use crate::serialise::Serialise;
