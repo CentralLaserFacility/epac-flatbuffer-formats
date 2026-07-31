@@ -438,66 +438,21 @@ struct PulseID {
     time_stamp: f64,
 }
 
+#[derive(Serialise, FromPyObject)]
 enum PVType {
-    Scalar(NTScalarAny),
-    NdArray(NTNDArray),
-    Table(NTTable),
-    XY(XYData),
+    NTScalarAny(NTScalarAny),
+    NTNDArray(NTNDArray),
+    NTTable(NTTable),
+    XYData(XYData),
 }
 
-impl<'py> FromPyObject<'_, 'py> for PVType {
-    type Error = PyErr;
-    fn extract(obj: pyo3::Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        if let Ok(v) = obj.extract::<NTScalarAny>() {
-            return Ok(PVType::Scalar(v));
-        }
-
-        if let Ok(v) = obj.extract::<NTNDArray>() {
-            return Ok(PVType::NdArray(v));
-        }
-
-        if let Ok(v) = obj.extract::<NTTable>() {
-            return Ok(PVType::Table(v));
-        }
-
-        if let Ok(v) = obj.extract::<XYData>() {
-            return Ok(PVType::XY(v));
-        }
-
-        Err(pyo3::exceptions::PyTypeError::new_err(
-            "unable to convert object into Data",
-        ))
-    }
-}
-
-impl crate::serialise::Serialise for PVType {
-    type Output<'out> = flatbuffers::WIPOffset<UnionWIPOffset>;
-    fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
-        match self {
-            PVType::Scalar(val) => val.serialise(builder).as_union_value(),
-            PVType::NdArray(val) => val.serialise(builder).as_union_value(),
-            PVType::Table(val) => val.serialise(builder).as_union_value(),
-            PVType::XY(val) => val.serialise(builder).as_union_value(),
-        }
-    }
-}
-
-impl crate::serialise::Discriminant for PVType {
-    type Disc = fb::PVType;
-    fn discriminant(&self) -> Self::Disc {
-        match self {
-            PVType::Scalar(_) => fb::PVType::NTScalarAny,
-            PVType::NdArray(_) => fb::PVType::NTNDArray,
-            PVType::Table(_) => fb::PVType::NTTable,
-            PVType::XY(_) => fb::PVType::XYData,
-        }
-    }
-}
-
+/// Struct representing a PVData object.
+///
+/// The data field is a union type which can be either a scalar, an array, a table or XY data.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 pub struct PVData {
-    #[serialise(variant)]
+    #[serialise(union)]
     data: PVType,
     source_name: String,
     pulse_id: Option<PulseID>,

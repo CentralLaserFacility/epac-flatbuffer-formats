@@ -6,29 +6,25 @@ use syn::{DeriveInput, Error, Token, parse_macro_input, spanned::Spanned};
 use syn::parse::{Parse, ParseStream};
 
 mod kw {
-    syn::custom_keyword!(variant);
-    syn::custom_keyword!(discriminant);
-    syn::custom_keyword!(wrap);
     syn::custom_keyword!(flatbuffers_name);
-    syn::custom_keyword!(transparent);
+}
+
+fn is_serialise_attr(attr: &Attribute) -> bool {
+    attr.path().is_ident("serialise")
 }
 
 #[derive(Clone, Debug)]
 enum SerialiseFieldAttribute {
-    Variant,
-    Wrap,
+    Union,
     FlatbuffersName(syn::Ident),
 }
 
 impl Parse for SerialiseFieldAttribute {
     fn parse(input: ParseStream) -> Result<Self, Error> {
         let lookahead = input.lookahead1();
-        if lookahead.peek(kw::variant) {
-            input.parse::<kw::variant>()?;
-            Ok(SerialiseFieldAttribute::Variant)
-        } else if lookahead.peek(kw::wrap) {
-            input.parse::<kw::wrap>()?;
-            Ok(SerialiseFieldAttribute::Wrap)
+        if lookahead.peek(Token![union]) {
+            input.parse::<Token![union]>()?;
+            Ok(SerialiseFieldAttribute::Union)
         } else if lookahead.peek(kw::flatbuffers_name) {
             input.parse::<kw::flatbuffers_name>()?;
             input.parse::<Token![=]>()?;
@@ -41,26 +37,34 @@ impl Parse for SerialiseFieldAttribute {
 
 #[derive(Clone, Default, Debug)]
 struct SerialiseFieldAttributes {
-    variant: bool,
-    wrap: bool,
+    union: bool,
     flatbuffers_name: Option<syn::Ident>,
 }
 
 impl SerialiseFieldAttributes {
     fn add_attribute(&mut self, a: &syn::Attribute) -> Result<(), Error> {
-        let Some(attr_ident) = a.path().get_ident() else {
-            return Ok(());
-        };
-        if attr_ident != "serialise" {
+        if !is_serialise_attr(a) {
             return Ok(());
         }
 
         let attr: SerialiseFieldAttribute = a.parse_args()?;
 
         match attr {
-            SerialiseFieldAttribute::Variant => self.variant = true,
-            SerialiseFieldAttribute::Wrap => self.wrap = true,
-            SerialiseFieldAttribute::FlatbuffersName(ident) => self.flatbuffers_name = Some(ident),
+            SerialiseFieldAttribute::Union => {
+                if self.union {
+                    return Err(Error::new_spanned(a, "duplicate union attribute"));
+                }
+                self.union = true;
+            }
+            SerialiseFieldAttribute::FlatbuffersName(ident) => {
+                if self.flatbuffers_name.is_some() {
+                    return Err(Error::new_spanned(
+                        a,
+                        "duplicate flatbuffers_name attribute",
+                    ));
+                }
+                self.flatbuffers_name = Some(ident);
+            }
         }
 
         Ok(())
@@ -69,17 +73,13 @@ impl SerialiseFieldAttributes {
 
 #[derive(Clone, Debug)]
 enum SerialiseStructAttribute {
-    Wrap,
     FlatbuffersName(syn::Ident),
 }
 
 impl Parse for SerialiseStructAttribute {
     fn parse(input: ParseStream) -> Result<Self, Error> {
         let lookahead = input.lookahead1();
-        if lookahead.peek(kw::wrap) {
-            input.parse::<kw::wrap>()?;
-            Ok(SerialiseStructAttribute::Wrap)
-        } else if lookahead.peek(kw::flatbuffers_name) {
+        if lookahead.peek(kw::flatbuffers_name) {
             input.parse::<kw::flatbuffers_name>()?;
             input.parse::<Token![=]>()?;
             input.parse().map(SerialiseStructAttribute::FlatbuffersName)
@@ -92,53 +92,44 @@ impl Parse for SerialiseStructAttribute {
 #[derive(Clone, Default, Debug)]
 struct SerialiseStructAttributes {
     flatbuffers_name: Option<syn::Ident>,
-    wrap: bool,
 }
 
 impl SerialiseStructAttributes {
     fn add_attribute(&mut self, a: &syn::Attribute) -> Result<(), Error> {
-        let Some(attr_ident) = a.path().get_ident() else {
-            return Ok(());
-        };
-        if attr_ident != "serialise" {
+        if !is_serialise_attr(a) {
             return Ok(());
         }
 
         let attr: SerialiseStructAttribute = a.parse_args()?;
 
         match attr {
-            SerialiseStructAttribute::FlatbuffersName(ident) => self.flatbuffers_name = Some(ident),
-            SerialiseStructAttribute::Wrap => self.wrap = true,
+            SerialiseStructAttribute::FlatbuffersName(ident) => {
+                if self.flatbuffers_name.is_some() {
+                    return Err(Error::new_spanned(
+                        a,
+                        "duplicate flatbuffers_name attribute",
+                    ));
+                }
+                self.flatbuffers_name = Some(ident);
+            }
         }
 
         Ok(())
     }
 }
+
 #[derive(Clone, Debug)]
 enum SerialiseEnumAttribute {
-    Wrap,
-    Transparent,
     FlatbuffersName(syn::Ident),
-    Discriminant(syn::Ident),
 }
 
 impl Parse for SerialiseEnumAttribute {
     fn parse(input: ParseStream) -> Result<Self, Error> {
         let lookahead = input.lookahead1();
-        if lookahead.peek(kw::wrap) {
-            input.parse::<kw::wrap>()?;
-            Ok(SerialiseEnumAttribute::Wrap)
-        } else if lookahead.peek(kw::transparent) {
-            input.parse::<kw::transparent>()?;
-            Ok(SerialiseEnumAttribute::Transparent)
-        } else if lookahead.peek(kw::flatbuffers_name) {
+        if lookahead.peek(kw::flatbuffers_name) {
             input.parse::<kw::flatbuffers_name>()?;
             input.parse::<Token![=]>()?;
             input.parse().map(SerialiseEnumAttribute::FlatbuffersName)
-        } else if lookahead.peek(kw::discriminant) {
-            input.parse::<kw::discriminant>()?;
-            input.parse::<Token![=]>()?;
-            input.parse().map(SerialiseEnumAttribute::Discriminant)
         } else {
             Err(lookahead.error())
         }
@@ -148,33 +139,61 @@ impl Parse for SerialiseEnumAttribute {
 #[derive(Clone, Default, Debug)]
 struct SerialiseEnumAttributes {
     flatbuffers_name: Option<syn::Ident>,
-    discriminant: Option<syn::Ident>,
-    wrap: bool,
-    transparent: bool,
 }
 
 impl SerialiseEnumAttributes {
     fn add_attribute(&mut self, a: &syn::Attribute) -> Result<(), Error> {
-        let Some(attr_ident) = a.path().get_ident() else {
-            return Ok(());
-        };
-        if attr_ident != "serialise" {
+        if !is_serialise_attr(a) {
             return Ok(());
         }
 
         let attr: SerialiseEnumAttribute = a.parse_args()?;
 
         match attr {
-            SerialiseEnumAttribute::FlatbuffersName(ident) => self.flatbuffers_name = Some(ident),
-            SerialiseEnumAttribute::Discriminant(ident) => self.discriminant = Some(ident),
-            SerialiseEnumAttribute::Wrap => self.wrap = true,
-            SerialiseEnumAttribute::Transparent => self.transparent = true,
+            SerialiseEnumAttribute::FlatbuffersName(ident) => {
+                if self.flatbuffers_name.is_some() {
+                    return Err(Error::new_spanned(
+                        a,
+                        "duplicate flatbuffers_name attribute",
+                    ));
+                }
+                self.flatbuffers_name = Some(ident);
+            }
         }
 
         Ok(())
     }
 }
 
+/// Derive serialise automatically implements the `Serialise` trait for
+/// rust data structures.
+///
+/// Three attributes can be used to customise the macro behaviour:
+/// - `#[serialise(flatbuffers_name = Foo)]` - specifies the flatbuffers table
+/// - `#[serialise(union)]` - specifies that a field is a union type
+///
+/// ### Examples:
+///
+/// Serialising a struct containing a union:
+/// ```ignore
+/// #[derive(Serialise)]
+/// struct Data {
+///     #[serialise(union)]
+///     data: VariantType,
+/// }
+/// ```
+///
+/// Serialising an enum used as a union:
+/// ```ignore
+/// #[derive(Serialise)]
+/// enum VariantType {
+///     Scalar(Scalar),
+///     Array(Array),
+///     Table(Table),
+///     #[serialise(flatbuffers_name = XYData)]
+///     XY(XY),
+/// }
+/// ```
 #[proc_macro_derive(Serialise, attributes(serialise))]
 pub fn derive_serialise(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
@@ -204,10 +223,10 @@ fn do_derive_serialise(input: DeriveInput) -> Result<TokenStream, Error> {
 fn do_derive_serialise_struct(
     name: &Ident,
     input: DataStruct,
-    attrs: &[Attribute],
+    struct_attrs: &[Attribute],
 ) -> Result<TokenStream, Error> {
     let mut attributes = SerialiseStructAttributes::default();
-    for attr in attrs {
+    for attr in struct_attrs {
         attributes.add_attribute(attr)?;
     }
     let fields = input.fields;
@@ -229,11 +248,11 @@ fn do_derive_serialise_struct(
             let fname = field.ident.as_ref().ok_or_else(|| Error::new_spanned(field, "expected named field"))?;
             let mut field_attrs = SerialiseFieldAttributes::default();
             for a in field.attrs.iter() {
-                attrs.add_attribute(a)?;
+                field_attrs.add_attribute(a)?;
             }
-            let fb_name = attrs.flatbuffers_name.as_ref().unwrap_or(fname);
+            let fb_name = field_attrs.flatbuffers_name.as_ref().unwrap_or(fname);
 
-            let code = if attrs.variant {
+            let code = if field_attrs.union {
                 let fbname_type = format_ident!("{fb_name}_type");
                 let assignment = quote_spanned! {
                     field.span() =>
@@ -265,10 +284,10 @@ fn do_derive_serialise_struct(
                 #(#assignments)*
 
 
-                let __args = fb::#args_ident {
+                let args__ = fb::#args_ident {
                     #(#initialisers,)*
                 };
-                fb::#fb_name::create(builder, &__args)
+                fb::#fb_name::create(builder, &args__)
             }
         }
     };
@@ -279,10 +298,10 @@ fn do_derive_serialise_struct(
 fn do_derive_serialise_enum(
     name: &Ident,
     input: DataEnum,
-    attrs: &[Attribute],
+    enum_attrs: &[Attribute],
 ) -> Result<TokenStream, Error> {
     let mut attributes = SerialiseEnumAttributes::default();
-    for attr in attrs {
+    for attr in enum_attrs {
         attributes.add_attribute(attr)?;
     }
 
@@ -306,35 +325,19 @@ fn do_derive_serialise_enum(
 
         let vname = &var.ident;
 
-        let mut var_attrs = SerialiseFieldAttributes::default();
+        let mut field_attrs = SerialiseFieldAttributes::default();
         for a in var.attrs.iter() {
-            var_attrs.add_attribute(a)?;
+            field_attrs.add_attribute(a)?;
         }
 
-        let fb_name = var_attrs.flatbuffers_name.unwrap_or(vname.clone());
-        let args_ident = format_ident!("{}Args", fb_name);
+        let fb_name = field_attrs.flatbuffers_name.unwrap_or(vname.clone());
 
-
-        let disc_arm = if attributes.transparent {
-            quote_spanned! { var.span() => Self::#vname(inner) => {
-            inner.discriminant()
-        } }} else {
+        let disc_arm = {
             quote_spanned! { var.span() => Self::#vname(_) => {
             Self::Disc::#fb_name
         } }};
 
-        let offset_arm = if attributes.transparent {
-            quote_spanned! { var.span() => Self::#vname(item) => {
-                item.serialise(builder)
-            } }
-        } else if var_attrs.wrap {
-            quote_spanned! { var.span() => Self::#vname(item) => {
-                let value = item.serialise(builder);
-                let _args = fb::#args_ident { value: value.serialise_coerce() };
-                let offset = fb::#fb_name::create(builder, &_args);
-                offset.as_union_value()
-            } }
-        } else {
+        let offset_arm = {
             quote_spanned! { var.span() => Self::#vname(item) => {
                 item.serialise(builder).as_union_value()
             } }
@@ -345,28 +348,7 @@ fn do_derive_serialise_enum(
 
     let (disc_arms, offset_arms): (Vec<_>, Vec<_>) = var_arms.into_iter().unzip();
 
-    let serialise_impl = if attributes.wrap {
-        let fb_name = attributes.flatbuffers_name.unwrap_or(name.clone());
-        let args_ident = format_ident!("{}Args", fb_name);
-        quote! {
-            impl crate::serialise::Serialise for #name {
-            type Output<'a> = ::flatbuffers::WIPOffset<fb::#fb_name<'a>>;
-                fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
-                    let value_type = self.discriminant();
-
-                    let value = match self {
-                        #(#offset_arms)*
-                    };
-
-                    let __args = fb::#args_ident {
-                        value: value.serialise_coerce(),
-                        value_type: value_type.serialise_coerce(),
-                    };
-                    fb::#fb_name::create(builder, &__args)
-                }
-            }
-        }
-    } else {
+    let serialise_impl = {
         quote! {
             impl crate::serialise::Serialise for #name {
                 type Output<'a> = ::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>;
@@ -379,11 +361,9 @@ fn do_derive_serialise_enum(
         }
     };
 
-    let disc_name = attributes.discriminant.unwrap_or(name.clone());
-
     let discriminant_impl = quote! {
         impl crate::serialise::Discriminant for #name {
-            type Disc = fb::#disc_name;
+            type Disc = fb::#name;
 
             fn discriminant(&self) -> Self::Disc {
                 match self {
