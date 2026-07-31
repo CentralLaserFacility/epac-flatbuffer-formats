@@ -220,15 +220,37 @@ exit $RESULT
                     os.chmod(hook_path, mode)
 
 
+# edited from base to include rust hooks
 @command("pre-commit")
 def cmd_precommit():
     """Run pre-commit hooks."""
-
+    # base hooks for python
     venv = require("venv")
 
     venv.run_cmd("git", "diff", "--staged", "--check")
     venv.run_cmd("black", "--quiet", "--check", "--diff", ".")
     venv.run_cmd("flake8", ".")
+
+    # rust hooks if toolchain present
+    if _has_rust_toolchain(venv):
+        venv.run_cmd(
+            "cargo",
+            "fmt",
+            "--manifest-path",
+            "./rust/Cargo.toml",
+            "--all",
+            "--check",
+        )
+        venv.run_cmd(
+            "cargo",
+            "clippy",
+            "--manifest-path",
+            "./rust/Cargo.toml",
+            "--all-targets",
+            "--all-features",
+            "--",
+            "-Dwarnings",
+        )
 
 
 @command("fmt")
@@ -269,6 +291,28 @@ def cmd_api_docs():
 
 
 # == User commands, setups, and other customisations ==
+
+
+def _has_rust_toolchain(venv) -> bool:
+    """Verify that a rust toolchain exists"""
+
+    if not shutil.which("rustc"):
+        return False
+
+    if not shutil.which("cargo"):
+        return False
+
+    try:
+        venv.run_cmd(
+            "rustc",
+            "--version",
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+        return True
+    except Exception:
+        return False
 
 
 @setup("flatc")
@@ -362,7 +406,7 @@ class SetupFlatc:
 
 
 @command("schema-generate")
-def cmd_schema_generate():
+def cmd_schema_generate() -> None:
     """Generate Python code from schema files."""
 
     flatc: SetupFlatc = require("flatc")
