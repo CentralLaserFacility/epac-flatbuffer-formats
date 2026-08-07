@@ -36,7 +36,7 @@ jobs:
       - name: Build Rust wheel
         run: ./dev.py rust-build
       - name: Move Rust wheel
-        run: mv rust/epac-flatbuffer-formats-rs/target/wheels/*.whl dist/
+        run: mv rust/target/wheels/*.whl dist/
       - name: Install wheel
         run: ./dev.py run pip install dist/*.whl
       - name: Create lockfile
