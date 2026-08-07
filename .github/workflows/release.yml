@@ -34,7 +34,9 @@ jobs:
           VERSION=${TAG#test-}
           sed -i "/version = \"0\\.0\\.0\"/s/0\\.0\\.0/${VERSION}/" rust/Cargo.toml
       - name: Build Rust wheel
-        run: ./dev.py rust-build -o dist
+        run: ./dev.py rust-build
+      - name: Move Rust wheel
+        run: mv rust/epac-flatbuffer-formats-rs/target/wheels/*.whl dist/
       - name: Install wheel
         run: ./dev.py run pip install dist/*.whl
       - name: Create lockfile
