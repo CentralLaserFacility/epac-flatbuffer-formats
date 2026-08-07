@@ -1,4 +1,4 @@
-use crate::pva0_generated::{self as fb, AlarmSeverity, AlarmStatus, DisplayForm};
+use crate::pva0_generated as fb;
 use crate::serialise::{Discriminant, SerialiseCoerce};
 use epac_flatbuffers_derive::Serialise;
 use flatbuffers::UnionWIPOffset;
@@ -8,6 +8,10 @@ use numpy::{
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyAny, PyBool, PyFloat, PyInt, PyString};
+
+struct AlarmSeverity(u8);
+struct AlarmStatus(u8);
+struct DisplayForm(u8);
 
 #[derive(FromPyObject)]
 pub enum AnyT {
@@ -260,17 +264,17 @@ impl<'a, 'py> FromPyObject<'a, 'py> for AnyScalar {
     }
 }
 
-// decalrative macro to serialise wrapper
-macro_rules! impl_serialise_u8_wrappers {
-    ($($t:ty) *) => {
+/// Example macro implement `serialise` for a locally defined unnamed-field wrapper.
+macro_rules! impl_serialise_unnamed_fields {
+    ($( $ty:ident ),* $(,)?) => {
         $(
-            impl crate::serialise::Serialise for $t {
-                type Output<'a> = $t;
+            impl crate::serialise::Serialise for $ty {
+                type Output<'a> = fb::$ty;
                 fn serialise<'a>(
                     &self,
                     _builder: &mut flatbuffers::FlatBufferBuilder<'a>,
-                ) -> $t {
-                    *self
+                ) -> Self::Output<'a> {
+                    fb::$ty(self.0)
                 }
             }
         )*
@@ -283,18 +287,21 @@ macro_rules! impl_from_pyobject_u8_wrappers {
         impl<'py> FromPyObject<'_, 'py> for $ty {
             type Error = PyErr;
             fn extract(obj: pyo3::Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-                obj.extract::<u8>()
-                    .map(Self)
+                let value = obj
+                    .extract::<u8>()
+                    .or_else(|_| obj.getattr("value")?.extract::<u8>())
                     .map_err(|_| pyo3::exceptions::PyTypeError::new_err($err))
+                    .unwrap();
+                Ok(Self(value))
             }
         }
     };
 }
 
-impl_serialise_u8_wrappers!(AlarmSeverity AlarmStatus DisplayForm);
 impl_from_pyobject_u8_wrappers!(AlarmSeverity, "unable to extract alarm severity");
 impl_from_pyobject_u8_wrappers!(AlarmStatus, "unable to extract alarm status");
 impl_from_pyobject_u8_wrappers!(DisplayForm, "unable to extract display form");
+impl_serialise_unnamed_fields!(AlarmSeverity, AlarmStatus, DisplayForm);
 
 #[derive(Serialise, FromPyObject)]
 struct AlarmT {
