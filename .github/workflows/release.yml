@@ -21,10 +21,12 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.12"
+      - name: Set up development environment
+        run: ./dev.py setup venv
       - name: Install build
-        run: python -m pip install build
-      - name: Build wheel
-        run: python -m build
+        run: ./dev.py run pip install build
+      - name: Build Python wheel
+        run: ./dev.py run python -m build
       - name: Rewrite Rust version
         run: |
           grep -q 'version = "0\.0\.0"' rust/Cargo.toml
@@ -32,22 +34,13 @@ jobs:
           VERSION=${TAG#test-}
           sed -i "/version = \"0\\.0\\.0\"/s/0\\.0\\.0/${VERSION}/" rust/Cargo.toml
       - name: Build Rust wheel
-        uses: PyO3/maturin-action@v1
-        with:
-          command: build
-          args: >
-            -m rust/epac-flatbuffer-formats-rs/Cargo.toml
-            --release
-            -o dist
-          manylinux: 2_17
-      - name: Set up development environment
-        run: python -m venv .venv
+        run: ./dev.py rust-build -o dist
       - name: Install wheel
-        run: .venv/bin/pip install dist/*.whl
+        run: ./dev.py run pip install dist/*.whl
       - name: Create lockfile
-        run: .venv/bin/pip list --format freeze --exclude pip --exclude setuptools > dist/requirements.txt
+        run: ./dev.py run pip list --format freeze --exclude pip --exclude setuptools > dist/requirements.txt
       - name: Install development dependencies
-        run: .venv/bin/pip install "$PACKAGE_NAME[dev]"
+        run: ./dev.py run pip install "$PACKAGE_NAME[dev]"
       - name: Create GitHub Release
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8
         with:
