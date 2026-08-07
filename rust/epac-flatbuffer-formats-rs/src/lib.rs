@@ -7,6 +7,7 @@ use pyo3::prelude::*;
 #[path="generated/pva0_generated.rs"]
 mod pva0_generated;
 
+pub mod any_t;
 #[allow(clippy::enum_variant_names)]
 pub mod pva0_data; // defines rust data structures
 pub mod serialise; // defines the `serialise` trait
