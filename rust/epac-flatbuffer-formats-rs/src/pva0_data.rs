@@ -1,3 +1,7 @@
+//! This module contains the data structures that are used to represent PVData in Rust.
+//! It also implements the `Serialise` trait for these data structures, which allows them to be serialised into flatbuffers.
+//!
+
 use crate::pva0_generated as fb;
 use crate::serialise::{Discriminant, SerialiseCoerce};
 use epac_flatbuffers_derive::Serialise;
@@ -13,12 +17,17 @@ struct AlarmSeverity(u8);
 struct AlarmStatus(u8);
 struct DisplayForm(u8);
 
+/// A dynamic type which can either be a scalar or an array.
+///
+/// - [`AnyT::Scalar`], containing a single scalar value.
+/// - [`AnyT::Array`], containing an array value.
 #[derive(FromPyObject)]
 pub enum AnyT {
     Scalar(AnyScalar),
     Array(AnyArray),
 }
 
+/// A dynamic type representing a scalar value.
 #[allow(unused)]
 pub enum AnyScalar {
     Bool(bool),
@@ -35,6 +44,7 @@ pub enum AnyScalar {
     Float(f32),
 }
 
+/// A dynamic type representing an array of values.
 pub enum AnyArray {
     BoolArray(Vec<bool>),
     ByteArray(Vec<i8>),
@@ -50,6 +60,8 @@ pub enum AnyArray {
     StringArray(Vec<String>),
 }
 
+/// Example macro to serialise a variant type into a flatbuffer union.
+/// This is used to serialise `AnyScalar` and `AnyArray` variants.
 macro_rules! serialise_variant {
     ($builder:expr, $item:expr, $variant:ident, $args:ident) => {{
         let value = $item.serialise($builder);
@@ -177,8 +189,11 @@ impl crate::serialise::Discriminant for AnyArray {
     }
 }
 
-/// This is used as an intermediate to enable proper
-/// strongly-typed conversions from numpy array to Vec<T>
+/// A type representing a python array.
+///
+/// An intermediate to enable proper strongly-typed conversions
+/// from numpy array to Vec<T>.
+///
 /// The problem is that PyO3 tries to hard to convert
 /// "any iterable of things that can be converted to type T"
 /// to `Vec<T>`, so in particular the types of integers can be lost.
@@ -188,6 +203,7 @@ enum PyAnyArray<'py> {
     Str(Vec<String>),
 }
 
+/// Implement `TryFrom` to convert `PyAnyArray` to `AnyArray`.
 impl TryFrom<PyAnyArray<'_>> for AnyArray {
     type Error = PyErr;
     fn try_from(value: PyAnyArray<'_>) -> Result<Self, Self::Error> {
@@ -237,6 +253,7 @@ impl TryFrom<PyAnyArray<'_>> for AnyArray {
     }
 }
 
+/// Implement `FromPyObject` to convert a Python object to `AnyArray`.
 impl<'a, 'py> FromPyObject<'a, 'py> for AnyArray {
     type Error = PyErr;
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
@@ -246,6 +263,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for AnyArray {
     }
 }
 
+/// A type representing a python scalar value.
 #[derive(FromPyObject)]
 enum PyAnyScalar<'py> {
     Bool(Bound<'py, PyBool>),
@@ -254,6 +272,7 @@ enum PyAnyScalar<'py> {
     Str(Bound<'py, PyString>),
 }
 
+/// Implement `TryFrom` to convert `PyAnyScalar` to `AnyScalar`.
 impl TryFrom<PyAnyScalar<'_>> for AnyScalar {
     type Error = PyErr;
     fn try_from(value: PyAnyScalar<'_>) -> Result<Self, Self::Error> {
@@ -273,6 +292,7 @@ impl TryFrom<PyAnyScalar<'_>> for AnyScalar {
     }
 }
 
+/// Implement `FromPyObject` to convert a Python object to `AnyScalar`.
 impl<'a, 'py> FromPyObject<'a, 'py> for AnyScalar {
     type Error = PyErr;
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
@@ -299,7 +319,7 @@ macro_rules! impl_serialise_unnamed_fields {
     };
 }
 
-// declarative macro to get u8 wrapper from py object
+/// Example macro to implement `FromPyObject` for a generated type wrapping a u8.
 macro_rules! impl_from_pyobject_u8_wrappers {
     ($ty:ty, $err:expr) => {
         impl<'py> FromPyObject<'_, 'py> for $ty {
@@ -321,6 +341,7 @@ impl_from_pyobject_u8_wrappers!(AlarmStatus, "unable to extract alarm status");
 impl_from_pyobject_u8_wrappers!(DisplayForm, "unable to extract display form");
 impl_serialise_unnamed_fields!(AlarmSeverity, AlarmStatus, DisplayForm);
 
+/// Struct representing an Alarm object.
 #[derive(Serialise, FromPyObject)]
 struct AlarmT {
     severity: AlarmSeverity,
@@ -328,6 +349,7 @@ struct AlarmT {
     message: Option<String>,
 }
 
+/// Struct representing a timestamp.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 struct TimeT {
@@ -336,6 +358,7 @@ struct TimeT {
     user_tag: i32,
 }
 
+/// Struct representing display information.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 struct DisplayT {
@@ -347,6 +370,7 @@ struct DisplayT {
     form: DisplayForm,
 }
 
+/// Struct representing control information.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 struct ControlT {
@@ -355,16 +379,19 @@ struct ControlT {
     min_step: f64,
 }
 
+/// Struct representing codec information.
 #[derive(Serialise, FromPyObject)]
 struct CodecT {
     name: String,
 }
 
+/// Struct representing a column in a table.
 #[derive(Serialise, FromPyObject)]
 struct Column {
     value: AnyT,
 }
 
+/// Struct representing a dimension in an NDArray.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 struct DimensionT {
@@ -375,6 +402,7 @@ struct DimensionT {
     reverse: bool,
 }
 
+/// Struct representing an NTAttribute.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 pub struct NTAttribute {
@@ -388,6 +416,7 @@ pub struct NTAttribute {
     source: String,
 }
 
+/// Struct representing an NTNDArray.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 pub struct NTNDArray {
@@ -405,6 +434,7 @@ pub struct NTNDArray {
     display: Option<DisplayT>,
 }
 
+/// Struct representing an NTScalarAny.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 pub struct NTScalarAny {
@@ -416,6 +446,7 @@ pub struct NTScalarAny {
     control: Option<ControlT>,
 }
 
+/// Struct representing an NTTable.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
 pub struct NTTable {
@@ -427,12 +458,14 @@ pub struct NTTable {
     display: Option<DisplayT>,
 }
 
+/// Struct representing XYData.
 #[derive(Serialise, FromPyObject)]
 pub struct XYData {
     x: NTScalarAny,
     y: NTScalarAny,
 }
 
+/// Struct representing a PulseID.
 #[derive(Serialise, FromPyObject)]
 struct PulseID {
     value: u64,
@@ -440,6 +473,7 @@ struct PulseID {
     time_stamp: f64,
 }
 
+/// Enum representing the different types of PV data.
 #[derive(Serialise, FromPyObject)]
 enum PVType {
     NTScalarAny(NTScalarAny),

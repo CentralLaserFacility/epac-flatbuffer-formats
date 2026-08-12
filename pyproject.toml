@@ -52,6 +52,7 @@ max-line-length = 88 # Respect black's line length (default 88),
 exclude = [
     ".venv",
     ".git",
+    "build",
     # Generated code
     "src/epac/flatbuffers/fbschemas",
 ]

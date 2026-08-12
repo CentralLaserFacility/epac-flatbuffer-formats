@@ -1,3 +1,7 @@
+//! This module defines the flatbuffers serialise derive macro which is used to automatically implement the `serialise`
+//! trait for rust data structures.
+//!
+
 use proc_macro::TokenStream;
 use quote::{format_ident, quote, quote_spanned};
 use syn::{Attribute, DataEnum, DataStruct, Ident};

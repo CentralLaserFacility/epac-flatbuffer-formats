@@ -1,5 +1,18 @@
+//! This module defines the `Serialise`, `serialise_coerce` and `discriminant` traits,
+//! which are used to serialise rust data structures ito flatbuffers.
+//!
+//! It also implements these traits for the primitive types, as well as for `Option<T>` and `[T]` where `T` implements `Serialise`.
+//!
+
 use flatbuffers::{Push, WIPOffset};
 
+/// This trait exists to bridge differences between the Rust representation and
+/// the FlatBuffers schema during serialisation. In practice, the Rust side may hold a
+/// plain value T, while the FlatBuffers schema expects Option<T> for an optional field.
+///
+/// SerialiseCoerce allows the serializer to convert the value when the schema requires
+/// the optional form.
+///
 #[diagnostic::on_unimplemented(message = "{Self} cannot be converted to {T} during serialisation")]
 pub trait SerialiseCoerce<T> {
     fn serialise_coerce(self) -> T;
@@ -17,6 +30,9 @@ impl<T> SerialiseCoerce<Option<T>> for T {
     }
 }
 
+/// This trait defines the `serialise` method which is used
+/// to serilise rust data stuctures into the flatbuffer format.
+///
 pub trait Serialise {
     type Output<'out>;
     fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a>;
@@ -39,18 +55,16 @@ pub trait Serialise {
     }
 }
 
+/// This trait is used for FlatBuffers union-like values represented in Rust as enum types.
+///
+/// The discriminant method returns the active union variant so the serializer can write the
+/// correct type tag before serialising the payload.
+///
 pub trait Discriminant {
     type Disc;
 
     fn discriminant(&self) -> Self::Disc;
 }
-
-// impl<U: Serialise + ?Sized, T: Deref<Target = U>> Serialise for Option<T> {
-//     type Output<'a> = Option<U::Output<'a>>;
-//     fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
-//         self.as_deref().map(|x| x.serialise(builder))
-//     }
-// }
 
 impl<T: Serialise> Serialise for Option<T> {
     type Output<'a> = Option<T::Output<'a>>;
@@ -116,5 +130,3 @@ impl Serialise for String {
         builder.create_string(self)
     }
 }
-
-// add implementation for tuple struct
