@@ -101,7 +101,12 @@ def packages():
 def mypy_check_paths():
     """Paths to be checked with mypy."""
 
-    return ["src", "tests"]
+    return [
+        "src",
+        "tests",
+        "rust/epac-flatbuffer-formats-rs/python/epac_flatbuffer_formats_rs",
+        "rust/epac-flatbuffer-formats-rs/python/tests",
+    ]
 
 
 def api_doc_modules():
@@ -220,15 +225,37 @@ exit $RESULT
                     os.chmod(hook_path, mode)
 
 
+# edited from base to include rust hooks
 @command("pre-commit")
 def cmd_precommit():
     """Run pre-commit hooks."""
-
+    # base hooks for python
     venv = require("venv")
 
     venv.run_cmd("git", "diff", "--staged", "--check")
     venv.run_cmd("black", "--quiet", "--check", "--diff", ".")
     venv.run_cmd("flake8", ".")
+
+    # rust hooks if toolchain present
+    if _has_rust_toolchain(venv):
+        venv.run_cmd(
+            "cargo",
+            "fmt",
+            "--manifest-path",
+            "./rust/Cargo.toml",
+            "--all",
+            "--check",
+        )
+        venv.run_cmd(
+            "cargo",
+            "clippy",
+            "--manifest-path",
+            "./rust/Cargo.toml",
+            "--all-targets",
+            "--all-features",
+            "--",
+            "-Dwarnings",
+        )
 
 
 @command("fmt")
@@ -248,6 +275,9 @@ def cmd_test():
 
     venv.run_cmd("mypy", *mypy_check_paths())
     venv.run_cmd("pytest")
+
+    if _has_rust_toolchain(venv):
+        venv.run_cmd("cargo", "test", "-q", "--manifest-path", "./rust/Cargo.toml")
 
 
 @command("benchmark")
@@ -271,6 +301,28 @@ def cmd_api_docs():
 # == User commands, setups, and other customisations ==
 
 
+def _has_rust_toolchain(venv) -> bool:
+    """Verify that a rust toolchain exists"""
+
+    if not shutil.which("rustc"):
+        return False
+
+    if not shutil.which("cargo"):
+        return False
+
+    try:
+        venv.run_cmd(
+            "rustc",
+            "--version",
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+        return True
+    except Exception:
+        return False
+
+
 @setup("flatc")
 class SetupFlatc:
     """Install the correct version of flatc into the venv"""
@@ -279,6 +331,7 @@ class SetupFlatc:
 
     SCHEMA_SOURCE_PATH = "schemas/"
     GENERATED_CODE_PATH = "src/epac/flatbuffers/fbschemas"
+    RUST_GENERATED_CODE_PATH = "rust/epac-flatbuffer-formats-rs/src/generated"
 
     @classmethod
     def is_setup(cls):
@@ -293,8 +346,8 @@ class SetupFlatc:
     @classmethod
     def setup(cls):
         import io
-        from urllib.request import urlopen
         import zipfile
+        from urllib.request import urlopen
 
         venv = cls.VENV_CLASS
         if not venv.is_setup():
@@ -362,14 +415,17 @@ class SetupFlatc:
 
 
 @command("schema-generate")
-def cmd_schema_generate():
-    """Generate Python code from schema files."""
+def cmd_schema_generate() -> None:
+    """Generate Python and Rust code from schema files."""
 
     flatc: SetupFlatc = require("flatc")
     venv: SetupVenv = require("venv")
 
     for fname in os.listdir(flatc.SCHEMA_SOURCE_PATH):
+
         base, ext = os.path.splitext(fname)
+
+        # generate python code for all schemas
         if ext == ".fbs":
             dest_dir = os.path.join(flatc.GENERATED_CODE_PATH, base)
             if os.path.exists(dest_dir):
@@ -389,6 +445,23 @@ def cmd_schema_generate():
                 if file.endswith(".py"):
                     convert_to_relative_imports(os.path.join(dest_dir, file))
             venv.run_cmd("black", "--quiet", dest_dir)
+
+        # generate rust code for Pva0 schema
+        if fname == "pva0.fbs":
+            dest_dir = flatc.RUST_GENERATED_CODE_PATH
+            generated_file = os.path.join(dest_dir, f"{base}_generated.rs")
+
+            if os.path.exists(generated_file):
+                os.remove(generated_file)
+
+            os.makedirs(dest_dir, exist_ok=True)
+
+            flatc.run(
+                "--rust",
+                "-o",
+                dest_dir,
+                os.path.join(flatc.SCHEMA_SOURCE_PATH, fname),
+            )
 
 
 def convert_to_relative_imports(file):
@@ -426,6 +499,144 @@ def convert_to_relative_imports(file):
     if converted:
         with open(file, "w") as f:
             f.writelines(lines)
+
+
+@command("rust-develop")
+def cmd_rust_develop() -> None:
+    """Install the Rust extension in editable mode with maturin."""
+    rs_bindings: SetupRustBindings = require("rust-bindings")
+    rs_bindings.develop()
+
+
+@command("rust-build")
+def cmd_rust_build() -> None:
+    """
+    Build a release wheel for the Rust extension with maturin.
+
+    Default location is "rust/build".
+    """
+    # don't require setup
+    rs_bindings = SetupRustBindings()
+    rs_bindings.build("-o", "rust/build")
+
+
+@command("rust-clean")
+def cmd_rust_clean() -> None:
+    """Uninstall the Rust extension from the active venv."""
+    rs_bindings: SetupRustBindings = require("rust-bindings")
+    rs_bindings.clean()
+
+
+@command("rust-stubs")
+def cmd_rust_stubs() -> None:
+    """
+    Generate python stubs for rust bindings
+
+    This feature is still in active development
+    (See https://pyo3.rs/main/type-stub) and should be used as an aid only.
+
+    Manual editing of generated stubs files is recommended.
+    """
+    rs_bindings: SetupRustBindings = require("rust-bindings")
+    rs_bindings.generate_stubs()
+
+
+@setup("rust-bindings")
+class SetupRustBindings:
+
+    VENV_CLASS = SetupVenv
+    BUILD_PATH = "./rust/epac-flatbuffer-formats-rs/"
+    MODULE_NAME = "epac_flatbuffer_formats_rs"
+    DISTRIBUTION_NAME = "epac-flatbuffer-formats-rs"
+
+    @classmethod
+    def is_setup(cls) -> bool:
+
+        venv = cls.VENV_CLASS
+        if not venv.is_setup():
+            return False
+
+        # confirm maturin is installed
+        try:
+            venv.run_cmd("maturin", "--version", check=True, stdout=subprocess.DEVNULL)
+        except Exception:
+            error("maturin not available, install with pip or setup venv")
+
+        # soft checking whether the module is importable
+        try:
+            import epac_flatbuffer_formats_rs  # noqa: F401
+        except Exception:
+            return False
+
+        return True
+
+    @classmethod
+    def setup(cls) -> None:
+        venv = cls.VENV_CLASS
+        if not venv.is_setup():
+            error("Must run setup for venv first")
+
+        # develop and install bindings module
+        cls.develop()
+
+    @classmethod
+    def build(cls, *args) -> None:
+        """Run maturin build in release mode"""
+        venv = cls.VENV_CLASS
+        venv.run_cmd(
+            "maturin",
+            "build",
+            *args,
+            "--release",
+            "--manifest-path",
+            cls.manifest_path(),
+        )
+
+    @classmethod
+    def develop(cls, *args) -> None:
+        """Run maturin develop for the active source tree"""
+        venv = cls.VENV_CLASS
+        venv.run_cmd(
+            "maturin",
+            "develop",
+            *args,
+            "--manifest-path",
+            cls.manifest_path(),
+        )
+
+    @classmethod
+    def clean(cls) -> None:
+        """
+        Uninstall rust-python serialisation bindings module
+        """
+        venv = cls.VENV_CLASS
+        if not cls.is_setup():
+            error("Cannot clean, not setup")
+
+        # uninstall bindings module
+        try:
+            venv.run_cmd("pip", "uninstall", "-y", cls.DISTRIBUTION_NAME)
+        except Exception as e:
+            error(f"Cannot clean, failed on pip uninstall: {e}")
+
+    @classmethod
+    def manifest_path(cls) -> str:
+        return os.path.join(cls.BUILD_PATH, "Cargo.toml")
+
+    @classmethod
+    def generate_stubs(cls, *args) -> None:
+        """Generate stubs for rust/python bindings"""
+        venv = cls.VENV_CLASS
+        stubs_path = os.path.join(cls.BUILD_PATH, "python", cls.MODULE_NAME)
+        venv.run_cmd(
+            "maturin",
+            "generate-stubs",
+            *args,
+            "--out",
+            stubs_path,
+            "--manifest-path",
+            cls.manifest_path(),
+        )
 
 
 # == Runtime ==

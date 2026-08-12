@@ -20,6 +20,9 @@ dev = [
     "pytest",
     "pytest-benchmark",
     "pdoc",
+    "hypothesis",
+    "p4p",
+    "maturin>=1.14.1"
 ]
 
 [tool.setuptools_scm]
@@ -33,19 +36,29 @@ mypy_path = ["src"]
 module = "flatbuffers.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["epac_flatbuffer_formats_rs"]
+ignore_missing_imports = true
+
+[tool.black]
+extend-exclude ="epac_flatbuffer_formats_rs.pyi"
+
 [tool.flake8]
 extend-ignore = [
     "E501", # line too long
 ]
+
 max-line-length = 88 # Respect black's line length (default 88),
 exclude = [
     ".venv",
     ".git",
+    "build",
     # Generated code
     "src/epac/flatbuffers/fbschemas",
-    ]
+]
 
 [tool.pytest.ini_options]
 testpaths = [
     "tests",
+    "rust/epac-flatbuffer-formats-rs/python/tests",
 ]

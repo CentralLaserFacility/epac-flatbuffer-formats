@@ -1,8 +1,10 @@
-import numpy as np
 from datetime import datetime
+
+import numpy as np
+
+from epac.flatbuffers import data_types as dt
 from epac.flatbuffers.arrays_wa00 import serialise_wa00
 from epac.flatbuffers.pva0_data import serialise_data
-from epac.flatbuffers import data_types as dt
 
 np.random.seed(1234)
 value = np.random.uniform(0.0, 1000.0, 10000)
