@@ -34,6 +34,7 @@ pub enum AnyScalar {
     UInt(u32),
     Float(f32),
 }
+
 pub enum AnyArray {
     BoolArray(Vec<bool>),
     ByteArray(Vec<i8>),
@@ -252,6 +253,7 @@ enum PyAnyScalar<'py> {
     Float(Bound<'py, PyFloat>),
     Str(Bound<'py, PyString>),
 }
+
 impl TryFrom<PyAnyScalar<'_>> for AnyScalar {
     type Error = PyErr;
     fn try_from(value: PyAnyScalar<'_>) -> Result<Self, Self::Error> {
@@ -457,4 +459,262 @@ pub struct PVData {
     source_name: String,
     pulse_id: Option<PulseID>,
     effective_time_stamp: Option<TimeT>,
+}
+
+#[cfg(test)]
+mod tests {
+    //! This module contains unit tests for the pva0_data module.
+    //!
+    //! Unit test strategy is to create object, serialise it and examine manually with generated
+    //! flatbuffer code to ensure that the serialisation is correct.
+    //!
+    //! The verifier is run automatically by the generated code.
+
+    use super::*;
+
+    use crate::pva0_generated::{self as fb};
+    use crate::serialise::Serialise;
+
+    #[test]
+    fn test_serialise_pv_data_with_scalar() {
+        let pv_data = PVData {
+            data: PVType::NTScalarAny(NTScalarAny {
+                value: AnyT::Scalar(AnyScalar::Double(1.56)),
+                descriptor: "test".to_string(),
+                alarm: None,
+                time_stamp: None,
+                display: None,
+                control: None,
+            }),
+            source_name: "source".to_string(),
+            pulse_id: Some(PulseID {
+                value: 42,
+                time_stamp: 1234567890.0,
+            }),
+            effective_time_stamp: Some(TimeT {
+                seconds_past_epoch: 1234567890,
+                nanoseconds: 123456789,
+                user_tag: 0,
+            }),
+        };
+
+        let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
+        let obj = pv_data.serialise(&mut builder);
+        builder.finish(obj, None);
+
+        let buf = builder.finished_data();
+        assert!(!buf.is_empty());
+
+        let pv_data_fb = fb::root_as_pvdata(buf).unwrap();
+        assert!(
+            pv_data_fb
+                .data_as_ntscalar_any()
+                .unwrap()
+                .value()
+                .value_as_double()
+                .unwrap()
+                .value()
+                == 1.56
+        );
+        assert_eq!(pv_data_fb.data_type(), fb::PVType::NTScalarAny);
+        assert_eq!(pv_data_fb.source_name().unwrap(), "source");
+        assert_eq!(pv_data_fb.pulse_id().unwrap().value(), 42);
+        assert_eq!(pv_data_fb.pulse_id().unwrap().time_stamp(), 1234567890.0);
+        assert_eq!(
+            pv_data_fb
+                .effective_time_stamp()
+                .unwrap()
+                .seconds_past_epoch(),
+            1234567890
+        );
+        assert_eq!(
+            pv_data_fb.effective_time_stamp().unwrap().nanoseconds(),
+            123456789
+        );
+    }
+
+    #[test]
+    fn test_serialise_pv_data_with_array() {
+        let pv_data = PVData {
+            data: PVType::NTNDArray(NTNDArray {
+                value: AnyT::Array(AnyArray::DoubleArray(vec![1.0, 2.0, 3.0])),
+                codec: None,
+                compressed_size: 0,
+                uncompressed_size: 0,
+                dimension: vec![],
+                unique_id: 0,
+                data_time_stamp: None,
+                attribute: vec![],
+                descriptor: "test".to_string(),
+                alarm: None,
+                time_stamp: None,
+                display: None,
+            }),
+            source_name: "source".to_string(),
+            pulse_id: None,
+            effective_time_stamp: None,
+        };
+
+        let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
+        let obj = pv_data.serialise(&mut builder);
+        builder.finish(obj, None);
+
+        let buf = builder.finished_data();
+        assert!(!buf.is_empty());
+
+        let pv_data_fb = fb::root_as_pvdata(buf).unwrap();
+        assert_eq!(pv_data_fb.data_type(), fb::PVType::NTNDArray);
+        assert_eq!(pv_data_fb.source_name().unwrap(), "source");
+
+        let ndarray = pv_data_fb.data_as_ntndarray().unwrap();
+        assert_eq!(ndarray.value().value_type(), fb::AnyInner::DoubleArray);
+        assert_eq!(ndarray.descriptor().unwrap(), "test");
+        assert_eq!(ndarray.compressed_size(), 0);
+        assert_eq!(ndarray.uncompressed_size(), 0);
+        assert_eq!(ndarray.unique_id(), 0);
+    }
+
+    #[test]
+    fn test_serialise_nt_scalar_any() {
+        let scalar_any = NTScalarAny {
+            value: AnyT::Scalar(AnyScalar::Double(1.56)),
+            descriptor: "test".to_string(),
+            alarm: None,
+            time_stamp: None,
+            display: None,
+            control: None,
+        };
+
+        let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
+        let obj = scalar_any.serialise(&mut builder);
+        builder.finish(obj, None);
+
+        let buf = builder.finished_data();
+        assert!(!buf.is_empty());
+
+        let scalar_any_fb = flatbuffers::root::<fb::NTScalarAny>(buf).unwrap();
+        assert_eq!(scalar_any_fb.descriptor().unwrap(), "test");
+        assert_eq!(scalar_any_fb.value().value_type(), fb::AnyInner::Double);
+        let scalar_value = scalar_any_fb.value().value_as_double().unwrap();
+        assert_eq!(scalar_value.value(), 1.56);
+    }
+
+    #[test]
+    fn test_serialise_nt_ndarray() {
+        let ndarray = NTNDArray {
+            value: AnyT::Array(AnyArray::DoubleArray(vec![1.0, 2.0, 3.0])),
+            codec: None,
+            compressed_size: 0,
+            uncompressed_size: 0,
+            dimension: vec![],
+            unique_id: 0,
+            data_time_stamp: None,
+            attribute: vec![],
+            descriptor: "test".to_string(),
+            alarm: None,
+            time_stamp: None,
+            display: None,
+        };
+
+        let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
+        let obj = ndarray.serialise(&mut builder);
+        builder.finish(obj, None);
+
+        let buf = builder.finished_data();
+        assert!(!buf.is_empty());
+
+        let ndarray_fb = flatbuffers::root::<fb::NTNDArray>(buf).unwrap();
+        assert_eq!(ndarray_fb.value().value_type(), fb::AnyInner::DoubleArray);
+        assert_eq!(ndarray_fb.descriptor().unwrap(), "test");
+        assert_eq!(ndarray_fb.compressed_size(), 0);
+        assert_eq!(ndarray_fb.uncompressed_size(), 0);
+        assert_eq!(ndarray_fb.unique_id(), 0);
+    }
+
+    #[test]
+    fn test_serialise_nt_table() {
+        let table = NTTable {
+            labels: vec!["label1".to_string(), "label2".to_string()],
+            value: vec![
+                Column {
+                    value: AnyT::Scalar(AnyScalar::Double(1.0)),
+                },
+                Column {
+                    value: AnyT::Scalar(AnyScalar::Double(2.0)),
+                },
+            ],
+            descriptor: "test".to_string(),
+            alarm: None,
+            time_stamp: None,
+            display: None,
+        };
+
+        let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
+        let obj = table.serialise(&mut builder);
+        builder.finish(obj, None);
+
+        let buf = builder.finished_data();
+        assert!(!buf.is_empty());
+
+        let table_fb = flatbuffers::root::<fb::NTTable>(buf).unwrap();
+        let labels = table_fb.labels().unwrap();
+        assert_eq!(labels.len(), 2);
+        assert_eq!(table_fb.descriptor().unwrap(), "test");
+
+        let columns = table_fb.value();
+        assert_eq!(columns.len(), 2);
+        let first = columns.get(0);
+        let second = columns.get(1);
+
+        let first_any = first.value().unwrap();
+        assert_eq!(first_any.value_type(), fb::AnyInner::Double);
+        let first_double = first_any.value_as_double().unwrap();
+        assert_eq!(first_double.value(), 1.0);
+
+        let second_any = second.value().unwrap();
+        assert_eq!(second_any.value_type(), fb::AnyInner::Double);
+        let second_double = second_any.value_as_double().unwrap();
+        assert_eq!(second_double.value(), 2.0);
+    }
+
+    #[test]
+    fn test_serialise_xy_data() {
+        let xy_data = XYData {
+            x: NTScalarAny {
+                value: AnyT::Scalar(AnyScalar::Double(1.0)),
+                descriptor: "x".to_string(),
+                alarm: None,
+                time_stamp: None,
+                display: None,
+                control: None,
+            },
+            y: NTScalarAny {
+                value: AnyT::Scalar(AnyScalar::Double(2.0)),
+                descriptor: "y".to_string(),
+                alarm: None,
+                time_stamp: None,
+                display: None,
+                control: None,
+            },
+        };
+
+        let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
+        let obj = xy_data.serialise(&mut builder);
+        builder.finish(obj, None);
+
+        let buf = builder.finished_data();
+        assert!(!buf.is_empty());
+
+        let xy_data_fb = flatbuffers::root::<fb::XYData>(buf).unwrap();
+        let x = xy_data_fb.x().unwrap();
+        let y = xy_data_fb.y();
+
+        assert_eq!(x.descriptor().unwrap(), "x");
+        assert_eq!(x.value().value_type(), fb::AnyInner::Double);
+        assert_eq!(x.value().value_as_double().unwrap().value(), 1.0);
+
+        assert_eq!(y.descriptor().unwrap(), "y");
+        assert_eq!(y.value().value_type(), fb::AnyInner::Double);
+        assert_eq!(y.value().value_as_double().unwrap().value(), 2.0);
+    }
 }
