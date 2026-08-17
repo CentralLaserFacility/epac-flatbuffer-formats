@@ -3,7 +3,7 @@ name: Release process
 on:
   push:
     tags:
-      - 'v[0-9]*'
+      - 'test-*'
 
 permissions:
   contents: write
@@ -35,14 +35,14 @@ jobs:
           sed -i "/version = \"0\\.0\\.0\"/s/0\\.0\\.0/${VERSION}/" rust/Cargo.toml
       - name: Build Rust wheel
         run: ./dev.py rust-build
-      - name: Move Rust wheel
-        run: mv rust/build/*.whl dist/
-      - name: Install wheel
+      - name: Install wheels
         run: ./dev.py run pip install dist/*.whl
       - name: Create lockfile
         run: ./dev.py run pip list --format freeze --exclude pip --exclude setuptools > dist/requirements.txt
       - name: Install development dependencies
         run: ./dev.py run pip install "$PACKAGE_NAME[dev]"
+      - name: Run tests
+        run: ./dev.py test
       - name: Create GitHub Release
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8
         with:

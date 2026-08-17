@@ -513,11 +513,11 @@ def cmd_rust_build() -> None:
     """
     Build a release wheel for the Rust extension with maturin.
 
-    Default location is "rust/build".
+    Default location is "dist/".
     """
     # don't require setup
     rs_bindings = SetupRustBindings()
-    rs_bindings.build("-o", "rust/build")
+    rs_bindings.build("-o", "dist/")
 
 
 @command("rust-clean")
