@@ -3,7 +3,7 @@ name: Release process
 on:
   push:
     tags:
-      - 'test-*'
+      - 'v[0-9]*'
 
 permissions:
   contents: write
