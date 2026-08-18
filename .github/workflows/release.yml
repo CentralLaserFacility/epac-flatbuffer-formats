@@ -31,7 +31,7 @@ jobs:
         run: |
           grep -q 'version = "0\.0\.0"' rust/Cargo.toml
           TAG=${{ github.ref_name }}
-          VERSION=${TAG#test-}
+          VERSION=${TAG#v}
           sed -i "/version = \"0\\.0\\.0\"/s/0\\.0\\.0/${VERSION}/" rust/Cargo.toml
       - name: Build Rust wheel
         run: ./dev.py rust-build
