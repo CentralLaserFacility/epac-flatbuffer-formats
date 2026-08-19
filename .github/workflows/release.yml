@@ -1,0 +1,50 @@
+name: Release process
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*'
+
+permissions:
+  contents: write
+
+env:
+  PACKAGE_NAME: epac-flatbuffer-formats
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - name: Set up development environment
+        run: ./dev.py setup venv
+      - name: Install build
+        run: ./dev.py run pip install build
+      - name: Build Python wheel
+        run: ./dev.py run python -m build
+      - name: Rewrite Rust version
+        run: |
+          grep -q 'version = "0\.0\.0"' rust/Cargo.toml
+          TAG=${{ github.ref_name }}
+          VERSION=${TAG#v}
+          sed -i "/version = \"0\\.0\\.0\"/s/0\\.0\\.0/${VERSION}/" rust/Cargo.toml
+      - name: Build Rust wheel
+        run: ./dev.py rust-build
+      - name: Install wheels
+        run: ./dev.py run pip install dist/*.whl
+      - name: Create lockfile
+        run: ./dev.py run pip list --format freeze --exclude pip --exclude setuptools > dist/requirements.txt
+      - name: Install development dependencies
+        run: ./dev.py run pip install "$PACKAGE_NAME[dev]"
+      - name: Run tests
+        run: ./dev.py test
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8
+        with:
+          files: dist/*
+          generate_release_notes: true
