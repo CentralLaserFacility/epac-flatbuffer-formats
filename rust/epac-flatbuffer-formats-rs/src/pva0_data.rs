@@ -119,7 +119,7 @@ struct DimensionT {
 #[pyo3(rename_all = "camelCase")]
 pub struct NTAttribute {
     name: String,
-    value: AnyT,
+    value: Option<AnyT>,
     tags: Vec<String>,
     descriptor: String,
     alarm: Option<AlarmT>,
