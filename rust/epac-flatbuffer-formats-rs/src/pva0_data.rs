@@ -99,8 +99,8 @@ struct CodecT {
 
 /// Struct representing a column in a table.
 #[derive(Serialise, FromPyObject)]
-struct Column {
-    value: AnyT,
+struct Column<'py> {
+    value: AnyT<'py>,
 }
 
 /// Struct representing a dimension in an NDArray.
@@ -117,9 +117,9 @@ struct DimensionT {
 /// Struct representing an NTAttribute.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
-pub struct NTAttribute {
+pub struct NTAttribute<'py> {
     name: String,
-    value: Option<AnyT>,
+    value: Option<AnyT<'py>>,
     tags: Vec<String>,
     descriptor: String,
     alarm: Option<AlarmT>,
@@ -131,15 +131,15 @@ pub struct NTAttribute {
 /// Struct representing an NTNDArray.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
-pub struct NTNDArray {
-    value: AnyT,
+pub struct NTNDArray<'py> {
+    value: AnyT<'py>,
     codec: Option<CodecT>,
     compressed_size: i64,
     uncompressed_size: i64,
     dimension: Vec<DimensionT>,
     unique_id: i32,
     data_time_stamp: Option<TimeT>,
-    attribute: Vec<NTAttribute>,
+    attribute: Vec<NTAttribute<'py>>,
     descriptor: String,
     alarm: Option<AlarmT>,
     time_stamp: Option<TimeT>,
@@ -149,8 +149,8 @@ pub struct NTNDArray {
 /// Struct representing an NTScalarAny.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
-pub struct NTScalarAny {
-    value: AnyT,
+pub struct NTScalarAny<'py> {
+    value: AnyT<'py>,
     descriptor: String,
     alarm: Option<AlarmT>,
     time_stamp: Option<TimeT>,
@@ -161,9 +161,9 @@ pub struct NTScalarAny {
 /// Struct representing an NTTable.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
-pub struct NTTable {
+pub struct NTTable<'py> {
     labels: Vec<String>,
-    value: Vec<Column>,
+    value: Vec<Column<'py>>,
     descriptor: String,
     alarm: Option<AlarmT>,
     time_stamp: Option<TimeT>,
@@ -172,9 +172,9 @@ pub struct NTTable {
 
 /// Struct representing XYData.
 #[derive(Serialise, FromPyObject)]
-pub struct XYData {
-    x: NTScalarAny,
-    y: NTScalarAny,
+pub struct XYData<'py> {
+    x: NTScalarAny<'py>,
+    y: NTScalarAny<'py>,
 }
 
 /// Struct representing a PulseID.
@@ -187,11 +187,11 @@ struct PulseID {
 
 /// Enum representing the different types of PV data.
 #[derive(Serialise, FromPyObject)]
-enum PVType {
-    NTScalarAny(NTScalarAny),
-    NTNDArray(NTNDArray),
-    NTTable(NTTable),
-    XYData(XYData),
+enum PVType<'py> {
+    NTScalarAny(NTScalarAny<'py>),
+    NTNDArray(NTNDArray<'py>),
+    NTTable(NTTable<'py>),
+    XYData(XYData<'py>),
 }
 
 /// Struct representing a PVData object.
@@ -199,9 +199,9 @@ enum PVType {
 /// The data field is a union type which can be either a scalar, an array, a table or XY data.
 #[derive(Serialise, FromPyObject)]
 #[pyo3(rename_all = "camelCase")]
-pub struct PVData {
+pub struct PVData<'py> {
     #[serialise(union)]
-    data: PVType,
+    data: PVType<'py>,
     source_name: String,
     pulse_id: Option<PulseID>,
     effective_time_stamp: Option<TimeT>,
@@ -220,6 +220,12 @@ mod tests {
 
     use crate::pva0_generated::{self as fb};
     use crate::serialise::Serialise;
+    use numpy::{IntoPyArray, PyArrayMethods, PyReadonlyArray1};
+    use pyo3::Python;
+
+    fn make_test_array<'py>(py: Python<'py>) -> PyReadonlyArray1<'py, f64> {
+        vec![1.0, 2.0, 3.0, 4.0, 5.0].into_pyarray(py).readonly()
+    }
 
     #[test]
     fn test_serialise_pv_data_with_scalar() {
@@ -281,43 +287,48 @@ mod tests {
 
     #[test]
     fn test_serialise_pv_data_with_array() {
-        let pv_data = PVData {
-            data: PVType::NTNDArray(NTNDArray {
-                value: AnyT::Array(AnyArray::DoubleArray(vec![1.0, 2.0, 3.0])),
-                codec: None,
-                compressed_size: 0,
-                uncompressed_size: 0,
-                dimension: vec![],
-                unique_id: 0,
-                data_time_stamp: None,
-                attribute: vec![],
-                descriptor: "test".to_string(),
-                alarm: None,
-                time_stamp: None,
-                display: None,
-            }),
-            source_name: "source".to_string(),
-            pulse_id: None,
-            effective_time_stamp: None,
-        };
+        Python::initialize();
+        Python::attach(|py| {
+            let test_array = make_test_array(py);
 
-        let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
-        let obj = pv_data.serialise(&mut builder);
-        builder.finish(obj, None);
+            let pv_data = PVData {
+                data: PVType::NTNDArray(NTNDArray {
+                    value: AnyT::Array(AnyArray::DoubleArray(test_array)),
+                    codec: None,
+                    compressed_size: 0,
+                    uncompressed_size: 0,
+                    dimension: vec![],
+                    unique_id: 0,
+                    data_time_stamp: None,
+                    attribute: vec![],
+                    descriptor: "test".to_string(),
+                    alarm: None,
+                    time_stamp: None,
+                    display: None,
+                }),
+                source_name: "source".to_string(),
+                pulse_id: None,
+                effective_time_stamp: None,
+            };
 
-        let buf = builder.finished_data();
-        assert!(!buf.is_empty());
+            let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
+            let obj = pv_data.serialise(&mut builder);
+            builder.finish(obj, None);
 
-        let pv_data_fb = fb::root_as_pvdata(buf).unwrap();
-        assert_eq!(pv_data_fb.data_type(), fb::PVType::NTNDArray);
-        assert_eq!(pv_data_fb.source_name().unwrap(), "source");
+            let buf = builder.finished_data();
+            assert!(!buf.is_empty());
 
-        let ndarray = pv_data_fb.data_as_ntndarray().unwrap();
-        assert_eq!(ndarray.value().value_type(), fb::AnyInner::DoubleArray);
-        assert_eq!(ndarray.descriptor().unwrap(), "test");
-        assert_eq!(ndarray.compressed_size(), 0);
-        assert_eq!(ndarray.uncompressed_size(), 0);
-        assert_eq!(ndarray.unique_id(), 0);
+            let pv_data_fb = fb::root_as_pvdata(buf).unwrap();
+            assert_eq!(pv_data_fb.data_type(), fb::PVType::NTNDArray);
+            assert_eq!(pv_data_fb.source_name().unwrap(), "source");
+
+            let ndarray = pv_data_fb.data_as_ntndarray().unwrap();
+            assert_eq!(ndarray.value().value_type(), fb::AnyInner::DoubleArray);
+            assert_eq!(ndarray.descriptor().unwrap(), "test");
+            assert_eq!(ndarray.compressed_size(), 0);
+            assert_eq!(ndarray.uncompressed_size(), 0);
+            assert_eq!(ndarray.unique_id(), 0);
+        });
     }
 
     #[test]
@@ -347,34 +358,38 @@ mod tests {
 
     #[test]
     fn test_serialise_nt_ndarray() {
-        let ndarray = NTNDArray {
-            value: AnyT::Array(AnyArray::DoubleArray(vec![1.0, 2.0, 3.0])),
-            codec: None,
-            compressed_size: 0,
-            uncompressed_size: 0,
-            dimension: vec![],
-            unique_id: 0,
-            data_time_stamp: None,
-            attribute: vec![],
-            descriptor: "test".to_string(),
-            alarm: None,
-            time_stamp: None,
-            display: None,
-        };
+        Python::initialize();
+        Python::attach(|py| {
+            let test_array = make_test_array(py);
+            let ndarray = NTNDArray {
+                value: AnyT::Array(AnyArray::DoubleArray(test_array)),
+                codec: None,
+                compressed_size: 0,
+                uncompressed_size: 0,
+                dimension: vec![],
+                unique_id: 0,
+                data_time_stamp: None,
+                attribute: vec![],
+                descriptor: "test".to_string(),
+                alarm: None,
+                time_stamp: None,
+                display: None,
+            };
 
-        let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
-        let obj = ndarray.serialise(&mut builder);
-        builder.finish(obj, None);
+            let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
+            let obj = ndarray.serialise(&mut builder);
+            builder.finish(obj, None);
 
-        let buf = builder.finished_data();
-        assert!(!buf.is_empty());
+            let buf = builder.finished_data();
+            assert!(!buf.is_empty());
 
-        let ndarray_fb = flatbuffers::root::<fb::NTNDArray>(buf).unwrap();
-        assert_eq!(ndarray_fb.value().value_type(), fb::AnyInner::DoubleArray);
-        assert_eq!(ndarray_fb.descriptor().unwrap(), "test");
-        assert_eq!(ndarray_fb.compressed_size(), 0);
-        assert_eq!(ndarray_fb.uncompressed_size(), 0);
-        assert_eq!(ndarray_fb.unique_id(), 0);
+            let ndarray_fb = flatbuffers::root::<fb::NTNDArray>(buf).unwrap();
+            assert_eq!(ndarray_fb.value().value_type(), fb::AnyInner::DoubleArray);
+            assert_eq!(ndarray_fb.descriptor().unwrap(), "test");
+            assert_eq!(ndarray_fb.compressed_size(), 0);
+            assert_eq!(ndarray_fb.uncompressed_size(), 0);
+            assert_eq!(ndarray_fb.unique_id(), 0);
+        });
     }
 
     #[test]
