@@ -363,3 +363,54 @@ def test_array_with_256() -> None:
         effectiveTimeStamp=None,
     )
     _roundtrip(data, "rust")
+
+
+@bindings_installed
+def test_string_list_roundtrip() -> None:
+    val = NTScalarAny(
+        value=["one", "two"],
+        descriptor="",
+        alarm=None,
+        timeStamp=None,
+        display=None,
+        control=None,
+    )
+    data = PVData(
+        data=val,
+        sourceName="",
+    )
+    _roundtrip(data, "rust")
+
+
+@bindings_installed
+def test_unicode_array_roundtrip() -> None:
+    value = np.array(["one", "two"], dtype="U")
+    data = PVData(
+        data=NTScalarAny(
+            value=value,
+            descriptor="",
+            alarm=None,
+            timeStamp=None,
+            display=None,
+            control=None,
+        ),
+        sourceName="",
+    )
+    _roundtrip(data, "rust")
+
+
+@bindings_installed
+def test_non_contiguous_array() -> None:
+    val = NTScalarAny(
+        value=np.arange(1, 10)[::2],
+        descriptor="",
+        alarm=None,
+        timeStamp=None,
+        display=None,
+        control=None,
+    )
+    data = PVData(
+        data=val,
+        sourceName="",
+    )
+    _roundtrip(data, "rust")
