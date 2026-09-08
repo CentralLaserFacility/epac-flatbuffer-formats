@@ -1,4 +1,6 @@
+import argparse
 import json
+import time
 import timeit
 from pathlib import Path
 from typing import Any, Callable
@@ -113,13 +115,28 @@ def collect_benchmark_stats(
     for pv in pv_list:
         pv_name = getattr(pv, "name", repr(pv))
 
-        rust_times = [
-            benchmark_rust_serialise(pv, n) * 1e6 for _ in range(benchmark_repeats)
-        ]
+        # ASCII progress bar
+        def update_progress(i, total, label=""):
+            width = 40
+            filled = int(width * i / total)
+            bar = "#" * filled + "-" * (width - filled)
+            print(f"\r{label} [{bar}] {i}/{total}", end="", flush=True)
 
-        python_times = [
-            benchmark_python_serialise(pv, n) * 1e6 for _ in range(benchmark_repeats)
-        ]
+        rust_times = []
+        print("Benchmarking rust...")
+        for i in range(benchmark_repeats):
+            val = benchmark_rust_serialise(pv, n) * 1e6
+            rust_times.append(val)
+            update_progress(i + 1, benchmark_repeats, "Rust")
+        print()
+
+        python_times = []
+        print("Benchmarking python...")
+        for i in range(benchmark_repeats):
+            val = benchmark_python_serialise(pv, n) * 1e6
+            python_times.append(val)
+            update_progress(i + 1, benchmark_repeats, "Python")
+        print()
 
         rust_mean = np.mean(rust_times)
         python_mean = np.mean(python_times)
@@ -182,16 +199,6 @@ def annotate_stats(file_path: str) -> None:
             if py_avg not in (None, 0) and py_std is not None:
                 python_data["var_coeff"] = py_std / py_avg
 
-    # Backwards compatibility: if there is a top-level speed_up and only one device,
-    # calculate it if it is missing.
-    if "speed_up" not in data and len(results) == 1:
-        device_data = next(iter(results.values()))
-        rust_avg = device_data.get("rust", {}).get("avg_micro")
-        py_avg = device_data.get("python", {}).get("avg_micro")
-
-        if rust_avg and py_avg is not None:
-            data["speed_up"] = py_avg / rust_avg
-
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
@@ -250,8 +257,56 @@ def print_folder_averages(folder_path: str) -> None:
     print(f"Average Python var_coeff:  {avg_python_var_coeff:.6f}")
 
 
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Run benchmark collection against one or more PVs."
+    )
+
+    parser.add_argument(
+        "pvs",
+        nargs="+",
+        help="PV names to benchmark",
+    )
+
+    parser.add_argument(
+        "-n",
+        "--samples",
+        type=int,
+        default=1000,
+        help="Number of samples to collect (default: %(default)s)",
+    )
+
+    parser.add_argument(
+        "-r",
+        "--repeats",
+        type=int,
+        default=1,
+        help="Number of benchmark repeats (default: %(default)s)",
+    )
+
+    parser.add_argument(
+        "-o",
+        "--output",
+        default="serialise_benchmark.json",
+        help="Output filename",
+    )
+
+    args = parser.parse_args()
+
+    start = time.time()
+
+    print(f"Performing benchmarks for {len(args.pvs)} PVs...")
+
+    collect_benchmark_stats(
+        args.pvs,
+        n=args.samples,
+        benchmark_repeats=args.repeats,
+        filename=args.output,
+    )
+
+    elapsed = time.time() - start
+    print(f"Done. Time elapsed: {elapsed:.3f}s")
+
+
 if __name__ == "__main__":
-    dev_system_pvs = [
-        "DEV-EC-D-CAM-1:PVAimage1:ArrayData",  # 20x20 image
-    ]
-    collect_benchmark_stats(dev_system_pvs)
+    main()

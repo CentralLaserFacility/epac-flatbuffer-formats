@@ -3,7 +3,8 @@ use crate::serialise::{Serialise, SerialiseCoerce};
 use flatbuffers::UnionWIPOffset;
 use flatbuffers::WIPOffset;
 use numpy::{
-    PyArrayDescrMethods, PyArrayDyn, PyArrayMethods, PyUntypedArray, PyUntypedArrayMethods,
+    PyArray1, PyArrayDescrMethods, PyArrayMethods, PyReadonlyArray1, PyUntypedArray,
+    PyUntypedArrayMethods,
 };
 use paste::paste;
 use pyo3::exceptions::PyTypeError;
@@ -15,9 +16,9 @@ use pyo3::types::{PyAny, PyBool, PyFloat, PyInt, PyString};
 /// - [`AnyT::Scalar`], containing a single scalar value.
 /// - [`AnyT::Array`], containing an array value.
 #[derive(FromPyObject)]
-pub enum AnyT {
+pub enum AnyT<'py> {
     Scalar(AnyScalar),
-    Array(AnyArray),
+    Array(AnyArray<'py>),
 }
 
 /// A dynamic type representing a scalar value.
@@ -37,18 +38,18 @@ pub enum AnyScalar {
 }
 
 /// A dynamic type representing an array of values.
-pub enum AnyArray {
-    BoolArray(Vec<bool>),
-    ByteArray(Vec<i8>),
-    UByteArray(Vec<u8>),
-    ShortArray(Vec<i16>),
-    UShortArray(Vec<u16>),
-    IntArray(Vec<i32>),
-    UIntArray(Vec<u32>),
-    LongArray(Vec<i64>),
-    ULongArray(Vec<u64>),
-    FloatArray(Vec<f32>),
-    DoubleArray(Vec<f64>),
+pub enum AnyArray<'py> {
+    BoolArray(PyReadonlyArray1<'py, bool>),
+    ByteArray(PyReadonlyArray1<'py, i8>),
+    UByteArray(PyReadonlyArray1<'py, u8>),
+    ShortArray(PyReadonlyArray1<'py, i16>),
+    UShortArray(PyReadonlyArray1<'py, u16>),
+    IntArray(PyReadonlyArray1<'py, i32>),
+    UIntArray(PyReadonlyArray1<'py, u32>),
+    LongArray(PyReadonlyArray1<'py, i64>),
+    ULongArray(PyReadonlyArray1<'py, u64>),
+    FloatArray(PyReadonlyArray1<'py, f32>),
+    DoubleArray(PyReadonlyArray1<'py, f64>),
     StringArray(Vec<String>),
 }
 
@@ -77,7 +78,7 @@ macro_rules! serialise_variant_match {
     };
 }
 
-impl crate::serialise::Serialise for AnyT {
+impl<'py> crate::serialise::Serialise for AnyT<'py> {
     type Output<'out> = flatbuffers::WIPOffset<fb::AnyT<'out>>;
     fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
         let (val_type, inner) = {
@@ -118,7 +119,7 @@ impl AnyScalar {
     }
 }
 
-impl AnyArray {
+impl<'py> AnyArray<'py> {
     fn serialise_with_discriminant(
         &self,
         builder: &mut flatbuffers::FlatBufferBuilder,
@@ -140,77 +141,62 @@ impl AnyArray {
     }
 }
 
-/// A type representing a python array.
-///
-/// An intermediate to enable proper strongly-typed conversions
-/// from numpy array to Vec<T>.
-///
-/// The problem is that PyO3 tries to hard to convert
-/// "any iterable of things that can be converted to type T"
-/// to `Vec<T>`, so in particular the types of integers can be lost.
-#[derive(FromPyObject)]
-enum PyAnyArray<'py> {
-    Numeric(Bound<'py, PyUntypedArray>),
-    Str(Vec<String>),
-}
-
-/// Implement `TryFrom` to convert `PyAnyArray` to `AnyArray`.
-impl TryFrom<PyAnyArray<'_>> for AnyArray {
-    type Error = PyErr;
-    fn try_from(value: PyAnyArray<'_>) -> Result<Self, Self::Error> {
-        let v = match value {
-            PyAnyArray::Numeric(arr) => {
-                let dtype = arr.dtype();
-                match dtype.char() as char {
-                    '?' => AnyArray::BoolArray(arr.cast::<PyArrayDyn<bool>>()?.to_vec()?),
-                    'b' => AnyArray::ByteArray(arr.cast::<PyArrayDyn<i8>>()?.to_vec()?),
-                    'B' => AnyArray::UByteArray(arr.cast::<PyArrayDyn<u8>>()?.to_vec()?),
-                    'h' => AnyArray::ShortArray(arr.cast::<PyArrayDyn<i16>>()?.to_vec()?),
-                    'H' => AnyArray::UShortArray(arr.cast::<PyArrayDyn<u16>>()?.to_vec()?),
-                    'i' => AnyArray::IntArray(arr.cast::<PyArrayDyn<i32>>()?.to_vec()?),
-                    'I' => AnyArray::UIntArray(arr.cast::<PyArrayDyn<u32>>()?.to_vec()?),
-                    'l' => match dtype.itemsize() {
-                        4 => AnyArray::IntArray(arr.cast::<PyArrayDyn<i32>>()?.to_vec()?),
-                        8 => AnyArray::LongArray(arr.cast::<PyArrayDyn<i64>>()?.to_vec()?),
-                        n => {
-                            return Err(PyTypeError::new_err(format!(
-                                "unsupported numpy long itemsize {n}"
-                            )))
-                        }
-                    },
-                    'L' => match dtype.itemsize() {
-                        4 => AnyArray::UIntArray(arr.cast::<PyArrayDyn<u32>>()?.to_vec()?),
-                        8 => AnyArray::ULongArray(arr.cast::<PyArrayDyn<u64>>()?.to_vec()?),
-                        n => {
-                            return Err(PyTypeError::new_err(format!(
-                                "unsupported numpy ulong itemsize {n}"
-                            )))
-                        }
-                    },
-                    'q' => AnyArray::LongArray(arr.cast::<PyArrayDyn<i64>>()?.to_vec()?),
-                    'Q' => AnyArray::ULongArray(arr.cast::<PyArrayDyn<u64>>()?.to_vec()?),
-                    'f' => AnyArray::FloatArray(arr.cast::<PyArrayDyn<f32>>()?.to_vec()?),
-                    'd' => AnyArray::DoubleArray(arr.cast::<PyArrayDyn<f64>>()?.to_vec()?),
-                    'U' => {
-                        let values: Vec<String> = arr.call_method0("tolist")?.extract()?;
-                        AnyArray::StringArray(values)
-                    }
-                    _c => return Err(PyTypeError::new_err(format!("unknown dtype: char is {_c}"))),
-                }
-            }
-            PyAnyArray::Str(s) => AnyArray::StringArray(s),
-        };
-        Ok(v)
-    }
-}
-
-/// Implement `FromPyObject` to convert a Python object to `AnyArray`.
-impl<'a, 'py> FromPyObject<'a, 'py> for AnyArray {
+/// Implement `FromPyObject` to convert a Python object to `AnyArray<'py>`.
+impl<'a, 'py> FromPyObject<'a, 'py> for AnyArray<'py> {
     type Error = PyErr;
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        let pyanyarray: PyAnyArray = obj.extract()?;
-        let anyvec = pyanyarray.try_into()?;
-        Ok(anyvec)
+        let arr = match obj.cast::<PyUntypedArray>() {
+            Ok(arr) => arr,
+            Err(_) => return Ok(AnyArray::StringArray(obj.extract()?)),
+        };
+        let dtype = arr.dtype();
+        match dtype.char() as char {
+            '?' => Ok(AnyArray::BoolArray(
+                arr.cast::<PyArray1<bool>>()?.readonly(),
+            )),
+            'b' => Ok(AnyArray::ByteArray(arr.cast::<PyArray1<i8>>()?.readonly())),
+            'B' => Ok(AnyArray::UByteArray(arr.cast::<PyArray1<u8>>()?.readonly())),
+            'h' => Ok(AnyArray::ShortArray(
+                arr.cast::<PyArray1<i16>>()?.readonly(),
+            )),
+            'H' => Ok(AnyArray::UShortArray(
+                arr.cast::<PyArray1<u16>>()?.readonly(),
+            )),
+            'i' => Ok(AnyArray::IntArray(arr.cast::<PyArray1<i32>>()?.readonly())),
+            'I' => Ok(AnyArray::UIntArray(arr.cast::<PyArray1<u32>>()?.readonly())),
+            'l' => match dtype.itemsize() {
+                4 => Ok(AnyArray::IntArray(arr.cast::<PyArray1<i32>>()?.readonly())),
+                8 => Ok(AnyArray::LongArray(arr.cast::<PyArray1<i64>>()?.readonly())),
+                n => Err(PyTypeError::new_err(format!(
+                    "unsupported numpy long itemsize {n}"
+                ))),
+            },
+            'L' => match dtype.itemsize() {
+                4 => Ok(AnyArray::UIntArray(arr.cast::<PyArray1<u32>>()?.readonly())),
+                8 => Ok(AnyArray::ULongArray(
+                    arr.cast::<PyArray1<u64>>()?.readonly(),
+                )),
+                n => Err(PyTypeError::new_err(format!(
+                    "unsupported numpy ulong itemsize {n}"
+                ))),
+            },
+            'q' => Ok(AnyArray::LongArray(arr.cast::<PyArray1<i64>>()?.readonly())),
+            'Q' => Ok(AnyArray::ULongArray(
+                arr.cast::<PyArray1<u64>>()?.readonly(),
+            )),
+            'f' => Ok(AnyArray::FloatArray(
+                arr.cast::<PyArray1<f32>>()?.readonly(),
+            )),
+            'd' => Ok(AnyArray::DoubleArray(
+                arr.cast::<PyArray1<f64>>()?.readonly(),
+            )),
+            // numpy::Element not implemented for `String`
+            'U' => {
+                let values: Vec<String> = arr.call_method0("tolist")?.extract()?;
+                Ok(AnyArray::StringArray(values))
+            }
+            _c => Err(PyTypeError::new_err(format!("unknown dtype: char is {_c}"))),
+        }
     }
 }
 

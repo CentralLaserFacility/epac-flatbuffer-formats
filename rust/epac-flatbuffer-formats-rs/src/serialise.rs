@@ -5,6 +5,7 @@
 //!
 
 use flatbuffers::{Push, WIPOffset};
+use numpy::{Element, PyReadonlyArray1};
 
 /// This trait exists to bridge differences between the Rust representation and
 /// the FlatBuffers schema during serialisation. In practice, the Rust side may hold a
@@ -34,7 +35,7 @@ impl<T> SerialiseCoerce<Option<T>> for T {
 /// to serilise rust data stuctures into the flatbuffer format.
 ///
 pub trait Serialise {
-    type Output<'out>;
+    type Output<'out>: 'out;
     fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a>;
 
     // Default impl uses a map+collect over Self::serialise. Types that do not need to be serialised
@@ -73,7 +74,7 @@ impl<T: Serialise> Serialise for Option<T> {
     }
 }
 
-impl<T: 'static + Serialise> Serialise for [T]
+impl<T: Serialise> Serialise for [T]
 where
     for<'a> T::Output<'a>: flatbuffers::Push,
 {
@@ -128,5 +129,26 @@ impl Serialise for String {
         builder: &mut flatbuffers::FlatBufferBuilder<'a>,
     ) -> flatbuffers::WIPOffset<&'a str> {
         builder.create_string(self)
+    }
+}
+
+impl<T> Serialise for PyReadonlyArray1<'_, T>
+where
+    T: Element + flatbuffers::Push + Copy,
+    T::Output: 'static,
+{
+    type Output<'a> =
+        flatbuffers::WIPOffset<flatbuffers::Vector<'a, <T as flatbuffers::Push>::Output>>;
+
+    fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
+        match self.as_slice() {
+            // contiguous array
+            Ok(slice) => builder.create_vector(slice),
+            // non contiguous array fallback (copies to rust vec)
+            Err(_) => {
+                let values: Vec<T> = self.as_array().iter().copied().collect();
+                builder.create_vector(&values)
+            }
+        }
     }
 }

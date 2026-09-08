@@ -212,11 +212,14 @@ pub fn derive_serialise(input: TokenStream) -> TokenStream {
 fn do_derive_serialise(input: DeriveInput) -> Result<TokenStream, Error> {
     let name = &input.ident;
 
+    let generics = &input.generics;
     match input.data {
         syn::Data::Struct(data_struct) => {
-            do_derive_serialise_struct(name, data_struct, &input.attrs)
+            do_derive_serialise_struct(name, data_struct, &input.attrs, generics)
         }
-        syn::Data::Enum(data_enum) => do_derive_serialise_enum(name, data_enum, &input.attrs),
+        syn::Data::Enum(data_enum) => {
+            do_derive_serialise_enum(name, data_enum, &input.attrs, generics)
+        }
         _ => Err(Error::new_spanned(
             input,
             "#[derive(Serialise)] is not supported for rust unions",
@@ -228,11 +231,13 @@ fn do_derive_serialise_struct(
     name: &Ident,
     input: DataStruct,
     struct_attrs: &[Attribute],
+    generics: &syn::Generics,
 ) -> Result<TokenStream, Error> {
     let mut attributes = SerialiseStructAttributes::default();
     for attr in struct_attrs {
         attributes.add_attribute(attr)?;
     }
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let fields = input.fields;
 
     let fields_named = match fields {
@@ -282,7 +287,7 @@ fn do_derive_serialise_struct(
     let fb_name = attributes.flatbuffers_name.unwrap_or(name.clone());
     let args_ident = format_ident!("{}Args", fb_name);
     let expanded = quote! {
-        impl crate::serialise::Serialise for #name {
+        impl #impl_generics crate::serialise::Serialise for #name #ty_generics #where_clause {
             type Output<'a> = ::flatbuffers::WIPOffset<fb::#fb_name<'a>>;
             fn serialise<'a>(&self, builder: &mut ::flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
                 #(#assignments)*
@@ -303,11 +308,14 @@ fn do_derive_serialise_enum(
     name: &Ident,
     input: DataEnum,
     enum_attrs: &[Attribute],
+    generics: &syn::Generics,
 ) -> Result<TokenStream, Error> {
     let mut attributes = SerialiseEnumAttributes::default();
     for attr in enum_attrs {
         attributes.add_attribute(attr)?;
     }
+
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
     let var_arms = input.variants.into_iter().map(|var| {
         match &var.fields {
@@ -354,7 +362,7 @@ fn do_derive_serialise_enum(
 
     let serialise_impl = {
         quote! {
-            impl crate::serialise::Serialise for #name {
+            impl #impl_generics crate::serialise::Serialise for #name #ty_generics #where_clause {
                 type Output<'a> = ::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>;
                 fn serialise<'a>(&self, builder: &mut flatbuffers::FlatBufferBuilder<'a>) -> Self::Output<'a> {
                     match self {
@@ -366,7 +374,7 @@ fn do_derive_serialise_enum(
     };
 
     let discriminant_impl = quote! {
-        impl crate::serialise::Discriminant for #name {
+        impl #impl_generics crate::serialise::Discriminant for #name #ty_generics #where_clause {
             type Disc = fb::#name;
 
             fn discriminant(&self) -> Self::Disc {

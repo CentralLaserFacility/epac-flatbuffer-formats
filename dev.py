@@ -266,6 +266,9 @@ def cmd_fmt():
 
     venv.run_cmd("black", ".")
 
+    if _has_rust_toolchain(venv):
+        venv.run_cmd("cargo", "fmt", "--all", "--manifest-path", "./rust/Cargo.toml")
+
 
 @command("test")
 def cmd_test():
