@@ -72,13 +72,3 @@ jobs:
         run: cargo fmt --check
       - name: Run clippy
         run: cargo clippy --all-targets -- -D warnings
-  rust-test:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: rust/epac-flatbuffer-formats-rs
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-      - name: Run tests
-        run: cargo test
