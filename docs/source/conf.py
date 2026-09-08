@@ -34,6 +34,7 @@ autodoc2_packages = [
         "path": "../../src/epac_data_py_skeleton",
         "module": "epac_data_py_skeleton",
     },
+    {"path": "../../dev.py", "module": "dev.py"},
 ]
 
 autodoc2_module_all_regexes: list = []

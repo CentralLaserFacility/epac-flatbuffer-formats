@@ -12,6 +12,7 @@ Technical Reference
 :maxdepth: 2
 
 api_docs/index
+devpy_ref
 structure
 standards
 ```
