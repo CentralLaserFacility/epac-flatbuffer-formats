@@ -35,3 +35,5 @@ jobs:
         run: ./dev.py pre-commit
       - name: Run tests
         run: ./dev.py test
+      - name: Test docs build
+        run: ./dev.py doc

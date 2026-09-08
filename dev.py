@@ -22,8 +22,8 @@ except ImportError:
 # == Framework ==
 
 
-SETUP_MAP = {}
-COMMAND_MAP = {}
+SETUP_MAP: dict = {}
+COMMAND_MAP: dict = {}
 
 
 def setup(name):
@@ -354,7 +354,7 @@ def cmd_api_docs():
 
     venv = require("venv")
 
-    venv.run_cmd("sphinx-build", "-E", "docs/source", "docs/build/html")
+    venv.run_cmd("sphinx-build", "-WE", "docs/source", "docs/build/html")
 
 
 @command("local-doc")

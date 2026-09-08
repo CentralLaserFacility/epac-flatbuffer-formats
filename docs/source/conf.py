@@ -48,6 +48,11 @@ autodoc2_hidden_objects = {"private"}
 
 autodoc2_docstrings = "all"
 
+# suppress duplicate item warnings for api docs
+suppress_warnings = [
+    "autodoc2.dup_item",
+]
+
 myst_enable_extensions = ["colon_fence", "fieldlist"]
 
 myst_substitutions = {
