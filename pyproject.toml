@@ -14,7 +14,12 @@ dev = [
     "Flake8-pyproject",
     "isort",
     "pytest",
-    "pdoc",
+    "sphinx",
+    "sphinx-autobuild",
+    "sphinx-autodoc2",
+    "myst-parser",
+    "sphinx-design",
+    "pydata-sphinx-theme"
 ]
 
 [project.scripts]
