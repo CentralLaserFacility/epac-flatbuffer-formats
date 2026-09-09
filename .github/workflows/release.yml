@@ -45,6 +45,8 @@ jobs:
       #   env:
       #     GH_TOKEN: ${{ steps.generate-token.outputs.token }}
       #   run: ./dev.py setup private
+      - name: Build documentation
+        run: ./dev.py doc
       - name: Create lockfile
         run: .venv/bin/pip list --format freeze --exclude pip --exclude setuptools > dist/requirements.txt
       - name: Install development dependencies
