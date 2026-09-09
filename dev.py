@@ -13,10 +13,10 @@ try:
 except ImportError:
     try:
         # Otherwise hopefully we have tomli in our external environment
-        import tomli as tomllib
+        import tomli as tomllib  # type: ignore
     except ImportError:
         # As a final fallback, pip has a vendored version inside
-        import pip._vendor.tomli as tomllib
+        import pip._vendor.tomli as tomllib  # type: ignore
 
 
 # == Framework ==
@@ -103,7 +103,7 @@ def require(setup_name: str, *, auto_setup: bool = False):
 
 
 def packages():
-    """Top-level packages, for use with e.g. pdoc."""
+    """Top-level packages."""
 
     for pkg in os.listdir("src"):
         if pkg.isidentifier():
@@ -114,12 +114,6 @@ def mypy_check_paths():
     """Paths to be checked with mypy."""
 
     return ["src", "tests"]
-
-
-def api_doc_modules():
-    """Arguments (paths, modules, files) to be passed to pdoc."""
-
-    return packages()
 
 
 # == Built-in commands and setups ==
@@ -350,13 +344,32 @@ def cmd_test():
     venv.run_cmd("pytest")
 
 
-@command("api-docs")
+@command("doc")
 def cmd_api_docs():
-    """Browse API docs."""
+    """Build documentation.
+
+    Use fresh environment option and build to `docs/build/html`
+    with `docs/source` as source.
+    """
 
     venv = require("venv")
 
-    venv.run_cmd("pdoc", *api_doc_modules())
+    venv.run_cmd("sphinx-build", "-E", "docs/source", "docs/build/html")
+
+
+@command("local-doc")
+def cmd_local_docs():
+    """Auto-build documentation.
+
+    Build documentation with sphinx-autobuild and serve locally at
+    default address (https://127.0.0.1:8000).
+
+    Build to `docs/build/html` with `docs/source` as source
+    """
+
+    venv = require("venv")
+
+    venv.run_cmd("sphinx-autobuild", "docs/source", "docs/build/html")
 
 
 # == User commands, setups, and other customisations ==
