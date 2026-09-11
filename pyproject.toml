@@ -17,12 +17,19 @@ dev = [
     "mypy",
     "flake8",
     "Flake8-pyproject",
+    "isort",
     "pytest",
     "pytest-benchmark",
     "pdoc",
     "hypothesis",
     "p4p",
-    "maturin>=1.14.1"
+    "maturin>=1.14.1",
+    "sphinx",
+    "sphinx-autobuild",
+    "sphinx-autodoc2",
+    "myst-parser",
+    "sphinx-design",
+    "pydata-sphinx-theme"
 ]
 
 [tool.setuptools_scm]
@@ -41,19 +48,25 @@ module = ["epac_flatbuffer_formats_rs"]
 ignore_missing_imports = true
 
 [tool.black]
-extend-exclude ="epac_flatbuffer_formats_rs.pyi"
+line-length = 88
+extend-exclude = "epac_flatbuffer_formats_rs\\.pyi"
 
-[tool.flake8]
-extend-ignore = [
-    "E501", # line too long
+[tool.isort]
+profile = "black"
+line_length = 88
+skip_glob = [
+    "src/epac/flatbuffers/fbschemas/**",
 ]
 
-max-line-length = 88 # Respect black's line length (default 88),
+[tool.flake8]
+max-line-length = 88
+extend-ignore = [
+    "E501",
+]
 exclude = [
     ".venv",
     ".git",
     "build",
-    # Generated code
     "src/epac/flatbuffers/fbschemas",
 ]
 

@@ -1,6 +1,4 @@
-from ._bindings import (  # type: ignore
-    serialise_pv_data,
-)
+from ._bindings import serialise_pv_data  # type: ignore
 
 __all__ = [
     "serialise_pv_data",

@@ -1,9 +1,11 @@
+from datetime import datetime
+
 import numpy as np
 import pytest
-from datetime import datetime
-from epac.flatbuffers.area_detector_ADAr import serialise_ADAr, Attribute
-from epac.flatbuffers.pva0_data import serialise_data
+
 from epac.flatbuffers import data_types as dt
+from epac.flatbuffers.area_detector_ADAr import Attribute, serialise_ADAr
+from epac.flatbuffers.pva0_data import serialise_data
 
 
 def generate_adar_dict(size):

@@ -1,6 +1,6 @@
+from epac.flatbuffers import data_types as dt
 from epac.flatbuffers.logdata_f142 import serialise_f142
 from epac.flatbuffers.pva0_data import serialise_data
-from epac.flatbuffers import data_types as dt
 
 
 def generate_f142_dict():

@@ -1,11 +1,10 @@
+from datetime import datetime, timedelta, timezone
+
 import numpy as np
 import pytest
-from datetime import datetime, timezone, timedelta
+
 from epac.flatbuffers import DESERIALISERS, SERIALISERS
-from epac.flatbuffers.arrays_wa00 import (
-    deserialise_wa00,
-    serialise_wa00,
-)
+from epac.flatbuffers.arrays_wa00 import deserialise_wa00, serialise_wa00
 from epac.flatbuffers.exceptions import WrongSchemaException
 
 

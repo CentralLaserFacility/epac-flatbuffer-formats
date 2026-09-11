@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+import pytest
 
 from epac.flatbuffers import data_types as dt
 

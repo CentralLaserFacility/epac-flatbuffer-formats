@@ -1,22 +1,23 @@
-from typing import Union, Optional
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Optional, Union
 
 import flatbuffers
 import numpy as np
-from .fbschemas.wa00_waveform.WaveFormArray import WaveFormArray
+
 from .fbschemas.wa00_waveform.DType import DType
 from .fbschemas.wa00_waveform.WaveFormArray import (
-    WaveFormArrayStart,
-    WaveFormArrayAddXData,
-    WaveFormArrayAddYData,
-    WaveFormArrayAddXDataType,
-    WaveFormArrayAddYDataType,
+    WaveFormArray,
     WaveFormArrayAddTimestamp,
+    WaveFormArrayAddXData,
+    WaveFormArrayAddXDataType,
     WaveFormArrayAddXTimestamp,
-    WaveFormArrayAddYUnit,
     WaveFormArrayAddXUnit,
+    WaveFormArrayAddYData,
+    WaveFormArrayAddYDataType,
+    WaveFormArrayAddYUnit,
     WaveFormArrayEnd,
+    WaveFormArrayStart,
 )
 from .utils import check_schema_identifier
 

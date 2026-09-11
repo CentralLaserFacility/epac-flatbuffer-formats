@@ -7,10 +7,10 @@ import pytest
 from epac.flatbuffers import DESERIALISERS, SERIALISERS
 from epac.flatbuffers.exceptions import WrongSchemaException
 from epac.flatbuffers.logdata_f142 import (
+    AlarmSeverity,
+    AlarmStatus,
     deserialise_f142,
     serialise_f142,
-    AlarmStatus,
-    AlarmSeverity,
 )
 
 
