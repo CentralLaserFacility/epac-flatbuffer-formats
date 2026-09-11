@@ -2,7 +2,7 @@
 
 Documentation is built with [`Sphinx`](https://www.sphinx-doc.org/en/master/index.html) in this project, with the API reference generated from docstrings in the source code using [`autodoc2`](https://sphinx-autodoc2.readthedocs.io/en/latest/).
 
-The design and structure of the documentation is outlined in [this section](../explanations/structure.md) of the docs.
+The design and structure of the documentation is outlined in [this section](../reference/structure.md) of the docs.
 
 ## Manual build
 To build the documentation manually, run:

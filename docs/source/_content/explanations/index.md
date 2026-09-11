@@ -11,6 +11,5 @@ Higher level discussion and explanations.
 ```{toctree}
 :maxdepth: 1
 
-structure
 dev_workflow
 ```
