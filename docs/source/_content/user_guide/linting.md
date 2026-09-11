@@ -6,10 +6,10 @@
 
 Several tools are used in this project to enforce code quality:
 
-- `mypy` - performs static type checking using Python type annotations
-- `Black` - automatically formats Python code to a consistent style
-- `Flake8` - performs static code analysis to identify style and syntax issues
-- `isort` - automatically sorts and groups import statements to align with conventions
+- [`mypy`](https://mypy.readthedocs.io/en/stable/) - performs static type checking using Python type annotations
+- [`Black`](https://black.readthedocs.io/en/stable/) - automatically formats Python code to a consistent style
+- [`Flake8`](https://flake8.pycqa.org/en/latest/) - performs static code analysis to identify style and syntax issues
+- [`isort`](https://isort.readthedocs.io/en/latest/) - automatically sorts and groups import statements to align with conventions
 
 Together, these tools help enforce coding standards, consistency, and readability throughout the codebase. They support long-term maintainability, enable early issue detection, and are integrated into the CI pipeline to ensure quality checks are applied automatically to all changes.
 
