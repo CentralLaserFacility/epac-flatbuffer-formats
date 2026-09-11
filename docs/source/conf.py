@@ -73,8 +73,8 @@ html_theme_options: dict = {
     # logo
     "logo": {
         "link": "http://127.0.0.1:8000/",  # FIXME autobuild default serve
-        "image_light": "_static/clf_logo_dark.png",
-        "image_dark": "_static/clf_logo_light.png",
+        "image_light": "_static/stfc_logo_dark.png",
+        "image_dark": "_static/stfc_logo_light.png",
         "text": "EPAC Data Python Skeleton",
     },
     # Navbar (header)
@@ -85,4 +85,5 @@ html_theme_options: dict = {
     "footer_end": ["theme-version"],
     # "announcement": "WE LOVE THE EPAC DATA TEAM",
 }
+html_css_files = ["navbar_shift.css"]
 html_static_path = ["_static"]
