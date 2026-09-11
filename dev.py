@@ -6,6 +6,7 @@ import shutil
 import stat
 import subprocess
 import sys
+from typing import Callable, Protocol
 
 try:
     # If we're on 3.11+ tomllib is in the stdlib
@@ -22,8 +23,19 @@ except ImportError:
 # == Framework ==
 
 
-SETUP_MAP: dict = {}
-COMMAND_MAP: dict = {}
+class SetupProtocol(Protocol):
+    @classmethod
+    def is_setup(cls) -> bool: ...
+
+    @classmethod
+    def setup(cls) -> None: ...
+
+    @classmethod
+    def clean(cls) -> None: ...
+
+
+SETUP_MAP: dict[str, type[SetupProtocol]] = {}
+COMMAND_MAP: dict[str, Callable[[], None]] = {}
 
 
 def setup(name):
