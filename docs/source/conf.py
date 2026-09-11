@@ -8,10 +8,10 @@
 
 from importlib.metadata import version as get_version
 
-project = "EPAC Data Python Skeleton"
+project = "EPAC Flatbuffer Formats"
 copyright = "2026, Central Laser Facility"
 author = "Central Laser Facility"
-release = get_version("epac-data-py-skeleton")
+release = get_version("epac-flatbuffer-formats")
 version = release
 
 # -- General configuration ---------------------------------------------------
@@ -29,10 +29,13 @@ exclude_patterns: list = []
 
 autodoc2_render_plugin = "myst"
 
+suppress_warnings = ["myst.xref_missing"]
+
 autodoc2_packages = [
     {
-        "path": "../../src/epac_data_py_skeleton",
-        "module": "epac_data_py_skeleton",
+        "path": "../../src/epac/flatbuffers",
+        "module": "epac.flatbuffers",
+        "exclude_dirs": ["fbschemas"],
     },
 ]
 
@@ -61,15 +64,15 @@ myst_substitutions = {
 # only needs carrying forward if source code is used/modified
 
 html_theme = "pydata_sphinx_theme"
-html_title = "EPAC Data Python Skeleton"
+html_title = "EPAC Flatbuffer Formats"
 html_theme_options: dict = {
-    "github_url": "https://github.com/CentralLaserFacility/epac-data-py-skeleton",
+    "github_url": "https://github.com/CentralLaserFacility/epac-flatbuffer-formats",
     # logo
     "logo": {
         "link": "http://127.0.0.1:8000/",  # FIXME autobuild default serve
         "image_light": "_static/clf_logo_dark.png",
         "image_dark": "_static/clf_logo_light.png",
-        "text": "EPAC Data Python Skeleton",
+        "text": "EPAC Flatbuffer Formats",
     },
     # Navbar (header)
     "navbar_align": "right",
@@ -77,6 +80,6 @@ html_theme_options: dict = {
     "footer_start": ["sphinx-version"],
     "footer_center": ["copyright"],
     "footer_end": ["theme-version"],
-    # "announcement": "WE LOVE THE EPAC DATA TEAM",
+    "announcement": "This documentation is a WIP",
 }
 html_static_path = ["_static"]
