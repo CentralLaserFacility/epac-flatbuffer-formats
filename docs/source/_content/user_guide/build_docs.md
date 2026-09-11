@@ -1,6 +1,6 @@
 # How to build the documentation
 
-Documentation is built with `Sphinx` in this project, with the API reference generated from docstrings in the source code using `autodoc2`.
+Documentation is built with [`Sphinx`](https://www.sphinx-doc.org/en/master/index.html) in this project, with the API reference generated from docstrings in the source code using [`autodoc2`](https://sphinx-autodoc2.readthedocs.io/en/latest/).
 
 The design and structure of the documentation is outlined in [this section](../explanations/structure.md) of the docs.
 
@@ -28,9 +28,8 @@ Like the manual build, this will build the documentation in `docs/build/html` fr
 Additionally, this will serve your documentation locally at [127.0.0.1:8000](http://127.0.0.1:8000) which should update automatically.
 
 ````{note}
-`sphinx-autobuild` uses caching, which may prevent some changes from appearing immediately. If updates are not reflected in the generated documentation, force a full rebuild by running Sphinx with a fresh environment:
+`sphinx-autobuild` uses caching, which may prevent some changes from appearing immediately. If updates are not reflected in the generated documentation, force a full rebuild by running:
 ```shell
-$ sphinx-build -E docs/source/ docs/build/html
+$ ./dev.py doc
 ```
-The `-E` option ignores the saved environment and rebuilds all documentation from scratch.
 ````
