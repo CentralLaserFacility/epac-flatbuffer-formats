@@ -9,6 +9,10 @@ import numpy as np
 import numpy.typing as npt
 
 from .fbschemas.f142_logdata import LogData
+
+# Re-exports
+from .fbschemas.f142_logdata.AlarmSeverity import AlarmSeverity as AlarmSeverity
+from .fbschemas.f142_logdata.AlarmStatus import AlarmStatus as AlarmStatus
 from .fbschemas.f142_logdata.ArrayByte import (
     ArrayByte,
     ArrayByteAddValue,
@@ -131,10 +135,6 @@ from .fbschemas.f142_logdata.UShort import (
 )
 from .fbschemas.f142_logdata.Value import Value
 from .utils import check_schema_identifier
-
-# Re-exports
-from .fbschemas.f142_logdata.AlarmSeverity import AlarmSeverity as AlarmSeverity
-from .fbschemas.f142_logdata.AlarmStatus import AlarmStatus as AlarmStatus
 
 FILE_IDENTIFIER = b"f142"
 
