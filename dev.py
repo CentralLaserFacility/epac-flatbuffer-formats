@@ -320,7 +320,8 @@ def cmd_api_docs():
 
     venv = require("venv")
 
-    venv.run_cmd("sphinx-build", "-WE", "docs/source", "docs/build/html")
+    _build_rust_docs(venv)
+    venv.run_cmd("sphinx-build", "-E", "docs/source", "docs/build/html")
 
 
 @command("local-doc")
@@ -335,6 +336,7 @@ def cmd_local_docs():
 
     venv = require("venv")
 
+    _build_rust_docs(venv)
     venv.run_cmd("sphinx-autobuild", "docs/source", "docs/build/html")
 
 
@@ -361,6 +363,32 @@ def _has_rust_toolchain(venv) -> bool:
         return True
     except Exception:
         return False
+
+
+def _build_rust_docs(venv):
+    """Build the Rust API documentation."""
+
+    if _has_rust_toolchain(venv):
+        # build derive macro docs
+        venv.run_cmd(
+            "cargo",
+            "doc",
+            "--manifest-path",
+            "rust/epac_flatbuffers_derive/Cargo.toml",
+            "--target-dir",
+            "docs/source/_static/rustdoc/derive/",
+            "--no-deps",
+        )
+        # build flatbuffer fmts docs
+        venv.run_cmd(
+            "cargo",
+            "doc",
+            "--manifest-path",
+            "rust/epac-flatbuffer-formats-rs/Cargo.toml",
+            "--target-dir",
+            "docs/source/_static/rustdoc/epac-flatbuffer-formats/",
+            "--no-deps",
+        )
 
 
 @setup("flatc")
