@@ -31,8 +31,13 @@ autodoc2_render_plugin = "myst"
 
 autodoc2_packages = [
     {
-        "path": "../../src/epac_data_py_skeleton",
-        "module": "epac_data_py_skeleton",
+        "path": "../../src/epac/flatbuffers",
+        "module": "epac.flatbuffers",
+        "exclude_dirs": ["fbschemas"],
+    },
+    {
+        "path": "../../rust/epac-flatbuffer-formats-rs/python/epac_flatbuffer_formats_rs/_bindings.pyi",
+        "module": "epac_flatbuffer_formats_rs",
     },
     {"path": "../../dev.py", "module": "dev.py"},
 ]
