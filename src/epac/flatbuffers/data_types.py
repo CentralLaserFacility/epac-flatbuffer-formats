@@ -84,10 +84,15 @@ class TimeT(BaseModel):
     def __sub__(self, exposure_time: float) -> "TimeT":
         """Subtract exposure_time (float seconds)
 
-        Args:
-        - exposure_time: float seconds
+        Parameters
+        ----------
+            exposure_time
+                Exposure time in seconds.
 
-        Returns: Self (TimeT)
+        Returns
+        -------
+            TimeT
+                A ``TimeT`` with the exposure time subtracted.
         """
         if not isinstance(exposure_time, (int, float)):
             return NotImplemented
