@@ -843,6 +843,7 @@ def deserialise_ntndarray(buffer: NTNDArray.NTNDArray) -> dt.NTNDArray:
 
     Returns:
         dt.NTNDArray: The deserialised NTNDArray object.
+
     Raises:
         ValueError: If a dimension or attribute has an unexpected None value.
     """
@@ -932,6 +933,7 @@ def deserialise_nttable(buffer: NTTable.NTTable) -> dt.NTTable:
 
     Returns:
         dt.NTTable: The deserialized NTTable object.
+
     Raises:
         ValueError: If a column has an unexpected None value.
     """
@@ -979,6 +981,7 @@ def deserialise_xydata(buffer: XYData.XYData) -> dt.XYData:
 
     Returns:
         dt.XYData: The deserialized XYData object.
+
     Raises:
         ValueError: If x or y buffer returns None.
     """

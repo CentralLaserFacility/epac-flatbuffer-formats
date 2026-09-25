@@ -8,8 +8,11 @@ def get_schema(buffer) -> str:
     """
     Extract the schema code embedded in the buffer
 
-    :param buffer: The raw buffer of the FlatBuffers message.
-    :return: The schema identifier
+    Args:
+        buffer: The raw buffer of the FlatBuffers message.
+
+    Returns:
+        str: The schema identifier.
     """
     if len(buffer) < 8:
         raise ShortBufferException("Could not retrieve schema as buffer too short")
@@ -20,8 +23,9 @@ def check_schema_identifier(buffer, expected_identifer: bytes):
     """
     Check the schema code embedded in the buffer matches an expected identifier
 
-    :param buffer: The raw buffer of the FlatBuffers message
-    :param expected_identifer: The expected flatbuffer identifier
+    Args:
+        buffer: The raw buffer of the FlatBuffers message.
+        expected_identifer (bytes): The expected FlatBuffers identifier.
     """
     if get_schema(buffer) != expected_identifer.decode():
         raise WrongSchemaException(

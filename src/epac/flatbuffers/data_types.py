@@ -85,9 +85,10 @@ class TimeT(BaseModel):
         """Subtract exposure_time (float seconds)
 
         Args:
-        - exposure_time: float seconds
+            exposure_time (float): Exposure time in seconds.
 
-        Returns: Self (TimeT)
+        Returns:
+            TimeT: A new ``TimeT`` with the exposure time subtracted.
         """
         if not isinstance(exposure_time, (int, float)):
             return NotImplemented
