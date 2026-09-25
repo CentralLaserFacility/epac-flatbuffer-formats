@@ -8,10 +8,10 @@
 
 from importlib.metadata import version as get_version
 
-project = "EPAC Data Python Skeleton"
+project = "EPAC Flatbuffer Formats"
 copyright = "2026, Central Laser Facility"
 author = "Central Laser Facility"
-release = get_version("epac-data-py-skeleton")
+release = get_version("epac-flatbuffer-formats")
 version = release
 
 # -- General configuration ---------------------------------------------------
@@ -21,6 +21,7 @@ extensions: list = [
     "myst_parser",
     "autodoc2",
     "sphinx.ext.viewcode",
+    "sphinx.ext.intersphinx",
     "sphinx_design",
 ]
 
@@ -28,6 +29,24 @@ templates_path = ["_templates"]
 exclude_patterns: list = []
 
 autodoc2_render_plugin = "myst"
+autodoc2_docstrings = "direct"
+
+autodoc2_hidden_objects = {
+    "private",
+    "inherited",
+}
+
+autodoc2_module_summary = True
+autodoc2_sort_names = True
+autodoc2_annotations = True
+autodoc2_class_inheritance = True
+autodoc2_class_docstring = "merge"
+
+autodoc_default_options = {
+    "inherited-members": False,
+}
+
+napoleon_google_docstring = True
 
 autodoc2_packages = [
     {
@@ -50,9 +69,10 @@ autodoc2_skip_module_regexes = [
 
 autodoc2_output_dir = "_content/reference/api_docs"
 
-autodoc2_hidden_objects = {"private"}
-
-autodoc2_docstrings = "all"
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "pydantic": ("https://pydantic.dev/docs/validation/latest/", None),
+}
 
 # suppress duplicate item warnings for api docs
 suppress_warnings = [
@@ -72,15 +92,15 @@ myst_substitutions = {
 # only needs carrying forward if source code is used/modified
 
 html_theme = "pydata_sphinx_theme"
-html_title = "EPAC Data Python Skeleton"
+html_title = "EPAC Flatbuffer Formats"
 html_theme_options: dict = {
-    "github_url": "https://github.com/CentralLaserFacility/epac-data-py-skeleton",
+    "github_url": "https://github.com/CentralLaserFacility/epac-flatbuffer-formats",
     # logo
     "logo": {
         "link": "http://127.0.0.1:8000/",  # FIXME autobuild default serve
         "image_light": "_static/stfc_logo_dark.png",
         "image_dark": "_static/stfc_logo_light.png",
-        "text": "EPAC Data Python Skeleton",
+        "text": "EPAC Flatbuffer Formats",
     },
     # Navbar (header)
     "navbar_align": "right",
