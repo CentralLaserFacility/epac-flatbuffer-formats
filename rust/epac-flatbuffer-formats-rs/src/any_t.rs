@@ -1,3 +1,7 @@
+//! This module defines the `AnyT` type which can take either a scalar or array value,
+//! and implements the neccerssary `FromPyObject` and `Serialise` traits.
+//!
+
 use crate::pva0_generated as fb;
 use crate::serialise::{Serialise, SerialiseCoerce};
 use flatbuffers::UnionWIPOffset;

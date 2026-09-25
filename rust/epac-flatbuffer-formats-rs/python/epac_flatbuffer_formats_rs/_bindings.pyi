@@ -10,7 +10,6 @@ def serialise_pv_data(data: PVData) -> bytes:
     _Returns_
     <p> bytes - serialised bytes</p>
 
-    ---
     ## Example:
 
     ``` python
