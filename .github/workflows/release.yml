@@ -15,6 +15,7 @@ env:
 
 jobs:
   release-wheel:
+    # do not release skeleton wheel
     if: false
     runs-on: ubuntu-latest
     steps:
@@ -59,3 +60,10 @@ jobs:
         with:
           files: ./dist/*
           generate_release_notes: true
+
+  docs:
+    uses: ./.github/workflows/docs.yml
+    permissions:
+      contents: read
+      id-token: write
+      pages: write
