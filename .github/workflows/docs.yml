@@ -3,6 +3,8 @@ name: Github Pages Release
 on:
   # call from release workflow
   workflow_call:
+  # call manually
+  workflow_dispatch:
 
 concurrency:
   group: github-pages
@@ -42,7 +44,7 @@ jobs:
 
   # deploy job
   deploy:
-    if: github.ref_type == 'tag'
+    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
