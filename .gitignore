@@ -5,3 +5,4 @@
 __pycache__/
 /.wheels/
 html/
+api_docs/
