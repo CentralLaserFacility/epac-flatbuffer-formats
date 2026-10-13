@@ -6,7 +6,13 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import sys
 from importlib.metadata import version as get_version
+from pathlib import Path
+
+conf_dir = str(Path(__file__).parent)
+if conf_dir not in sys.path:
+    sys.path.insert(0, conf_dir)
 
 project = "EPAC Data Python Skeleton"
 copyright = "2026, Central Laser Facility"
@@ -19,6 +25,7 @@ version = release
 
 extensions: list = [
     "myst_parser",
+    "sphinx.ext.napoleon",
     "autodoc2",
     "sphinx.ext.viewcode",
     "sphinx_design",
@@ -35,6 +42,15 @@ autodoc2_packages = [
         "module": "epac_data_py_skeleton",
     },
     {"path": "../../dev.py", "module": "dev.py"},
+]
+
+
+# can use regex filtering for custom parsing
+autodoc2_docstring_parser_regexes = [
+    (
+        r".*",  # everything google style
+        "autodoc2_google_parser",
+    ),
 ]
 
 autodoc2_module_all_regexes: list = []
