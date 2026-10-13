@@ -46,7 +46,47 @@ Examples and code snippets should be accurate, up to date, and reflect recommend
 ```{seealso}
 [How to build the documentation](../user_guide/build_docs.md)
 ```
-Docstrings should be provided for all modules, classes and functions.
-They should include a short description along with parameters, purpose, and return values.
+
+#### Docstrings
+Docstrings should be provided for all modules, classes and functions, using the
+[Google Python Style Guide](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings)
+format. Include a short description and, where applicable, document parameters,
+return values, attributes, and raised exceptions.
+
+For example, a function docstring uses `Args`, `Returns`, and (when needed)
+`Raises` sections:
+
+```python
+def read_measurement(path: str, scale: float = 1.0) -> float:
+    """Read and scale a measurement from a file.
+
+    Args:
+        path (str): Path to the measurement file.
+        scale (float): Factor to multiply the measurement by.
+
+    Returns:
+        float: The scaled measurement.
+
+    Raises:
+        FileNotFoundError: If the measurement file does not exist.
+    """
+```
+
+A class docstring can describe the class and its public attributes:
+
+```python
+class Measurement:
+    """A measurement and its unit.
+
+    Attributes:
+        value (float): Numeric measurement value.
+        unit (str): Unit in which the value is expressed.
+    """
+
+    value: float
+    unit: str
+```
+
+#### Comments
 
 Comments should be used sparingly, prioritising adding context to explain *why* rather than *what*.
