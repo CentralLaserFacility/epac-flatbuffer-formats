@@ -2,6 +2,8 @@
 Version: {sub-ref}`version`
 
 [![Latest release](https://img.shields.io/github/v/release/CentralLaserFacility/epac-flatbuffer-formats?color=blue)](https://github.com/CentralLaserFacility/epac-flatbuffer-formats/releases/latest)
+[![License](https://img.shields.io/badge/License-BSD_2--Clause-orange.svg)](https://github.com/CentralLaserFacility/epac-flatbuffer-formats/blob/development/COPYRIGHT)
+[![CI](https://github.com/CentralLaserFacility/epac-flatbuffer-formats/actions/workflows/code.yml/badge.svg)](https://github.com/CentralLaserFacility/epac-flatbuffer-formats/actions/workflows/code.yml)
 
 This repository contains the canonical schema definitions for the flatbuffer
 data formats used in the [EPAC][epac] data management system.
