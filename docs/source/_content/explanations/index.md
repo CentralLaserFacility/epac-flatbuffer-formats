@@ -2,14 +2,11 @@
 
 Higher level discussion and explanations.
 
-> ***EXPLANATIONS:***
->
-> *This is where you can include explanations about the project. You should include information on the project structure and key design/architectural decisions.*
->
-> *These are understanding-oriented and provide broader overviews of the system, explaining how things work and why they work that way.*
 
 ```{toctree}
 :maxdepth: 2
 
-dev_workflow
+schema_details
+rust_crates
+upstream_comparison
 ```
