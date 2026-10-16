@@ -9,7 +9,7 @@ Higher level discussion and explanations.
 > *These are understanding-oriented and provide broader overviews of the system, explaining how things work and why they work that way.*
 
 ```{toctree}
-:maxdepth: 1
+:maxdepth: 2
 
 dev_workflow
 ```
