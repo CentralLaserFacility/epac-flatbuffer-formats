@@ -35,8 +35,9 @@ Other supported payloads include `NTNDArray`, `NTTable`, and `XYData`.
 The `PVData` object also has optional `effectiveTimeStamp` and `pulseId` fields.
 ```
 
-For details about the supported payloads and schema, see
-[Schema Details](../user_guide/schema_details.md).
+For guidance choosing a schema and details about the supported payloads, see
+[Schema usage guide](../explanations/schema_details.md) and the
+[schema reference](../reference/schema_reference.md).
 
 ## Serialise a value
 
