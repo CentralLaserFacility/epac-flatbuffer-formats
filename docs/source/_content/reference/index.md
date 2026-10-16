@@ -1,3 +1,4 @@
+(ref)=
 # Reference
 
 Technical Reference
@@ -7,7 +8,9 @@ Technical Reference
 
 api_docs/index
 rust_reference
+schema_reference
 devpy_ref
 structure
 standards
+serialisation_performance
 ```

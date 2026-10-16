@@ -1,20 +1,27 @@
 # Project Structure
 
-The repository is organised into four top-level directories:
+TODO Update with rust structure
+
+The repository is organised into six top-level directories:
 
 - `src/` – Application source code
 - `tests/` – Test code
+- `benchmarks/` - Benchmarking code
+- `rust/` - Rust source code
+- `schemas/` - Flatbuffer schema definitions
 - `docs/` – Documentation source and build artefacts
 - `.github/` – GitHub Actions workflows and repository automation
 
 All Python source code should reside within `src/`. Corresponding tests should be placed in `tests/`, where they are automatically executed as part of the CI pipeline.
+Rust code should reside within `rust/`. Details of the rust crate structure can be found in [Overview of Rust Crates](rust-crates).
 
-There are also four files present in the root directory:
+There are also five files present in the root directory:
 
 - `pyproject.toml` - Package configuration
 - `dev.py` - Developer tooling
 - `.gitignore` - Version control configuration
 - `README.md` - Repository Overview
+- `COPYRIGHT` - Copyright details
 
 ## Documentation Structure
 
@@ -50,6 +57,8 @@ Additional documentation resources are stored in:
 
 - `_static/` – Static assets such as images and other media
 - `_templates/` – Custom Sphinx templates
+
+The Rust API documentation is added to `static/` as html files when the documentation is built.
 
 The documentation landing page is defined in:
 
