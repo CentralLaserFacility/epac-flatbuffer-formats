@@ -1,4 +1,5 @@
 import pytest
+
 import epac.flatbuffers.data_types as dt
 from epac.flatbuffers.ca_to_pva import CaToNtConverter
 

@@ -1,0 +1,4 @@
+/* Increase gap between logo image and title */
+.navbar-brand {
+    gap: 2rem;
+}

@@ -9,6 +9,10 @@ import numpy as np
 import numpy.typing as npt
 
 from .fbschemas.f142_logdata import LogData
+
+# Re-exports
+from .fbschemas.f142_logdata.AlarmSeverity import AlarmSeverity as AlarmSeverity
+from .fbschemas.f142_logdata.AlarmStatus import AlarmStatus as AlarmStatus
 from .fbschemas.f142_logdata.ArrayByte import (
     ArrayByte,
     ArrayByteAddValue,
@@ -131,10 +135,6 @@ from .fbschemas.f142_logdata.UShort import (
 )
 from .fbschemas.f142_logdata.Value import Value
 from .utils import check_schema_identifier
-
-# Re-exports
-from .fbschemas.f142_logdata.AlarmSeverity import AlarmSeverity as AlarmSeverity
-from .fbschemas.f142_logdata.AlarmStatus import AlarmStatus as AlarmStatus
 
 FILE_IDENTIFIER = b"f142"
 
@@ -563,12 +563,24 @@ def serialise_f142(
     Should automagically use a sensible type for value in the message, but if
     in doubt pass value in as a numpy ndarray of a carefully chosen dtype.
 
-    :param value: can be a scalar or convertible to a 1-D ndarray; cannot be a string
-    :param units: units corresponding to value
-    :param source_name: name of the data source
-    :param timestamp_unix_ns: timestamp corresponding to value, e.g. when value was measured, in nanoseconds
-    :param alarm_status: EPICS alarm status, best to provide using enum-like class defined in logdata_f142.AlarmStatus
-    :param alarm_severity: EPICS alarm severity, best to provide using enum-like class defined in logdata_f142.AlarmSeverity
+    Parameters
+    ----------
+        value
+            A scalar or value convertible to a 1-D ndarray. Strings are not
+            supported.
+        units
+            Units corresponding to ``value``.
+        source_name
+            Name of the data source.
+        timestamp_unix_ns
+            Timestamp corresponding to ``value``, such as when
+            the value was measured, in nanoseconds.
+        alarm_status
+            EPICS alarm status. Prefer the enum-like class defined in
+            ``logdata_f142.AlarmStatus``.
+        alarm_severity
+            EPICS alarm severity. Prefer the enum-like class defined
+            in ``logdata_f142.AlarmSeverity``.
     """
     builder, source, units_built = _setup_builder(source_name, units)
     value = np.array(value)

@@ -179,11 +179,15 @@ def safe_serialise(
     """
     A decorator that ensures serialisation functions return 0 if the data is None.
 
-    Args:
-        func: The serialisation function that takes a builder and data as arguments.
+    Parameters
+    ----------
+        func
+            The serialisation function that takes a builder and data as arguments.
 
-    Returns:
-        A wrapped function that returns 0 if data is None; otherwise, it calls the original function.
+    Returns
+    -------
+        Callable[[flatbuffers.Builder, Optional[T]], int]
+            A wrapped function that returns 0 if data is None; otherwise, it calls the original function.
     """
 
     @wraps(func)  # to preserve metadata
@@ -199,11 +203,15 @@ def safe_deserialise(func: Callable[[T], U]) -> Callable[[Optional[T]], Optional
     """
     A decorator that ensures deserialisation functions return None if the buffer is None.
 
-    Args:
-        func: The deserialisation function that takes a buffer (bytes) as an argument.
+    Parameters
+    ----------
+        func
+            The deserialisation function that takes a buffer (bytes) as an argument.
 
-    Returns:
-        A wrapped function that returns None if the buffer is None; otherwise, it calls the original function.
+    Returns
+    -------
+        Callable[[Optional[T]], Optional[U]]
+            A wrapped function that returns None if the buffer is None; otherwise, it calls the original function.
     """
 
     @wraps(func)  # to preserve metadata
@@ -284,15 +292,22 @@ def _serialise_array(
 def serialise_any(builder: flatbuffers.Builder, data: Any) -> int:
     """Serialises an arbitrary object into a FlatBuffers Any union.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        data: The object to be serialised, which must be compatible with the Any union.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        data
+            The object to be serialised, which must be compatible with the Any union.
 
-    Returns:
-        int: The FlatBuffers offset for the serialised Any object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised Any object.
 
-    Raises:
-        TypeError: If an attempt is made to serialize a multi-dimensional array (ndim > 1).
+    Raises
+    ------
+        TypeError
+            If an attempt is made to serialize a multi-dimensional array (ndim > 1).
     """
     data = np.asarray(data)
     dtype = data.dtype
@@ -329,14 +344,20 @@ def serialise_any(builder: flatbuffers.Builder, data: Any) -> int:
 def deserialise_any(buffer: AnyT.AnyT) -> Any:
     """Deserialises the Any table from a FlatBuffer.
 
-    Args:
-        buffer: FlatBuffer object containing the serialised Any table.
+    Parameters
+    ----------
+        buffer
+            FlatBuffer object containing the serialised Any table.
 
-    Returns:
-        The deserialised scalar or array value.
+    Returns
+    -------
+        Any
+            The deserialised scalar or array value.
 
-    Raises:
-        ValueError: If the data type is unsupported.
+    Raises
+    ------
+        ValueError
+            If the data type is unsupported.
     """
     data_enum = buffer.ValueType()
 
@@ -373,12 +394,17 @@ def deserialise_any(buffer: AnyT.AnyT) -> Any:
 def serialise_alarm(builder: flatbuffers.Builder, alarm_data: dt.AlarmT) -> int:
     """Serialises an AlarmT table into FlatBuffers format.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        alarm_data (dt.AlarmT): The AlarmT object containing alarm details.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        alarm_data : dt.AlarmT
+            The AlarmT object containing alarm details.
 
-    Returns:
-        int: The FlatBuffers offset for the serialised AlarmT object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised AlarmT object.
     """
     message_offset = builder.CreateString(alarm_data.message)
     AlarmT.Start(builder)
@@ -392,11 +418,15 @@ def serialise_alarm(builder: flatbuffers.Builder, alarm_data: dt.AlarmT) -> int:
 def deserialise_alarm(buffer: AlarmT.AlarmT) -> dt.AlarmT:
     """Deserialises the AlarmT table from a FlatBuffer.
 
-    Args:
-        buffer (AlarmT.AlarmT): FlatBuffer object containing the serialised AlarmT table.
+    Parameters
+    ----------
+        buffer : AlarmT.AlarmT
+            FlatBuffer object containing the serialised AlarmT table.
 
-    Returns:
-        dt.AlarmT: The deserialised AlarmT object.
+    Returns
+    -------
+        dt.AlarmT
+            The deserialised AlarmT object.
     """
     return dt.AlarmT(
         severity=buffer.Severity(),
@@ -409,12 +439,17 @@ def deserialise_alarm(buffer: AlarmT.AlarmT) -> dt.AlarmT:
 def serialise_time(builder: flatbuffers.Builder, time_data: dt.TimeT) -> int:
     """Serialises a TimeT table into FlatBuffers format.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        time_data (dt.TimeT): The TimeT object containing time details.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        time_data : dt.TimeT
+            The TimeT object containing time details.
 
-    Returns:
-        int: The FlatBuffers offset for the serialised TimeT object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised TimeT object.
     """
     TimeT.Start(builder)
     TimeT.AddSecondsPastEpoch(builder, time_data.secondsPastEpoch)
@@ -427,11 +462,15 @@ def serialise_time(builder: flatbuffers.Builder, time_data: dt.TimeT) -> int:
 def deserialise_time(buffer: TimeT.TimeT) -> dt.TimeT:
     """Deserialises the TimeT table from a FlatBuffer.
 
-    Args:
-        buffer (TimeT.TimeT): FlatBuffer object containing the serialised TimeT table.
+    Parameters
+    ----------
+        buffer : TimeT.TimeT
+            FlatBuffer object containing the serialised TimeT table.
 
-    Returns:
-        dt.TimeT: The deserialised TimeT object.
+    Returns
+    -------
+        dt.TimeT
+            The deserialised TimeT object.
     """
     return dt.TimeT(
         secondsPastEpoch=buffer.SecondsPastEpoch(),
@@ -444,12 +483,17 @@ def deserialise_time(buffer: TimeT.TimeT) -> dt.TimeT:
 def serialise_display(builder: flatbuffers.Builder, display_data: dt.DisplayT) -> int:
     """Serialises a DisplayT table into FlatBuffers format.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        display_data (dt.DisplayT): The DisplayT object containing display details.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        display_data : dt.DisplayT
+            The DisplayT object containing display details.
 
-    Returns:
-        int: int: The FlatBuffers offset for the serialised DisplayT object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised DisplayT object.
     """
     # Serialise DisplayT
     description_offset = builder.CreateString(display_data.description)
@@ -468,11 +512,15 @@ def serialise_display(builder: flatbuffers.Builder, display_data: dt.DisplayT) -
 def deserialise_display(buffer: DisplayT.DisplayT) -> dt.DisplayT:
     """Deserialises the DisplayT table from a FlatBuffer.
 
-    Args:
-        buffer (DisplayT.DisplayT): FlatBuffer object containing the serialised DisplayT table.
+    Parameters
+    ----------
+        buffer : DisplayT.DisplayT
+            FlatBuffer object containing the serialised DisplayT table.
 
-    Returns:
-        dt.DisplayT: The deserialised DisplayT object.
+    Returns
+    -------
+        dt.DisplayT
+            The deserialised DisplayT object.
     """
     # Deserialise the rest of the DisplayT fields
     return dt.DisplayT(
@@ -489,12 +537,17 @@ def deserialise_display(buffer: DisplayT.DisplayT) -> dt.DisplayT:
 def serialise_control(builder: flatbuffers.Builder, control_data: dt.ControlT) -> int:
     """Serialises a ControlT table into FlatBuffers format.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        control_data (dt.ControlT): The ControlT object containing control details.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        control_data : dt.ControlT
+            The ControlT object containing control details.
 
-    Returns:
-        int: The FlatBuffers offset for the serialised ControlT object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised ControlT object.
     """
     ControlT.Start(builder)
     ControlT.AddLimitLow(builder, control_data.limitLow)
@@ -507,11 +560,15 @@ def serialise_control(builder: flatbuffers.Builder, control_data: dt.ControlT) -
 def deserialise_control(buffer: ControlT.ControlT) -> dt.ControlT:
     """Deserialises the ControlT table from a FlatBuffer.
 
-    Args:
-        buffer (ControlT.ControlT): FlatBuffer object containing the serialised ControlT table.
+    Parameters
+    ----------
+        buffer : ControlT.ControlT
+            FlatBuffer object containing the serialised ControlT table.
 
-    Returns:
-        dt.ControlT: The deserialised ControlT object.
+    Returns
+    -------
+        dt.ControlT
+            The deserialised ControlT object.
     """
     return dt.ControlT(
         limitLow=buffer.LimitLow(),
@@ -524,12 +581,17 @@ def deserialise_control(buffer: ControlT.ControlT) -> dt.ControlT:
 def serialise_codec(builder: flatbuffers.Builder, codec_data: dt.CodecT) -> int:
     """Serialises a CodecT table into FlatBuffers format.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        codec_data (dt.CodecT): The CodecT object containing codec details.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        codec_data : dt.CodecT
+            The CodecT object containing codec details.
 
-    Returns:
-        int: The FlatBuffers offset for the serialised CodecT object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised CodecT object.
     """
     name_offset = builder.CreateString(codec_data.name)
     CodecT.Start(builder)
@@ -541,11 +603,15 @@ def serialise_codec(builder: flatbuffers.Builder, codec_data: dt.CodecT) -> int:
 def deserialise_codec(buffer: CodecT.CodecT) -> dt.CodecT:
     """Deserialises the CodecT table from a FlatBuffer.
 
-    Args:
-        buffer (CodecT.CodecT): FlatBuffer object containing the serialised CodecT table.
+    Parameters
+    ----------
+        buffer : CodecT.CodecT
+            FlatBuffer object containing the serialised CodecT table.
 
-    Returns:
-        dt.CodecT: The deserialised CodecT object.
+    Returns
+    -------
+        dt.CodecT
+            The deserialised CodecT object.
     """
     return dt.CodecT(
         name=buffer.Name().decode("utf-8"),  # type: ignore
@@ -558,12 +624,17 @@ def serialise_dimension(
 ) -> int:
     """Serialises a DimensionT table into FlatBuffers format.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        dimension_data (dt.DimensionT): The DimensionT object containing dimension details.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        dimension_data : dt.DimensionT
+            The DimensionT object containing dimension details.
 
-    Returns:
-        int: The FlatBuffers offset for the serialised DimensionT object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised DimensionT object.
     """
     DimensionT.Start(builder)
     DimensionT.AddSize(builder, dimension_data.size)
@@ -578,11 +649,15 @@ def serialise_dimension(
 def deserialise_dimension(buffer: DimensionT.DimensionT) -> dt.DimensionT:
     """Deserialises the DimensionT table from a FlatBuffer.
 
-    Args:
-        buffer (DimensionT.DimensionT): FlatBuffer object containing the serialised DimensionT table.
+    Parameters
+    ----------
+        buffer : DimensionT.DimensionT
+            FlatBuffer object containing the serialised DimensionT table.
 
-    Returns:
-        dt.DimensionT: The deserialised DimensionT object.
+    Returns
+    -------
+        dt.DimensionT
+            The deserialised DimensionT object.
     """
     return dt.DimensionT(
         size=buffer.Size(),
@@ -599,12 +674,17 @@ def serialise_ntattribute(
 ) -> int:
     """Serialises an NTAttribute table into FlatBuffers format.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        ntattribute_data (dt.NTAttribute): The NTAttribute object containing attribute details.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        ntattribute_data : dt.NTAttribute
+            The NTAttribute object containing attribute details.
 
-    Returns:
-        int: The FlatBuffers offset for the serialised NTAttribute object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised NTAttribute object.
     """
     name_offset = builder.CreateString(ntattribute_data.name)
     value_offset = serialise_any(builder, ntattribute_data.value)
@@ -635,11 +715,15 @@ def serialise_ntattribute(
 def deserialise_ntattribute(buffer: NTAttribute.NTAttribute) -> dt.NTAttribute:
     """Deserialises the NTAttribute table from a FlatBuffer.
 
-    Args:
-        buffer (NTAttribute.NTAttribute): FlatBuffer object containing the serialised NTAttribute table.
+    Parameters
+    ----------
+        buffer : NTAttribute.NTAttribute
+            FlatBuffer object containing the serialised NTAttribute table.
 
-    Returns:
-        dt.NTAttribute: The deserialised NTAttribute object.
+    Returns
+    -------
+        dt.NTAttribute
+            The deserialised NTAttribute object.
     """
     return dt.NTAttribute(
         name=buffer.Name().decode("utf-8"),  # type: ignore
@@ -657,12 +741,17 @@ def deserialise_ntattribute(buffer: NTAttribute.NTAttribute) -> dt.NTAttribute:
 def serialise_column(builder: flatbuffers.Builder, column_data: dt.Column) -> int:
     """Serialises a Column table into FlatBuffers format.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        column_data (dt.Column): The Column object containing column data.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        column_data : dt.Column
+            The Column object containing column data.
 
-    Returns:
-        int: The FlatBuffers offset for the serialised Column object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised Column object.
     """
     value_offset = serialise_any(builder, column_data.value)
     Column.Start(builder)
@@ -674,11 +763,15 @@ def serialise_column(builder: flatbuffers.Builder, column_data: dt.Column) -> in
 def deserialise_column(buffer: Column.Column) -> dt.Column:
     """Deserialises the Column table from a FlatBuffer.
 
-    Args:
-        buffer (Column.Column): FlatBuffer object containing the serialised Column table.
+    Parameters
+    ----------
+        buffer : Column.Column
+            FlatBuffer object containing the serialised Column table.
 
-    Returns:
-        dt.Column: The deserialised Column object.
+    Returns
+    -------
+        dt.Column
+            The deserialised Column object.
     """
     return dt.Column(value=deserialise_any(buffer.Value()))
 
@@ -687,12 +780,17 @@ def deserialise_column(buffer: Column.Column) -> dt.Column:
 def serialise_pulseid(builder: flatbuffers.Builder, pulseid_data: dt.PulseID) -> int:
     """Serialises a PulseId table into FlatBuffers format.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        pulseid_data (dt.PulseId): The PulseId object containing pulseid and timestamp.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        pulseid_data : dt.PulseId
+            The PulseId object containing pulseid and timestamp.
 
-    Returns:
-        int: The FlatBuffers offset for the serialised PulseId object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised PulseId object.
     """
     PulseID.Start(builder)
     PulseID.AddValue(builder, pulseid_data.value)
@@ -704,11 +802,15 @@ def serialise_pulseid(builder: flatbuffers.Builder, pulseid_data: dt.PulseID) ->
 def deserialise_pulseid(buffer: PulseID.PulseID) -> dt.PulseID:
     """Deserialises the PulseId table from a FlatBuffer.
 
-    Args:
-        buffer (PulseID.PulseID): FlatBuffer object containing the serialised PulseID table.
+    Parameters
+    ----------
+        buffer : PulseID.PulseID
+            FlatBuffer object containing the serialised PulseID table.
 
-    Returns:
-        dt.PulseIdData: The deserialised PulseID object.
+    Returns
+    -------
+        dt.PulseIdData
+            The deserialised PulseID object.
     """
     return dt.PulseID(
         value=buffer.Value(),
@@ -721,12 +823,17 @@ def serialise_ntscalarany(
 ) -> int:
     """Serialises an NTScalarAny table into FlatBuffers format.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        ntscalarany_data (dt.NTScalarAny): The NTScalarAny object containing scalar details.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        ntscalarany_data : dt.NTScalarAny
+            The NTScalarAny object containing scalar details.
 
-    Returns:
-        int: The FlatBuffers offset for the serialised NTScalarAny object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised NTScalarAny object.
     """
     value_offset = serialise_any(builder, ntscalarany_data.value)
     descriptor_offset = builder.CreateString(ntscalarany_data.descriptor)
@@ -749,11 +856,15 @@ def serialise_ntscalarany(
 def deserialise_ntscalarany(buffer: NTScalarAny.NTScalarAny) -> dt.NTScalarAny:
     """Deserialises the NTScalarAny table from a FlatBuffer.
 
-    Args:
-        buffer (NTScalarAny.NTScalarAny): FlatBuffer object containing the serialised NTScalarAny table.
+    Parameters
+    ----------
+        buffer : NTScalarAny.NTScalarAny
+            FlatBuffer object containing the serialised NTScalarAny table.
 
-    Returns:
-        dt.NTScalarAny: The deserialised NTScalarAny object.
+    Returns
+    -------
+        dt.NTScalarAny
+            The deserialised NTScalarAny object.
     """
     return dt.NTScalarAny(
         value=deserialise_any(buffer.Value()),
@@ -770,12 +881,17 @@ def serialise_ntndarray(
 ) -> int:
     """Serialises an NTNDArray table into FlatBuffers format.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        ntndarray_data (dt.NTNDArray): The NTNDArray object containing array data.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        ntndarray_data : dt.NTNDArray
+            The NTNDArray object containing array data.
 
-    Returns:
-        int: The FlatBuffers offset for the serialised NTNDArray object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised NTNDArray object.
     """
 
     value_offset = serialise_any(builder, ntndarray_data.value)
@@ -838,13 +954,19 @@ def serialise_ntndarray(
 def deserialise_ntndarray(buffer: NTNDArray.NTNDArray) -> dt.NTNDArray:
     """Deserialises the NTNDArray table from a FlatBuffer.
 
-    Args:
-        buffer (NTNDArray.NTNDArray): FlatBuffer object containing the serialised NTNDArray table.
+    Parameters
+    ----------
+        buffer : NTNDArray.NTNDArray
+            FlatBuffer object containing the serialised NTNDArray table.
 
-    Returns:
-        dt.NTNDArray: The deserialised NTNDArray object.
-    Raises:
-        ValueError: If a dimension or attribute has an unexpected None value.
+    Returns
+    -------
+        dt.NTNDArray
+            The deserialised NTNDArray object.
+    Raises
+    ------
+        ValueError
+            If a dimension or attribute has an unexpected None value.
     """
     dimension = []
     for i in range(buffer.DimensionLength()):
@@ -879,12 +1001,17 @@ def deserialise_ntndarray(buffer: NTNDArray.NTNDArray) -> dt.NTNDArray:
 def serialise_nttable(builder: flatbuffers.Builder, nttable_data: dt.NTTable) -> int:
     """Serialises an NTTable table into FlatBuffers format.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        nttable_data (dt.NTTable): The NTTable object containing table data.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        nttable_data : dt.NTTable
+            The NTTable object containing table data.
 
-    Returns:
-        int: The FlatBuffers offset for the serialised NTTable object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised NTTable object.
     """
     # Serialise labels
     labels_offsets = [builder.CreateString(label) for label in nttable_data.labels]
@@ -927,13 +1054,19 @@ def serialise_nttable(builder: flatbuffers.Builder, nttable_data: dt.NTTable) ->
 def deserialise_nttable(buffer: NTTable.NTTable) -> dt.NTTable:
     """Deserialises an NTTable from a FlatBuffer.
 
-    Args:
-        buffer (NTTable.NTTable): The FlatBuffer object containing the serialised NTTable.
+    Parameters
+    ----------
+        buffer : NTTable.NTTable
+            The FlatBuffer object containing the serialised NTTable.
 
-    Returns:
-        dt.NTTable: The deserialized NTTable object.
-    Raises:
-        ValueError: If a column has an unexpected None value.
+    Returns
+    -------
+        dt.NTTable
+            The deserialized NTTable object.
+    Raises
+    ------
+        ValueError
+            If a column has an unexpected None value.
     """
     value = []
     for i in range(buffer.ValueLength()):
@@ -954,12 +1087,17 @@ def deserialise_nttable(buffer: NTTable.NTTable) -> dt.NTTable:
 def serialise_xydata(builder: flatbuffers.Builder, xy_data: dt.XYData) -> int:
     """Serialises an XYData table into FlatBuffers format.
 
-    Args:
-        builder (flatbuffers.Builder): The FlatBuffers builder used to construct the object.
-        nttable_data (dt.XYData): The XYData object containing table data.
+    Parameters
+    ----------
+        builder : flatbuffers.Builder
+            The FlatBuffers builder used to construct the object.
+        nttable_data : dt.XYData
+            The XYData object containing table data.
 
-    Returns:
-        int: The FlatBuffers offset for the serialised XYData object.
+    Returns
+    -------
+        int
+            The FlatBuffers offset for the serialised XYData object.
     """
     x_offset = serialise_ntscalarany(builder, xy_data.x)
     y_offset = serialise_ntscalarany(builder, xy_data.y)
@@ -974,13 +1112,19 @@ def serialise_xydata(builder: flatbuffers.Builder, xy_data: dt.XYData) -> int:
 def deserialise_xydata(buffer: XYData.XYData) -> dt.XYData:
     """Deserialises an XYData from a FlatBuffer.
 
-    Args:
-        buffer (XYData.XYData): The FlatBuffer object containing the serialised XYData.
+    Parameters
+    ----------
+        buffer : XYData.XYData
+            The FlatBuffer object containing the serialised XYData.
 
-    Returns:
-        dt.XYData: The deserialized XYData object.
-    Raises:
-        ValueError: If x or y buffer returns None.
+    Returns
+    -------
+        dt.XYData
+            The deserialized XYData object.
+    Raises
+    ------
+        ValueError
+            If x or y buffer returns None.
     """
     x_buffer = buffer.X()
     y_buffer = buffer.Y()
@@ -995,15 +1139,22 @@ def deserialise_xydata(buffer: XYData.XYData) -> dt.XYData:
 def serialise_data(data: dt.PVData) -> bytes:
     """Serialises data into a FlatBuffer using PVData as the container type.
 
-    Args:
-        data (dt.PVData): The PVData object containing the data to serialise.
+    Parameters
+    ----------
+        data : dt.PVData
+            The PVData object containing the data to serialise.
 
-    Returns:
-        bytes: The serialised data as bytes.
+    Returns
+    -------
+        bytes
+            The serialised data as bytes.
 
-    Raises:
-        TypeError: If an unsupported or unknown data type is provided.
-        ValueError: If data without a value is provided.
+    Raises
+    ------
+        TypeError
+            If an unsupported or unknown data type is provided.
+        ValueError
+            If data without a value is provided.
     """
     if isinstance(data.data, dt.XYData):
         if data.data.y is None:
@@ -1050,14 +1201,20 @@ def deserialise_data(buffer: bytes) -> dt.PVData:
     """Deserialises FlatBuffer bytes containing PVData and dynamically handles
     various data types like NTScalarAny, NTNDArray, and NTTable.
 
-    Args:
-        buffer: FlatBuffer bytes containing PVData data.
+    Parameters
+    ----------
+        buffer
+            FlatBuffer bytes containing PVData data.
 
-    Returns:
-        dt.PVData: The deserialized PVData object.
+    Returns
+    -------
+        dt.PVData
+            The deserialized PVData object.
 
-    Raises:
-        ValueError: If an unsupported or unknown data type is encountered.
+    Raises
+    ------
+        ValueError
+            If an unsupported or unknown data type is encountered.
     """
     pv_data = PVData.PVData.GetRootAsPVData(buffer, 0)
     pulse_id_buffer = pv_data.PulseId()

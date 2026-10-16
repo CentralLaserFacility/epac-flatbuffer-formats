@@ -8,8 +8,8 @@ from typing import List, NamedTuple, Union
 import flatbuffers
 import numpy as np
 
-from .fbschemas.ADAr_area_detector_array import Attribute as ADArAttribute
 from .fbschemas.ADAr_area_detector_array import ADArray as ADAr
+from .fbschemas.ADAr_area_detector_array import Attribute as ADArAttribute
 from .fbschemas.ADAr_area_detector_array.DType import DType
 from .utils import check_schema_identifier
 
