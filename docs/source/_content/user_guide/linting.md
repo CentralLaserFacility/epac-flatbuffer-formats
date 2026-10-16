@@ -1,8 +1,8 @@
 # Linting, Formatting and Type Checking
 
-> *This section details the tools used to ensure code quality.*
-
 ## Tools
+
+### Python
 
 Several tools are used in this project to enforce code quality:
 
@@ -13,13 +13,22 @@ Several tools are used in this project to enforce code quality:
 
 Together, these tools help enforce coding standards, consistency, and readability throughout the codebase. They support long-term maintainability, enable early issue detection, and are integrated into the CI pipeline to ensure quality checks are applied automatically to all changes.
 
+### Rust
+
+Several tools are used in the Rust components of this project to enforce code quality:
+
+- [`rustfmt`](https://github.com/rust-lang/rustfmt) - automatically formats Rust code according to the standard Rust style guidelines
+- [`Clippy`](https://github.com/rust-lang/rust-clippy) - provides additional linting and static analysis to identify potential bugs, problems and non-idiomatic code
+
+Together, these tools help ensure that Rust code remains consistent, readable, and aligned with best practices. They are integrated into the project's quality checks and are executed automatically when the Rust toolchain is available.
+
 ## Using the tools
 
 `black` and `isort` can be run using
 ```shell
 $ ./dev.py fmt
 ```
-while `flake8` is run as part of the pre-commit hooks, which are runnable manually with
+while `flake8` and the Rust tools (if available) are run as part of the pre-commit hooks, which are runnable manually with
 ```shell
 $ ./dev.py pre-commit
 ```

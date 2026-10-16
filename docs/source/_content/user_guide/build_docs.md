@@ -1,8 +1,15 @@
 # How to build the documentation
 
-Documentation is built with [`Sphinx`](https://www.sphinx-doc.org/en/master/index.html) in this project, with the API reference generated from docstrings in the source code using [`autodoc2`](https://sphinx-autodoc2.readthedocs.io/en/latest/).
+Documentation is built with [`Sphinx`][sphinx] in this project, with the API reference generated from docstrings in the source code using [`autodoc2`](https://sphinx-autodoc2.readthedocs.io/en/latest/).
 
 The design and structure of the documentation is outlined in [this section](../reference/structure.md) of the docs.
+
+```{note}
+`cargo doc` is used to build the rust API docs when building both manually and automatically.
+
+They are then made available via a static subsite linked in the `Reference` section of the [`Sphinx`][sphinx] built docs.
+See [here](rust-api).
+```
 
 ## Manual build
 To build the documentation manually, run:
@@ -27,9 +34,11 @@ Like the manual build, this will build the documentation in `docs/build/html` fr
 
 Additionally, this will serve your documentation locally at [127.0.0.1:8000](http://127.0.0.1:8000) which should update automatically.
 
-````{note}
+````{warning}
 `sphinx-autobuild` uses caching, which may prevent some changes from appearing immediately. If updates are not reflected in the generated documentation, force a full rebuild by running:
 ```shell
 $ ./dev.py doc
 ```
 ````
+
+[sphinx]: https://www.sphinx-doc.org/en/master/index.html
