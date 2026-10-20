@@ -188,6 +188,7 @@ def safe_serialise(
 
     @wraps(func)  # to preserve metadata
     def wrapper(builder: flatbuffers.Builder, data: Optional[T]) -> int:
+        """Return an empty offset for absent data or serialise the value."""
         if data is None:
             return 0
         return func(builder, data)
@@ -208,6 +209,7 @@ def safe_deserialise(func: Callable[[T], U]) -> Callable[[Optional[T]], Optional
 
     @wraps(func)  # to preserve metadata
     def wrapper(buffer: Optional[T]) -> Optional[U]:
+        """Return None for an absent buffer or deserialise the value."""
         if buffer is None:
             return None
         return func(buffer)
@@ -241,12 +243,33 @@ def safe_deserialise(func: Callable[[T], U]) -> Callable[[Optional[T]], Optional
 def _serialise_string_scalar(
     builder: flatbuffers.Builder, data: np.ndarray
 ) -> tuple[int, ModuleType, int]:
+    """Encode a string scalar and return its offset and FlatBuffers type.
+
+    Args:
+        builder: FlatBuffers builder used to create the string.
+        data: Zero-dimensional NumPy array containing a string.
+
+    Returns:
+        The string offset, FlatBuffers table module, and union type identifier.
+    """
     return builder.CreateString(data.item()), String, AnyInner.AnyInner.String
 
 
 def _serialise_scalar(
     builder: flatbuffers.Builder, data: np.ndarray
 ) -> tuple[Any, ModuleType, int]:
+    """Map a supported NumPy scalar to its FlatBuffers representation.
+
+    Args:
+        builder: FlatBuffers builder used for serialization.
+        data: Zero-dimensional NumPy array containing the scalar.
+
+    Returns:
+        The scalar value, FlatBuffers table module, and union type identifier.
+
+    Raises:
+        TypeError: If the scalar dtype is unsupported.
+    """
     try:
         return (
             data.item(),
@@ -260,6 +283,15 @@ def _serialise_scalar(
 def _serialise_string_array(
     builder: flatbuffers.Builder, data: np.ndarray
 ) -> tuple[int, ModuleType, int]:
+    """Encode a one-dimensional string array for the FlatBuffers union.
+
+    Args:
+        builder: FlatBuffers builder used to create the strings and vector.
+        data: One-dimensional NumPy array of strings.
+
+    Returns:
+        The vector offset, FlatBuffers table module, and union type identifier.
+    """
     internal_values_offsets = [builder.CreateString(item) for item in reversed(data)]
     StringArray.StringArrayStartValueVector(builder, len(data))
     for start_offset in internal_values_offsets:
@@ -270,6 +302,18 @@ def _serialise_string_array(
 def _serialise_array(
     builder: flatbuffers.Builder, data: np.ndarray
 ) -> tuple[int, ModuleType, int]:
+    """Encode a supported NumPy array and return its FlatBuffers type.
+
+    Args:
+        builder: FlatBuffers builder used to create the vector.
+        data: One-dimensional NumPy array.
+
+    Returns:
+        The vector offset, FlatBuffers table module, and union type identifier.
+
+    Raises:
+        TypeError: If the array dtype is unsupported.
+    """
     try:
         return (
             builder.CreateNumpyVector(data),
@@ -843,6 +887,7 @@ def deserialise_ntndarray(buffer: NTNDArray.NTNDArray) -> dt.NTNDArray:
 
     Returns:
         dt.NTNDArray: The deserialised NTNDArray object.
+
     Raises:
         ValueError: If a dimension or attribute has an unexpected None value.
     """
@@ -932,6 +977,7 @@ def deserialise_nttable(buffer: NTTable.NTTable) -> dt.NTTable:
 
     Returns:
         dt.NTTable: The deserialized NTTable object.
+
     Raises:
         ValueError: If a column has an unexpected None value.
     """
@@ -979,6 +1025,7 @@ def deserialise_xydata(buffer: XYData.XYData) -> dt.XYData:
 
     Returns:
         dt.XYData: The deserialized XYData object.
+
     Raises:
         ValueError: If x or y buffer returns None.
     """

@@ -35,8 +35,11 @@ jobs:
           sed -i "/version = \"0\\.0\\.0\"/s/0\\.0\\.0/${VERSION}/" rust/Cargo.toml
       - name: Build Rust wheel
         run: ./dev.py rust-build
+
       - name: Install wheels
         run: ./dev.py run pip install dist/*.whl
+      - name: Build documentation
+        run: ./dev.py doc
       - name: Create lockfile
         run: ./dev.py run pip list --format freeze --exclude pip --exclude setuptools > dist/requirements.txt
       - name: Install development dependencies
@@ -48,3 +51,10 @@ jobs:
         with:
           files: dist/*
           generate_release_notes: true
+
+  docs:
+    uses: ./.github/workflows/docs.yml
+    permissions:
+      contents: read
+      id-token: write
+      pages: write

@@ -5,3 +5,9 @@
 __pycache__/
 _version.py
 /.wheels/
+html/
+api_docs/
+
+# ignore generate API docs, but not the placeholder file
+!docs/source/_content/reference/api_docs/**/.placeholder
+docs/source/_static/rustdoc

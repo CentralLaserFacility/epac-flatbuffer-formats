@@ -12,7 +12,7 @@ pub mod any_t;
 pub mod pva0_data; // defines rust data structures
 pub mod serialise; // defines the `serialise` trait
 
-/// This module is the entry point for the Python bindings
+/// This module is the entry point for the Python bindings.
 /// It exposes the `serialise_pv_data` function which takes a python (pydantic) `PVData` object and
 /// serialises to python bytes.
 ///
