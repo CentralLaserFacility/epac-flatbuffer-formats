@@ -17,6 +17,8 @@ FILE_IDENTIFIER = b"ADAr"
 
 
 class Attribute:
+    """An attribute associated with an AreaDetector array."""
+
     def __init__(
         self,
         name: str,
@@ -24,12 +26,21 @@ class Attribute:
         source: str,
         data: Union[np.ndarray, str, int, float],
     ):
+        """Initialise an attribute.
+
+        Args:
+            name: Attribute name.
+            description: Human-readable description.
+            source: Attribute data source.
+            data: Attribute value.
+        """
         self.name = name
         self.description = description
         self.source = source
         self.data = data
 
     def __eq__(self, other):
+        """Compare attributes by their fields and data values."""
         data_is_equal = type(self.data) == type(other.data)  # noqa: E721
         if type(self.data) is np.ndarray:
             data_is_equal = data_is_equal and np.array_equal(self.data, other.data)
@@ -50,6 +61,18 @@ def serialise_ADAr(
     data: Union[np.ndarray, str],
     attributes: List[Attribute] = [],
 ) -> bytes:
+    """Serialise AreaDetector array data to an ADAr FlatBuffer.
+
+    Args:
+        source_name: Name of the data source.
+        unique_id: Unique identifier for the array.
+        timestamp: Timestamp associated with the array.
+        data: Array values or a string payload.
+        attributes: Attributes to include with the array.
+
+    Returns:
+        The serialised FlatBuffer.
+    """
     builder = flatbuffers.Builder(1024)
     builder.ForceDefaults(True)
 
@@ -146,6 +169,7 @@ ADArray_t = ADArray
 
 
 def get_payload_data(fb_arr) -> np.ndarray:
+    """Return the FlatBuffer array payload reshaped to its NumPy dimensions."""
     # The dimensions are reversed when converting from AreaDetector
     # to numpy, as AreaDetector lists its dimensions in the opposite
     # order to numpy.
@@ -173,6 +197,14 @@ def get_data(fb_arr) -> np.ndarray:
 
 
 def deserialise_ADAr(buffer: Union[bytearray, bytes]) -> ADArray:
+    """Deserialise an ADAr FlatBuffer into an array and its metadata.
+
+    Args:
+        buffer: FlatBuffer bytes containing an ADAr message.
+
+    Returns:
+        The decoded array, timestamp, identifier, source name, and attributes.
+    """
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
     ad_array = ADAr.ADArray.GetRootAsADArray(buffer, 0)

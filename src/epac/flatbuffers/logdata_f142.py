@@ -145,6 +145,17 @@ def _complete_buffer(
     alarm_status: Union[int, None] = None,
     alarm_severity: Union[int, None] = None,
 ) -> bytes:
+    """Finish an f142 message with its timestamp and optional alarm.
+
+    Args:
+        builder: FlatBuffers builder containing the value data.
+        timestamp_unix_ns: Message timestamp in nanoseconds since the Unix epoch.
+        alarm_status: Optional alarm status code.
+        alarm_severity: Optional alarm severity, included only with a status.
+
+    Returns:
+        The completed FlatBuffer bytes.
+    """
     LogData.LogDataAddTimestamp(builder, timestamp_unix_ns)
 
     if alarm_status is not None:
@@ -162,6 +173,15 @@ def _complete_buffer(
 def _setup_builder(
     source_name: str, units: str | None
 ) -> Tuple[flatbuffers.Builder, int, int | None]:
+    """Create a builder and encode the source name and optional units.
+
+    Args:
+        source_name: Name of the data source.
+        units: Optional units string.
+
+    Returns:
+        The builder, source string offset, and optional units offset.
+    """
     builder = flatbuffers.Builder(1024)
     builder.ForceDefaults(True)
     source = builder.CreateString(source_name)
@@ -175,6 +195,7 @@ def _serialise_byte(
     source: int,
     units_built: int | None,
 ):
+    """Add a signed 8-bit scalar value to an f142 message."""
     ByteStart(builder)
     ByteAddValue(builder, data.item())
     value_position = ByteEnd(builder)
@@ -192,6 +213,7 @@ def _serialise_bytearray(
     source: int,
     units_built: int | None,
 ):
+    """Add a signed 8-bit array value to an f142 message."""
     array_offset = builder.CreateNumpyVector(data)
     ArrayByteStart(builder)
     ArrayByteAddValue(builder, array_offset)
@@ -210,6 +232,7 @@ def _serialise_ubyte(
     source: int,
     units_built: int | None,
 ):
+    """Add an unsigned 8-bit scalar value to an f142 message."""
     UByteStart(builder)
     UByteAddValue(builder, data.item())
     value_position = UByteEnd(builder)
@@ -227,6 +250,7 @@ def _serialise_ubytearray(
     source: int,
     units_built: int | None,
 ):
+    """Add an unsigned 8-bit array value to an f142 message."""
     array_offset = builder.CreateNumpyVector(data)
     ArrayUByteStart(builder)
     ArrayUByteAddValue(builder, array_offset)
@@ -245,6 +269,7 @@ def _serialise_short(
     source: int,
     units_built: int | None,
 ):
+    """Add a signed 16-bit scalar value to an f142 message."""
     ShortStart(builder)
     ShortAddValue(builder, data.item())
     value_position = ShortEnd(builder)
@@ -262,6 +287,7 @@ def _serialise_shortarray(
     source: int,
     units_built: int | None,
 ):
+    """Add a signed 16-bit array value to an f142 message."""
     array_offset = builder.CreateNumpyVector(data)
     ArrayShortStart(builder)
     ArrayShortAddValue(builder, array_offset)
@@ -280,6 +306,7 @@ def _serialise_ushort(
     source: int,
     units_built: int | None,
 ):
+    """Add an unsigned 16-bit scalar value to an f142 message."""
     UShortStart(builder)
     UShortAddValue(builder, data.item())
     value_position = UShortEnd(builder)
@@ -297,6 +324,7 @@ def _serialise_ushortarray(
     source: int,
     units_built: int | None,
 ):
+    """Add an unsigned 16-bit array value to an f142 message."""
     array_offset = builder.CreateNumpyVector(data)
     ArrayUShortStart(builder)
     ArrayUShortAddValue(builder, array_offset)
@@ -315,6 +343,7 @@ def _serialise_int(
     source: int,
     units_built: int | None,
 ):
+    """Add a signed 32-bit scalar value to an f142 message."""
     IntStart(builder)
     IntAddValue(builder, data.item())
     value_position = IntEnd(builder)
@@ -332,6 +361,7 @@ def _serialise_intarray(
     source: int,
     units_built: int | None,
 ):
+    """Add a signed 32-bit array value to an f142 message."""
     array_offset = builder.CreateNumpyVector(data)
     ArrayIntStart(builder)
     ArrayIntAddValue(builder, array_offset)
@@ -350,6 +380,7 @@ def _serialise_uint(
     source: int,
     units_built: int | None,
 ):
+    """Add an unsigned 32-bit scalar value to an f142 message."""
     UIntStart(builder)
     UIntAddValue(builder, data.item())
     value_position = UIntEnd(builder)
@@ -367,6 +398,7 @@ def _serialise_uintarray(
     source: int,
     units_built: int | None,
 ):
+    """Add an unsigned 32-bit array value to an f142 message."""
     array_offset = builder.CreateNumpyVector(data)
     ArrayUIntStart(builder)
     ArrayUIntAddValue(builder, array_offset)
@@ -385,6 +417,7 @@ def _serialise_long(
     source: int,
     units_built: int | None,
 ):
+    """Add a signed 64-bit scalar value to an f142 message."""
     LongStart(builder)
     LongAddValue(builder, data.item())
     value_position = LongEnd(builder)
@@ -402,6 +435,7 @@ def _serialise_longarray(
     source: int,
     units_built: int | None,
 ):
+    """Add a signed 64-bit array value to an f142 message."""
     array_offset = builder.CreateNumpyVector(data)
     ArrayLongStart(builder)
     ArrayLongAddValue(builder, array_offset)
@@ -420,6 +454,7 @@ def _serialise_ulong(
     source: int,
     units_built: int | None,
 ):
+    """Add an unsigned 64-bit scalar value to an f142 message."""
     ULongStart(builder)
     ULongAddValue(builder, data.item())
     value_position = ULongEnd(builder)
@@ -437,6 +472,7 @@ def _serialise_ulongarray(
     source: int,
     units_built: int | None,
 ):
+    """Add an unsigned 64-bit array value to an f142 message."""
     array_offset = builder.CreateNumpyVector(data)
     ArrayULongStart(builder)
     ArrayULongAddValue(builder, array_offset)
@@ -455,6 +491,7 @@ def _serialise_float(
     source: int,
     units_built: int | None,
 ):
+    """Add a 32-bit floating-point scalar value to an f142 message."""
     FloatStart(builder)
     FloatAddValue(builder, data.item())
     value_position = FloatEnd(builder)
@@ -472,6 +509,7 @@ def _serialise_floatarray(
     source: int,
     units_built: int | None,
 ):
+    """Add a 32-bit floating-point array value to an f142 message."""
     array_offset = builder.CreateNumpyVector(data)
     ArrayFloatStart(builder)
     ArrayFloatAddValue(builder, array_offset)
@@ -490,6 +528,7 @@ def _serialise_double(
     source: int,
     units_built: int | None,
 ):
+    """Add a 64-bit floating-point scalar value to an f142 message."""
     DoubleStart(builder)
     DoubleAddValue(builder, data.item())
     value_position = DoubleEnd(builder)
@@ -507,6 +546,7 @@ def _serialise_doublearray(
     source: int,
     units_built: int | None,
 ):
+    """Add a 64-bit floating-point array value to an f142 message."""
     array_offset = builder.CreateNumpyVector(data)
     ArrayDoubleStart(builder)
     ArrayDoubleAddValue(builder, array_offset)
@@ -604,6 +644,18 @@ def _serialise_value(
     units_built: int | None,
     serialisers_map: Dict,
 ):
+    """Dispatch a NumPy value to its matching f142 serializer.
+
+    Args:
+        builder: FlatBuffers builder for the message.
+        source: FlatBuffers offset for the source name.
+        value: Scalar or one-dimensional NumPy value to encode.
+        units_built: Optional FlatBuffers offset for the units.
+        serialisers_map: Mapping from NumPy dtype to serializer helper.
+
+    Raises:
+        NotImplementedError: If strings or unsupported data types are supplied.
+    """
     # We can use a dictionary to map most numpy types to one of the types defined in the flatbuffer schema
     # but we have to handle strings separately as there are many subtypes
     if np.issubdtype(value.dtype, np.str_) or np.issubdtype(value.dtype, np.bytes_):
@@ -660,6 +712,14 @@ LogDataInfo = namedtuple(
 
 
 def deserialise_f142(buffer: Union[bytearray, bytes]) -> LogDataInfo:
+    """Deserialise an f142 FlatBuffer into its value and metadata.
+
+    Args:
+        buffer: FlatBuffer bytes containing an f142 message.
+
+    Returns:
+        The decoded value, source, units, timestamp, and alarm fields.
+    """
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
     log_data = LogData.LogData.GetRootAsLogData(buffer, 0)

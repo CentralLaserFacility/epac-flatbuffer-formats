@@ -9,6 +9,8 @@ from epac.flatbuffers.fbschemas.pva0.DisplayForm import DisplayForm
 
 
 class EnumT(BaseModel):
+    """An enum value represented by its index and available choices."""
+
     index: int = 0
     choices: list[str] = []
 
@@ -17,6 +19,7 @@ def required():
     """Returns a BeforeValidator that raises an error if the field is None."""
 
     def _validate(v):
+        """Reject a missing value for a required field."""
         if v is None:
             raise ValueError("value is missing")
         return v
@@ -60,6 +63,8 @@ RequiredAny = Annotated[Any, required()]
 
 
 class AlarmT(BaseModel):
+    """Alarm severity, status, and message."""
+
     severity: Annotated[
         int, parse_enum(enum_name="Alarm Severity", enum_type=AlarmSeverity)
     ] = 0
@@ -70,6 +75,8 @@ class AlarmT(BaseModel):
 
 
 class TimeT(BaseModel):
+    """A timestamp represented as seconds, nanoseconds, and a user tag."""
+
     secondsPastEpoch: int = 0
     nanoseconds: int = 0
     userTag: int = 0
@@ -115,6 +122,8 @@ class TimeT(BaseModel):
 
 
 class DisplayT(BaseModel):
+    """Display limits, units, precision, and format for a value."""
+
     limitLow: float = 0
     limitHigh: float = 0
     description: str = ""
@@ -126,16 +135,22 @@ class DisplayT(BaseModel):
 
 
 class ControlT(BaseModel):
+    """Control limits and minimum step for a value."""
+
     limitLow: float = 0
     limitHigh: float = 0
     minStep: float = 0
 
 
 class CodecT(BaseModel):
+    """Name of the codec used to encode a value."""
+
     name: str = ""
 
 
 class DimensionT(BaseModel):
+    """Size, offset, binning, and direction metadata for one dimension."""
+
     size: int = 0
     offset: int = 0
     fullSize: int = 0
@@ -144,6 +159,8 @@ class DimensionT(BaseModel):
 
 
 class NTAttribute(BaseModel):
+    """A named NT attribute with its value and optional metadata."""
+
     name: str = ""
     value: Any
     tags: list[str] = []
@@ -155,6 +172,8 @@ class NTAttribute(BaseModel):
 
 
 class NTNDArray(BaseModel):
+    """An NT array value with dimensions, attributes, and metadata."""
+
     value: RequiredAny
     codec: Optional[CodecT] = None
     compressedSize: int = 0
@@ -170,6 +189,8 @@ class NTNDArray(BaseModel):
 
 
 class NTScalarAny(BaseModel):
+    """A scalar value with optional alarm, time, display, and control metadata."""
+
     value: RequiredAny
     descriptor: str = ""
     alarm: Optional[AlarmT] = None
@@ -179,10 +200,14 @@ class NTScalarAny(BaseModel):
 
 
 class Column(BaseModel):
+    """A single value column in an NT table."""
+
     value: RequiredAny
 
 
 class NTTable(BaseModel):
+    """Tabular data represented by labels and value columns."""
+
     labels: list[str] = []
     value: list[Column] = []
     descriptor: str = ""
@@ -192,11 +217,15 @@ class NTTable(BaseModel):
 
 
 class XYData(BaseModel):
+    """An x-y pair of scalar values."""
+
     x: NTScalarAny
     y: NTScalarAny
 
 
 class CAScalarAny(BaseModel):
+    """A Channel Access scalar value and its associated metadata."""
+
     value: RequiredAny
     pvname: Annotated[str, replace_none("")] = ""
     status: Annotated[int, replace_none(0)] = 0
@@ -211,11 +240,15 @@ class CAScalarAny(BaseModel):
 
 
 class PulseID(BaseModel):
+    """A pulse identifier and its timestamp."""
+
     value: int = 0
     timestamp: float = 0.0
 
 
 class PVData(BaseModel):
+    """PV data with source name and optional pulse and timestamp metadata."""
+
     data: Union[NTScalarAny, NTNDArray, NTTable, XYData]
     sourceName: str = ""
     pulseId: Optional[PulseID] = None

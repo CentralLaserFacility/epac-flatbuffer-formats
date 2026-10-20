@@ -33,6 +33,19 @@ def serialise_wa00(
     x_unit: Optional[str] = None,
     y_unit: Optional[str] = None,
 ) -> bytes:
+    """Serialise x and y waveform arrays to a wa00 FlatBuffer.
+
+    Args:
+        values_x_array: X-axis values.
+        values_y_array: Y-axis values.
+        x_timestamp: Optional timestamp for the x-axis data.
+        timestamp: Optional timestamp for the waveform.
+        x_unit: Optional units for the x-axis.
+        y_unit: Optional units for the y-axis.
+
+    Returns:
+        The serialised FlatBuffer.
+    """
     builder = flatbuffers.Builder(1024)
 
     type_map = {
@@ -81,6 +94,8 @@ def serialise_wa00(
 
 @dataclass
 class wa00_t:
+    """Decoded wa00 waveform arrays and their optional metadata."""
+
     values_x_array: np.ndarray
     values_y_array: np.ndarray
     timestamp: Optional[np.uint64] = None
@@ -109,6 +124,14 @@ def get_data(raw_data, datatype) -> np.ndarray:
 
 
 def deserialise_wa00(buffer: Union[bytearray, bytes]) -> wa00_t:
+    """Deserialise a wa00 FlatBuffer into waveform arrays and metadata.
+
+    Args:
+        buffer: FlatBuffer bytes containing a wa00 message.
+
+    Returns:
+        The decoded waveform arrays, timestamps, and units.
+    """
     check_schema_identifier(buffer, FILE_IDENTIFIER)
     waveform_array = WaveFormArray.GetRootAsWaveFormArray(buffer, 0)
     max_time = datetime(
