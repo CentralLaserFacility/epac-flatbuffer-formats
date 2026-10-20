@@ -6,12 +6,24 @@ import shutil
 import stat
 import subprocess
 import sys
+from typing import Callable, Protocol
 
 # == Framework ==
 
 
-SETUP_MAP = {}
-COMMAND_MAP = {}
+class SetupProtocol(Protocol):
+    @classmethod
+    def is_setup(cls) -> bool: ...
+
+    @classmethod
+    def setup(cls) -> None: ...
+
+    @classmethod
+    def clean(cls) -> None: ...
+
+
+SETUP_MAP: dict[str, type[SetupProtocol]] = {}
+COMMAND_MAP: dict[str, Callable[[], None]] = {}
 
 
 def setup(name):
@@ -91,7 +103,7 @@ def require(setup_name: str, *, auto_setup: bool = False):
 
 
 def packages():
-    """Top-level packages, for use with e.g. pdoc."""
+    """Top-level packages."""
 
     for pkg in os.listdir("src"):
         if pkg.isidentifier():
@@ -107,12 +119,6 @@ def mypy_check_paths():
         "rust/epac-flatbuffer-formats-rs/python/epac_flatbuffer_formats_rs",
         "rust/epac-flatbuffer-formats-rs/python/tests",
     ]
-
-
-def api_doc_modules():
-    """Arguments (paths, modules, files) to be passed to pdoc."""
-
-    return packages()
 
 
 # == Built-in commands and setups ==
@@ -172,6 +178,16 @@ DEV=./dev.py
 
 if [ ! -x $DEV -o {os} = win ]; then
     DEV="python $DEV"
+fi
+
+# We do not attempt to support intent-to-add, but we don't want to wreck the files
+git diff --ignore-submodules --exit-code --no-ext-diff --diff-filter=A --name-only \
+    >/dev/null
+if [ $? -ne 0 ]; then
+    echo Some files have intent-to-add set
+    echo This pre-commit hook does not support this
+    echo Try removing intent-to-add or skipping pre-commit hooks
+    exit 1
 fi
 
 PATCH_FILE=$(mktemp)
@@ -234,6 +250,7 @@ def cmd_precommit():
 
     venv.run_cmd("git", "diff", "--staged", "--check")
     venv.run_cmd("black", "--quiet", "--check", "--diff", ".")
+    venv.run_cmd("isort", "--quiet", "--check", "--diff", ".")
     venv.run_cmd("flake8", ".")
 
     # rust hooks if toolchain present
@@ -260,10 +277,11 @@ def cmd_precommit():
 
 @command("fmt")
 def cmd_fmt():
-    """Format code with black."""
+    """Format code with black and isort."""
 
     venv = require("venv")
 
+    venv.run_cmd("isort", "--quiet", ".")
     venv.run_cmd("black", ".")
 
     if _has_rust_toolchain(venv):
@@ -292,13 +310,32 @@ def cmd_benchmark():
     venv.run_cmd("pytest", "benchmarks")
 
 
-@command("api-docs")
+@command("doc")
 def cmd_api_docs():
-    """Browse API docs."""
+    """Build documentation.
+
+    Use fresh environment option and build to `docs/build/html`
+    with `docs/source` as source.
+    """
 
     venv = require("venv")
 
-    venv.run_cmd("pdoc", *api_doc_modules())
+    venv.run_cmd("sphinx-build", "-WE", "docs/source", "docs/build/html")
+
+
+@command("local-doc")
+def cmd_local_docs():
+    """Auto-build documentation.
+
+    Build documentation with sphinx-autobuild and serve locally at
+    default address (https://127.0.0.1:8000).
+
+    Build to `docs/build/html` with `docs/source` as source
+    """
+
+    venv = require("venv")
+
+    venv.run_cmd("sphinx-autobuild", "docs/source", "docs/build/html")
 
 
 # == User commands, setups, and other customisations ==

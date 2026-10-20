@@ -1,10 +1,11 @@
 from functools import partial
 from typing import Annotated, Any, Optional, Tuple, Union
+
+from pydantic import BaseModel, BeforeValidator
+
 from epac.flatbuffers.fbschemas.pva0.AlarmSeverity import AlarmSeverity
 from epac.flatbuffers.fbschemas.pva0.AlarmStatus import AlarmStatus
 from epac.flatbuffers.fbschemas.pva0.DisplayForm import DisplayForm
-
-from pydantic import BaseModel, BeforeValidator
 
 
 class EnumT(BaseModel):

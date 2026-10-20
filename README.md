@@ -480,3 +480,23 @@ FlatBuffers. It also exposes the Python binding entry point `serialise_pv_data`.
 [normative-types]: https://docs.epics-controls.org/en/latest/pv-access/Normative-Types-Specification.html
 [ADPluginKafka]: https://github.com/CentralLaserFacility/ADPluginKafka
 [epac-forwarder]: https://github.com/CentralLaserFacility/epac-forwarder
+
+## Releasing
+
+The skeleton is configured to use `setuptools_scm` by default, and can generate
+GitHub releases when you push a version number tag to github. Any tag starting
+`v[0-9]` (i.e. `v` followed by any digit) will trigger a release.
+`setuptools_scm` will derive a package version from the name of the tag.
+
+To release the version `0.1.1`, for example:
+```sh
+git tag v0.1.1
+git push --tags
+```
+
+Generated releases will include a wheel, a source distribution and a
+`requirements.txt` file specifying the versions of dependencies that were
+installed when the package passed its pre-release tests. This requirements.txt
+file should be used as a constraint file when installing the wheel in
+production environments, to ensure reproducible installation with a
+known-working environment.
