@@ -1,3 +1,9 @@
+"""Serialise and deserialise ADAr area-detector arrays.
+
+This module converts array data and its attributes to and from the ADAr
+FlatBuffers schema.
+"""
+
 # Copied from https://github.com/ess-dmsc/python-streaming-data-types
 # Upstream commit 3c2564cd6d
 

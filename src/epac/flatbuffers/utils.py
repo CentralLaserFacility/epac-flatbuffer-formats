@@ -1,3 +1,9 @@
+"""Provide helpers for identifying and validating FlatBuffer schemas.
+
+The functions in this module read the schema identifier from a buffer and
+check it against the identifier expected by a format-specific deserializer.
+"""
+
 # Copied from https://github.com/ess-dmsc/python-streaming-data-types
 # Upstream commit 3c2564cd6d
 

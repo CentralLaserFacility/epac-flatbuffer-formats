@@ -1,3 +1,10 @@
+"""Serialise and deserialise pva0 normative-type data.
+
+This module converts the data models in :mod:`epac.flatbuffers.data_types`
+to and from pva0 FlatBuffers, including scalar, array, table, and NDArray
+values and their associated metadata.
+"""
+
 from functools import wraps
 from types import ModuleType
 from typing import Any, Callable, Optional, TypeVar

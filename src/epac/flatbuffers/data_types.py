@@ -1,3 +1,10 @@
+"""Define validated data models for the supported EPAC FlatBuffer formats.
+
+The models represent normative types, scalar values, alarms, timestamps,
+display and control metadata, arrays, tables, and related data structures.
+Pydantic validators normalise and validate values used by the serializers.
+"""
+
 from functools import partial
 from typing import Annotated, Any, Optional, Tuple, Union
 

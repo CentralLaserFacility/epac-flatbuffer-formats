@@ -1,3 +1,9 @@
+"""Serialise and deserialise wa00 waveform arrays.
+
+The conversion functions handle x and y data, their data types and units,
+and optional timestamps.
+"""
+
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional, Union

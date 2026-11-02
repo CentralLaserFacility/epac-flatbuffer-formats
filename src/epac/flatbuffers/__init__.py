@@ -1,3 +1,11 @@
+"""Serialise and deserialise EPAC data using FlatBuffers.
+
+The package provides helpers for the f142 log-data, ADAr area-detector,
+wa00 waveform, and pva0 normative-type formats. The ``SERIALISERS`` and
+``DESERIALISERS`` mappings associate each format identifier with its
+corresponding conversion function.
+"""
+
 # Copied from https://github.com/ess-dmsc/python-streaming-data-types
 # Upstream commit 3c2564cd6d
 

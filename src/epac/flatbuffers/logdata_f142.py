@@ -1,3 +1,10 @@
+"""Serialise and deserialise f142 log-data values.
+
+The module supports scalar and array values across the integer and
+floating-point types defined by the f142 schema, together with associated
+alarm and timestamp metadata.
+"""
+
 # Copied from https://github.com/ess-dmsc/python-streaming-data-types
 # Upstream commit 3c2564cd6d
 

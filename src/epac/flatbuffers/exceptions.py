@@ -1,3 +1,9 @@
+"""Define exceptions raised while validating FlatBuffer format buffers.
+
+The exception hierarchy distinguishes general format errors, unexpected
+schema identifiers, and buffers that are too short to contain a header.
+"""
+
 # Copied from https://github.com/ess-dmsc/python-streaming-data-types
 # Upstream commit 3c2564cd6d
 
