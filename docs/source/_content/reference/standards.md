@@ -3,7 +3,7 @@
 ## Code Standards
 
 ```{seealso}
-[Linting, Formatting and Type Checking](../user_guide/linting.md)
+[Linting, Formatting and Type Checking](../development/linting.md)
 ```
 
 To ensure consistency, maintainability, and code quality across the project, all contributions should comply with the following standards and tooling requirements:
@@ -32,7 +32,7 @@ Where type hints are present, code should pass **MyPy** type checking. New code 
 mypy src/
 ```
 
-Where available (see [Linting, Formatting and Type Checking](../user_guide/linting.md)), automated CI checks will enforce these standards and must pass before changes can be merged.
+Where available (see [Linting, Formatting and Type Checking](../development/linting.md)), automated CI checks will enforce these standards and must pass before changes can be merged.
 
 ## Documentation Standards
 
@@ -44,7 +44,7 @@ Examples and code snippets should be accurate, up to date, and reflect recommend
 
 ### In-Code Documentation
 ```{seealso}
-[How to build the documentation](../user_guide/build_docs.md)
+[How to build the documentation](../development/build_docs.md)
 ```
 
 #### Docstrings

@@ -20,7 +20,7 @@ $ ./dev.py doc
 
 This will build the documentation, with a fresh environment (without cached values), in `docs/build/html` from the `docs/source` directory.
 
-This is the command used to generate documentation in the release workflow. See [here for more information](../user_guide/releasing.md).
+This is the command used to generate documentation in the release workflow. See [here for more information](../development/releasing.md).
 
 ## Auto build
 
