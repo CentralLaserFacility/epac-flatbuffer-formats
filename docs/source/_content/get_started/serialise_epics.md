@@ -8,7 +8,7 @@ installed the package yet, follow the [installation instructions](installation.m
 Install p4p separately if it is not already available in your environment:
 
 ```shell
-python -m pip install p4p
+pip install p4p
 ```
 
 ## Start the example PV server

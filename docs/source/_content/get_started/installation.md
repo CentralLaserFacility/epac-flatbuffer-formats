@@ -35,13 +35,13 @@ page. The release includes:
 Install the main package with:
 
 ```shell
-python -m pip install /path/to/downloaded-python-wheel.whl
+pip install /path/to/downloaded-python-wheel.whl
 ```
 
 To use the Rust `pva0` serializer as well, install the matching Rust-binding package in the same environment:
 
 ```shell
-python -m pip install /path/to/downloaded-python-wheel.whl \
+pip install /path/to/downloaded-python-wheel.whl \
     /path/to/downloaded-rust-wheel.whl
 ```
 
@@ -52,19 +52,19 @@ Replace both paths with the downloaded filenames.
 To install the pure-Python package directly from a tagged release, run:
 
 ```shell
-python -m pip install \
+pip install \
     "epac-flatbuffer-formats @ git+https://github.com/CentralLaserFacility/epac-flatbuffer-formats.git@v0.3.2"
 ```
 
-To install both the Python package and the Rust-binding Python package together from the same tag, run:
+To install both the Python package and the Rust-binding Python package, run:
 
 ```shell
-python -m pip install \
-    "epac-flatbuffer-formats @ git+https://github.com/CentralLaserFacility/epac-flatbuffer-formats.git@v0.3.2" \
-    "epac-flatbuffer-formats-rs @ git+https://github.com/CentralLaserFacility/epac-flatbuffer-formats.git@v0.3.2"
+pip install \
+  "epac-flatbuffer-formats @ git+https://github.com/CentralLaserFacility/epac-flatbuffer-formats.git@v0.3.2" \
+  "https://github.com/CentralLaserFacility/epac-flatbuffer-formats/releases/download/v0.3.2/epac_flatbuffer_formats_rs-0.3.2-cp38-abi3-manylinux_2_34_x86_64.whl"
 ```
 
-Replace `v0.3.2` with the release tag you want to use. The Rust package is optional, but if you want to use the Rust `pva0` serializer you should install it alongside the main package.
+Replace both version strings with the release tag you want to use. The Rust package is optional, but if you want to use the Rust `pva0` serializer you should install it alongside the main package.
 
 
 ## Install for development
@@ -105,11 +105,16 @@ If your project uses `pyproject.toml` to manage its virtual environment (as is c
 ...
 dependencies = [
     "epac-flatbuffer-formats @ git+https://github.com/CentralLaserFacility/epac-flatbuffer-formats.git@v0.3.2",
-    "epac-flatbuffer-formats-rs @ git+https://github.com/CentralLaserFacility/epac-flatbuffer-formats.git@v0.3.2",
+    "epac-flatbuffer-formats-rs @ https://github.com/CentralLaserFacility/epac-flatbuffer-formats/releases/download/v0.3.2/epac_flatbuffer_formats_rs-0.3.2-cp38-abi3-manylinux_2_34_x86_64.whl",
 ]
 ```
 
-Replace `v0.3.2` with the release tag you want to use. Then refresh the environment so the dependencies are installed.
+Replace both version strings with the release tag you want to use. Then refresh the environment so the dependencies are installed.
+
+For serious use, pin dependencies. Use a full commit hash for a Git dependency, or a hash for a wheel or source distribution.
+This makes the selected source code or artifact explicit and helps make installations repeatable and more secure.
+Note however, that this does not establish that the source is trustworthy, only that the same source is used consistently.
+See the [PyPA guidance on direct references](https://packaging.python.org/en/latest/specifications/version-specifiers/#direct-references).
 
 If you do not need the Rust-backed serializer, you can omit `epac-flatbuffer-formats-rs` and install only the main package.
 
