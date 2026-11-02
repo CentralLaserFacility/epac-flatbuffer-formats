@@ -27,29 +27,26 @@ pub mod epac_flatbuffer_formats_rs {
 
     const FILE_IDENTIFIER: &str = "pva0";
 
-    /// Serialise a PVData object to bytes
+    // Python style docstring is prioritised below in favour
+    // of `rustdoc` display.
+
+    /// Serialise a PVData object to bytes.
     ///
-    /// _Args_
-    /// <p> data - `PVData` object to serialise</p>
+    /// Args:
+    ///     data (PVData): The PVData object to serialise.
     ///
-    /// _Returns_
-    /// <p> bytes - serialissed flatbuffer bytes</p>
+    /// Returns:
+    ///     bytes: The serialised FlatBuffer data.
     ///
-    /// ---
-    /// ## Example:
+    /// Example:
+    ///     from epac_flatbuffer_formats_rs import serialise_pv_data
+    ///     from epac.flatbuffers.data_types import PVData
     ///
-    /// ``` python
-    /// from epac_flatbuffer_formats_rs import serialise_pv_data
-    /// from epac.flatbuffers.data_types import PVData
+    ///     data = PVData(...)
+    ///     payload = serialise_pv_data(data)
     ///
-    /// data = PVData(...)
-    ///
-    /// # serialise with rust
-    /// payload = serialise_pv_data(data)
-    ///
-    /// assert len(payload)>0
-    /// assert isinstance(payload, bytes)
-    /// ```
+    ///     assert len(payload) > 0
+    ///     assert isinstance(payload, bytes)
     ///
     #[pyfunction]
     pub fn serialise_pv_data(py: Python<'_>, data: PVData) -> PyResult<Py<PyBytes>> {
