@@ -8,5 +8,4 @@ Higher level discussion and explanations.
 
 schema_details
 rust_crates
-upstream_comparison
 ```
