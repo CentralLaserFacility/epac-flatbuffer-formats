@@ -1,10 +1,20 @@
+"""Convert Channel Access scalar values and metadata to normative types.
+
+The converter maps Channel Access alarm, timestamp, display, and control
+information to the corresponding pva0 data representations.
+"""
+
 from enum import IntEnum
 
 import epac.flatbuffers.data_types as dt
 
 
 class CaToNtConverter:
+    """Convert Channel Access scalar data and metadata to NT scalar types."""
+
     class CaAlarmStatus(IntEnum):
+        """Channel Access alarm status codes."""
+
         NO_ALARM = 0
         READ = 1
         WRITE = 2

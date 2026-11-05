@@ -27,20 +27,6 @@ jobs:
         run: ./dev.py setup rust-bindings
       - name: Run tests
         run: ./dev.py test
-  test-selfhosted:
-    if: false
-    runs-on: [self-hosted, python3.10]
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-      - name: Set up development environment
-        run: ./dev.py setup venv
-      - name: Run pre-commit hooks
-        run: ./dev.py pre-commit
-      - name: Install bindings
-        run: ./dev.py setup rust-bindings
-      - name: Run tests
-        run: ./dev.py test
   validate-schemas:
     runs-on: ubuntu-latest
     steps:

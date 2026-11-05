@@ -9,7 +9,7 @@ use numpy::{Element, PyReadonlyArray1};
 
 /// This trait exists to bridge differences between the Rust representation and
 /// the FlatBuffers schema during serialisation. In practice, the Rust side may hold a
-/// plain value T, while the FlatBuffers schema expects Option<T> for an optional field.
+/// plain value T, while the FlatBuffers schema expects `Option<T>` for an optional field.
 ///
 /// SerialiseCoerce allows the serializer to convert the value when the schema requires
 /// the optional form.
